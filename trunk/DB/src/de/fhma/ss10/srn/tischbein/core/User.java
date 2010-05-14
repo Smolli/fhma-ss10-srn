@@ -2,6 +2,7 @@ package de.fhma.ss10.srn.tischbein.core;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -10,7 +11,47 @@ import javax.crypto.IllegalBlockSizeException;
 
 public class User {
 
-    public static User create(final String name, final String pass) {
+    private final class PrivateUserKey implements PrivateKey {
+        private static final long serialVersionUID = 8016515506145694357L;
+
+        @Override
+        public String getAlgorithm() {
+            return "AES";
+        }
+
+        @Override
+        public byte[] getEncoded() {
+            return User.this.privateKeyDecrypted;
+        }
+
+        @Override
+        public String getFormat() {
+            // TODO: Klären, was hier zurück gegeben werden muss!
+            return null;
+        }
+    }
+
+    private final class PublicUserKey implements PublicKey {
+        private static final long serialVersionUID = -4004473296448455411L;
+
+        @Override
+        public String getAlgorithm() {
+            return "AES";
+        }
+
+        @Override
+        public byte[] getEncoded() {
+            return User.this.publicKey;
+        }
+
+        @Override
+        public String getFormat() {
+            // TODO: Klären, was hier zurück gegeben werden muss!
+            return null;
+        }
+    }
+
+    public static User create(final String name, final String pass) throws NoSuchAlgorithmException {
         User user = new User();
 
         user.setName(name);
@@ -23,83 +64,7 @@ public class User {
         return user;
     }
 
-    private KeyPair keyPair;
-    private String name;
-    private String passHash;
-    private byte[] privateKeyEncrypted;
-    private byte[] privateKeyDecrypted = null;
-
-    private void setKeyPair(final KeyPair pair) {
-        this.keyPair = pair;
-    }
-
-    private void setName(final String name) {
-        this.name = name;
-    }
-
-    private void setPass(final String pass) {
-        this.passHash = Utils.toHexString(Utils.toMD5(pass));
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String getPassHash() {
-        return this.passHash;
-    }
-
-    private void setPassHash(final String hash) {
-        this.passHash = hash;
-    }
-
-    public PublicKey getPublicKey() {
-        return this.keyPair.getPublic();
-    }
-
-    public PrivateKey getPrivateKey() {
-        return this.keyPair.getPrivate();
-    }
-
-    private void setKey(final byte[] publicKey, final byte[] privateKey) {
-        this.privateKeyEncrypted = privateKey;
-
-        this.keyPair = new KeyPair(new PublicKey() {
-
-            @Override
-            public String getFormat() {
-                return null;
-            }
-
-            @Override
-            public byte[] getEncoded() {
-                return publicKey;
-            }
-
-            @Override
-            public String getAlgorithm() {
-                return "AES";
-            }
-        }, new PrivateKey() {
-
-            @Override
-            public String getAlgorithm() {
-                return "AES";
-            }
-
-            @Override
-            public byte[] getEncoded() {
-                return User.this.privateKeyDecrypted;
-            }
-
-            @Override
-            public String getFormat() {
-                return null;
-            }
-        });
-    }
-
-    public static User read(final String line) {
+    static User parse(final String line) {
         User user = new User();
         String[] cols = line.split(";");
 
@@ -109,6 +74,30 @@ public class User {
         user.setKey(Utils.fromHexString(cols[2]), Utils.fromHexString(cols[3]));
 
         return user;
+    }
+
+    private KeyPair keyPair;
+    private String username;
+    private String passHash;
+    private byte[] privateKeyEncrypted;
+    private byte[] publicKey;
+
+    private byte[] privateKeyDecrypted = null;
+
+    public String getName() {
+        return this.username;
+    }
+
+    public String getPassHash() {
+        return this.passHash;
+    }
+
+    public PrivateKey getPrivateKey() {
+        return this.keyPair.getPrivate();
+    }
+
+    public PublicKey getPublicKey() {
+        return this.keyPair.getPublic();
     }
 
     public boolean unlock(final String pass) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
@@ -121,6 +110,62 @@ public class User {
         this.privateKeyDecrypted = Utils.decrypt(this.privateKeyEncrypted, pass);
 
         return true;
+    }
+
+    /**
+     * Setzt das RSA-Schlüsselpaar auf die beiden privaten und öffentlichen Werte.
+     * 
+     * @param publicKeyValue
+     *            Der Öffentliche Schlüssel.
+     * @param privateKeyValue
+     *            Der private Schlüssel.
+     */
+    private void setKey(final byte[] publicKeyValue, final byte[] privateKeyValue) {
+        this.privateKeyEncrypted = privateKeyValue;
+        this.publicKey = publicKeyValue;
+
+        this.keyPair = new KeyPair(new PublicUserKey(), new PrivateUserKey());
+    }
+
+    /**
+     * Setzt das Schlüsselpaar auf direktem Weg.
+     * 
+     * @param pair
+     *            Das Schlüsselpaar.
+     */
+    private void setKeyPair(final KeyPair pair) {
+        this.keyPair = pair;
+    }
+
+    /**
+     * Setzt den Benutzernamen.
+     * 
+     * @param name
+     *            Der Benutzername.
+     */
+    private void setName(final String name) {
+        this.username = name;
+    }
+
+    /**
+     * Ermittelt den Hash zu dem übergebenen Passwort und speichert diesen. Das Benutzerpasswort wird niemals im
+     * programm verzeichnet oder gespeichert.
+     * 
+     * @param pass
+     *            Das Benutzerpasswort.
+     */
+    private void setPass(final String pass) {
+        this.passHash = Utils.toHexString(Utils.toMD5(pass));
+    }
+
+    /**
+     * Setzt den Hash des Benutzerpassworts direkt.
+     * 
+     * @param hash
+     *            Der Hashwert des Benutzerpassworts als hexadezimal dargestellte MD5-Summe.
+     */
+    private void setPassHash(final String hash) {
+        this.passHash = hash;
     }
 
 }
