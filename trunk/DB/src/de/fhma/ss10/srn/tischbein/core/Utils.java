@@ -1,15 +1,12 @@
 package de.fhma.ss10.srn.tischbein.core;
 
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -18,7 +15,6 @@ import javax.crypto.spec.SecretKeySpec;
  * @author Smolli
  */
 public final class Utils {
-
     /** Hält den Wert für 0xff. */
     private static final int NIBBLE_MAX_VALUE = 16;
     /** Hält das Maximum eines Unsinged Byte (255). */
@@ -44,51 +40,59 @@ public final class Utils {
     }
 
     /**
-     * Konvertiert einen String in eine MD5-Summe.
+     * Entschlüsselt einen Geheimtext mit dem AES-Algorithmus und dem übergebenen Passwort.
      * 
-     * @param text
-     *            Der zu konvertierende String.
-     * @return Die MD5-Summe als Byte-Array.
+     * @param cipher
+     *            Der verschlüsselte Geheimtext.
+     * @param secret
+     *            Der geheime Schlüssel.
+     * @return Gibt den Klartext zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Geheimtext nicht entschlüsselt werden konnte.
      */
-    public static byte[] toMD5(final String text) {
-        return Utils.toMD5(text.getBytes());
-    }
+    public static byte[] decrypt(final byte[] cipher, final String secret) throws UtilsException {
+        try {
+            Utils.aes.init(Cipher.DECRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), "AES"));
 
-    /**
-     * Konvertiert ein Byte-Array in eine MD5-Summe.
-     * 
-     * @param text
-     *            Das zu konvertierende Byte-Array.
-     * @return Die MD5-Summe als Byte-Array.
-     */
-    public static byte[] toMD5(final byte[] text) {
-        Utils.md5.reset();
-        Utils.md5.update(text);
+            byte[] res = Utils.aes.doFinal(cipher);
 
-        return Utils.md5.digest();
-    }
-
-    /**
-     * Konvertiert ein Byte-Array in einen Hex-String.
-     * 
-     * @param res
-     *            Das zu konvertierende Byte-Array.
-     * @return Das Array als Hex-String.
-     */
-    public static String toHexString(final byte[] res) {
-        StringBuilder hexString = new StringBuilder();
-
-        for (byte b : res) {
-            if ((b < Utils.NIBBLE_MAX_VALUE) && (b >= 0)) {
-                hexString.append("0");
-            }
-
-            hexString.append(Integer.toHexString(b & Utils.UNSIGNED_BYTE_MAX_VALUE));
+            return res;
+        } catch (Exception e) {
+            throw new UtilsException("Konnte den Geheimtext nicht entschlüsseln!", e);
         }
-
-        return hexString.toString();
     }
 
+    /**
+     * Verschlüsselt einen Klartext mit dem Übergebenen Schlüssel mit dem AES-Algorithmus.
+     * 
+     * @param message
+     *            Der Klartext.
+     * @param secret
+     *            Der geheime Schlüssel.
+     * @return Gibt den Geheimtext zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Klartext nicht verschlüsselt werden konnte.
+     */
+    public static byte[] encrypt(final byte[] message, final String secret) throws UtilsException {
+        try {
+            Utils.aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), "AES"));
+
+            byte[] res = Utils.aes.doFinal(message);
+
+            return res;
+        } catch (Exception e) {
+            throw new UtilsException("Kann den Klartext nicht verschlüsseln!", e);
+        }
+    }
+
+    /**
+     * Erzeugt aus dem übergebenen String ein Byte-Array. Der String muss aus hexadezimalen paaren zu je zwei Ziffern
+     * bestehen. Leer-, Satz- oder Sonderzeichen sind nicht erlaubt.
+     * 
+     * @param hex
+     *            Der Hex-String.
+     * @return Gibt den String als Byte-Array zurück.
+     */
     public static byte[] fromHexString(final String hex) {
         byte[] res = new byte[hex.length() / 2];
 
@@ -101,24 +105,6 @@ public final class Utils {
                 res[i] = (byte) (t - Utils.UNSIGNED_BYTE_MAX_VALUE);
             }
         }
-
-        return res;
-    }
-
-    public static byte[] encrypt(final byte[] message, final String secret) throws InvalidKeyException,
-            IllegalBlockSizeException, BadPaddingException {
-        Utils.aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), "AES"));
-
-        byte[] res = Utils.aes.doFinal(message);
-
-        return res;
-    }
-
-    public static byte[] decrypt(final byte[] cipher, final String secret) throws IllegalBlockSizeException,
-            BadPaddingException, InvalidKeyException {
-        Utils.aes.init(Cipher.DECRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), "AES"));
-
-        byte[] res = Utils.aes.doFinal(cipher);
 
         return res;
     }
@@ -144,6 +130,52 @@ public final class Utils {
         KeyPair generatedKeyPair = kpgen.generateKeyPair();
 
         return generatedKeyPair;
+    }
+
+    /**
+     * Konvertiert ein Byte-Array in einen Hex-String.
+     * 
+     * @param res
+     *            Das zu konvertierende Byte-Array.
+     * @return Das Array als Hex-String.
+     */
+    public static String toHexString(final byte[] res) {
+        StringBuilder hexString = new StringBuilder();
+
+        for (byte b : res) {
+            if ((b < Utils.NIBBLE_MAX_VALUE) && (b >= 0)) {
+                hexString.append("0");
+            }
+
+            hexString.append(Integer.toHexString(b & Utils.UNSIGNED_BYTE_MAX_VALUE));
+        }
+
+        return hexString.toString();
+    }
+
+    /**
+     * Konvertiert ein Byte-Array in eine MD5-Summe.
+     * 
+     * @param text
+     *            Das zu konvertierende Byte-Array.
+     * @return Die MD5-Summe als Byte-Array.
+     */
+    public static byte[] toMD5(final byte[] text) {
+        Utils.md5.reset();
+        Utils.md5.update(text);
+
+        return Utils.md5.digest();
+    }
+
+    /**
+     * Konvertiert einen String in eine MD5-Summe.
+     * 
+     * @param text
+     *            Der zu konvertierende String.
+     * @return Die MD5-Summe als Byte-Array.
+     */
+    public static byte[] toMD5(final String text) {
+        return Utils.toMD5(text.getBytes());
     }
 
 }
