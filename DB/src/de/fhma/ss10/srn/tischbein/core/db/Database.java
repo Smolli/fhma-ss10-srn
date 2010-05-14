@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -121,5 +122,9 @@ public final class Database {
         }
 
         return user;
+    }
+
+    public Vector<String> getUserList(final User user) {
+        return new Vector<String>(this.users.keySet());
     }
 }
