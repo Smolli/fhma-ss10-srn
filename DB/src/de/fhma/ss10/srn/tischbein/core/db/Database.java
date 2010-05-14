@@ -3,10 +3,9 @@ package de.fhma.ss10.srn.tischbein.core.db;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.text.MessageFormat;
 import java.util.TreeMap;
 import java.util.Vector;
-
-import javax.swing.ListModel;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
@@ -66,7 +65,7 @@ public final class Database {
     }
 
     /** Enthält alle bekannten Benutzer in einer Map. */
-    private final TreeMap<String, User> users = new TreeMap<String, User>();
+    private TreeMap<String, User> users = new TreeMap<String, User>();
 
     /**
      * Privater ctor, um die Instanziierung außerhalb zu verhindern.
@@ -100,10 +99,10 @@ public final class Database {
     }
 
     /**
-     * Gibt einen <code>Vector<code> mit allen bekannten Benutzernamen zurück.
+     * Gibt einen <code>Vector</code> mit allen bekannten Benutzernamen zurück.
      * 
      * @param user
-     * @deprecated Diese Methode wird demnächst ersetzt. Ziel ist es ein {@link ListModel} zu erzeugen, in dem Alle
+     * @deprecated Diese Methode wird demnächst ersetzt. Ziel ist es ein <code>ListModel</code> zu erzeugen, in dem Alle
      *             Benutzernamen und der Wert des Zuordnungshäkchens gespeichert ist.
      * @return Der Vector mit allen Benutzernamen.
      */
@@ -112,6 +111,20 @@ public final class Database {
         return new Vector<String>(this.users.keySet());
     }
 
+    /**
+     * Versucht einen Benutzer anhand der übergebenen Parameter einzuloggen. Stimmen Benutzername und -passwort mit
+     * einem Eintrag in der Usertabelle überein, so wird der betreffende Benutzer geladen und sein Objekt zurück
+     * gegeben. Können die Daten nicht verifiziert werden, so wird eine <code>DatabaseException</code> geworfen.
+     * 
+     * @param name
+     *            Der Benutzername.
+     * @param pass
+     *            Das Benutzerpasswort.
+     * @return Wenn der Benutzername gültig ist und die Passwörter übereinstimmen, wird das ermittelte Benutzer-Objekt
+     *         zurückgegebe.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der Benutzer nicht angemeldet werden kann.
+     */
     public User loginUser(final String name, final String pass) throws DatabaseException {
         try {
             User user = this.users.get(name.toLowerCase());
@@ -130,38 +143,57 @@ public final class Database {
         }
     }
 
+    /**
+     * Lädt die Benutzertabelle. Im fehlerfall bleiben die geladenen Benutzer unverändert.
+     * 
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht vollständig geladen werden kann.
+     */
     private void loadUsers() throws DatabaseException {
         try {
             BufferedReader fr = new BufferedReader(new FileReader(Database.DB_USERS_TB));
+            TreeMap<String, User> temp = new TreeMap<String, User>();
             String line;
 
             while ((line = fr.readLine()) != null) {
                 User user = User.parse(line);
 
-                this.users.put(user.getName().toLowerCase(), user);
+                temp.put(user.getName().toLowerCase(), user);
             }
 
             fr.close();
+
+            this.users = temp;
         } catch (Exception e) {
             throw new DatabaseException("Kann die Benutzertabelle nicht laden!", e);
         }
     }
 
+    /**
+     * Speichert einen User an das Ende der Benutzertabelle.
+     * 
+     * @param user
+     *            Das Benutzerobjekt.
+     * @param pass
+     *            Das Benutzerpasswort mit dem der private Schlüssel verschlüsselt wird.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der neue Benutzer nicht zur Benutertabelle hinzugefügt werden konnte.
+     */
     private void saveToUsers(final User user, final String pass) throws DatabaseException {
         try {
             FileWriter fw = new FileWriter(Database.DB_USERS_TB, true);
-            StringBuilder userLine = new StringBuilder();
 
-            userLine.append(user.getName());
-            userLine.append(Database.SEPARATOR);
-            userLine.append(user.getPassHash());
-            userLine.append(Database.SEPARATOR);
-            userLine.append(Utils.toHexString(user.getPublicKey().getEncoded()));
-            userLine.append(Database.SEPARATOR);
-            userLine.append(Utils.toHexString(Utils.encrypt(user.getPrivateKey().getEncoded(), pass)));
+            String privateKey = Utils.toHexString(Utils.encrypt(user.getPrivateKey(), pass));
+            String publicKey = Utils.toHexString(user.getPublicKey());
 
-            fw.append(userLine);
-            fw.append("\n");
+            fw.append(MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}\n", // Formatzeile
+                    Database.SEPARATOR, // 0 - Separator
+                    user.getName(), // 1 - Benutzername
+                    user.getPassHash(), // 2 - Hashwert des Benutzerpassworts
+                    publicKey, // 3 - öffentlicher Schlüssel
+                    privateKey // 4 - private Schlüssel (verschlüsselt)
+                    ));
+
             fw.flush();
 
             fw.close();
