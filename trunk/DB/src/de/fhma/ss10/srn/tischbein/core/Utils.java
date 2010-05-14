@@ -12,13 +12,20 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Utils {
+/**
+ * Werkzeugklasse. Enthält viele Methoden zum Ent- und Verschlüsseln von Daten und zum Erzeugen von MD5-Summen.
+ * 
+ * @author Smolli
+ */
+public final class Utils {
 
     /** Hält den Wert für 0xff. */
     private static final int NIBBLE_MAX_VALUE = 16;
     /** Hält das Maximum eines Unsinged Byte (255). */
     private static final int UNSIGNED_BYTE_MAX_VALUE = 0xff;
+    /** Hält die Schlüssellänge für den RSA-Alogrithmus. */
     private static final int RSA_KEY_SIZE = 1024;
+
     /** Enthält den MD5-Konverter. */
     private static MessageDigest md5 = null;
     /** Enthält den RSA-Algorithmus. */
@@ -36,10 +43,24 @@ public class Utils {
         }
     }
 
+    /**
+     * Konvertiert einen String in eine MD5-Summe.
+     * 
+     * @param text
+     *            Der zu konvertierende String.
+     * @return Die MD5-Summe als Byte-Array.
+     */
     public static byte[] toMD5(final String text) {
         return Utils.toMD5(text.getBytes());
     }
 
+    /**
+     * Konvertiert ein Byte-Array in eine MD5-Summe.
+     * 
+     * @param text
+     *            Das zu konvertierende Byte-Array.
+     * @return Die MD5-Summe als Byte-Array.
+     */
     public static byte[] toMD5(final byte[] text) {
         Utils.md5.reset();
         Utils.md5.update(text);
@@ -47,6 +68,13 @@ public class Utils {
         return Utils.md5.digest();
     }
 
+    /**
+     * Konvertiert ein Byte-Array in einen Hex-String.
+     * 
+     * @param res
+     *            Das zu konvertierende Byte-Array.
+     * @return Das Array als Hex-String.
+     */
     public static String toHexString(final byte[] res) {
         StringBuilder hexString = new StringBuilder();
 
@@ -95,20 +123,25 @@ public class Utils {
         return res;
     }
 
-    public static KeyPair generateRSAKeyPair() {
-        KeyPairGenerator rsa = null;
+    /**
+     * Erzeugt ein Public-Private-Schlüsselpaar für den RSA-Algorithmus.
+     * 
+     * @return Gibt das Schlüsselpaar als {@link java.security.KeyPair KeyPair} zurück.
+     * @throws NoSuchAlgorithmException
+     *             Wird geworfen, wenn der RSA-Algorithmus nicht zur Verfügung steht.
+     * @see java.security.KeyPair
+     * @see java.security.KeyPairGenerator
+     * @see java.security.SecureRandom
+     */
+    public static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator kpgen = null;
         SecureRandom random = new SecureRandom();
-        try {
-            rsa = KeyPairGenerator.getInstance("RSA");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
 
-            return null;
-        }
+        kpgen = KeyPairGenerator.getInstance("RSA");
 
-        rsa.initialize(Utils.RSA_KEY_SIZE, random);
+        kpgen.initialize(Utils.RSA_KEY_SIZE, random);
 
-        KeyPair generatedKeyPair = rsa.generateKeyPair();
+        KeyPair generatedKeyPair = kpgen.generateKeyPair();
 
         return generatedKeyPair;
     }
