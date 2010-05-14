@@ -2,11 +2,8 @@ package de.fhma.ss10.srn.tischbein.core;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -15,22 +12,13 @@ public class User {
 
     public static User create(final String name, final String pass) {
         User user = new User();
-        KeyPairGenerator rsa = null;
-        SecureRandom random = new SecureRandom();
-        KeyPair pair;
 
         user.setName(name);
         user.setPass(pass);
 
-        try {
-            rsa = KeyPairGenerator.getInstance("RSA");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+        KeyPair generatedKeyPair = Utils.generateRSAKeyPair();
 
-        rsa.initialize(1024, random);
-
-        user.setKeyPair(rsa.generateKeyPair());
+        user.setKeyPair(generatedKeyPair);
 
         return user;
     }
@@ -50,7 +38,7 @@ public class User {
     }
 
     private void setPass(final String pass) {
-        this.passHash = Utils.toMD5(pass);
+        this.passHash = Utils.toHexString(Utils.toMD5(pass));
     }
 
     public String getName() {
@@ -118,13 +106,13 @@ public class User {
         user.setName(cols[0]);
         user.setPassHash(cols[1]);
         // REM: Privater Schlüssel ist immernoch verschlüsselt!
-        user.setKey(Utils.fromHex(cols[2]), Utils.fromHex(cols[3]));
+        user.setKey(Utils.fromHexString(cols[2]), Utils.fromHexString(cols[3]));
 
         return user;
     }
 
     public boolean unlock(final String pass) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        String hash = Utils.toMD5(pass);
+        String hash = Utils.toHexString(Utils.toMD5(pass));
 
         if (!hash.equals(this.passHash)) {
             return false;

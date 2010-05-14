@@ -98,9 +98,9 @@ public final class Database {
         userLine.append(Database.SEPARATOR);
         userLine.append(user.getPassHash());
         userLine.append(Database.SEPARATOR);
-        userLine.append(Utils.toHex(user.getPublicKey().getEncoded()));
+        userLine.append(Utils.toHexString(user.getPublicKey().getEncoded()));
         userLine.append(Database.SEPARATOR);
-        userLine.append(Utils.toHex(Utils.encrypt(user.getPrivateKey().getEncoded(), pass)));
+        userLine.append(Utils.toHexString(Utils.encrypt(user.getPrivateKey().getEncoded(), pass)));
 
         fw.append(userLine);
         fw.append("\n");
