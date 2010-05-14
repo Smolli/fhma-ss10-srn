@@ -1,19 +1,16 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-import java.security.InvalidKeyException;
+import java.io.Serializable;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
-public class User {
+public final class User implements Serializable {
 
-    private final class PrivateUserKey implements PrivateKey {
+    private final class UserPrivateKey implements PrivateKey {
+
         private static final long serialVersionUID = 8016515506145694357L;
 
         @Override
@@ -31,9 +28,11 @@ public class User {
             // TODO: Klären, was hier zurück gegeben werden muss!
             return null;
         }
+
     }
 
-    private final class PublicUserKey implements PublicKey {
+    private final class UserPublicKey implements PublicKey {
+
         private static final long serialVersionUID = -4004473296448455411L;
 
         @Override
@@ -51,19 +50,38 @@ public class User {
             // TODO: Klären, was hier zurück gegeben werden muss!
             return null;
         }
+
     }
 
-    public static User create(final String name, final String pass) throws NoSuchAlgorithmException {
-        User user = new User();
+    /** serial UID. */
+    private static final long serialVersionUID = 2490122214436444047L;
 
-        user.setName(name);
-        user.setPass(pass);
+    /**
+     * Erzeugt einen neuen User und ein neues Schlüsselpaar.
+     * 
+     * @param name
+     *            Der Benutzername.
+     * @param pass
+     *            Das Benutzerpasswort.
+     * @return Gibt das erzeugte Benutzer-Objekt zurück.
+     * @throws UserException
+     *             Wird geworfen, wenn der AES-Slgorithmus nicht zur Verfügung steht.
+     */
+    public static User create(final String name, final String pass) throws UserException {
+        try {
+            User user = new User();
 
-        KeyPair generatedKeyPair = Utils.generateRSAKeyPair();
+            user.setName(name);
+            user.setPass(pass);
 
-        user.setKeyPair(generatedKeyPair);
+            KeyPair generatedKeyPair = Utils.generateRSAKeyPair();
 
-        return user;
+            user.setKeyPair(generatedKeyPair);
+
+            return user;
+        } catch (Exception e) {
+            throw new UserException("Kann den Benutzer nicht erzeugen!", e);
+        }
     }
 
     static User parse(final String line) {
@@ -82,9 +100,8 @@ public class User {
     private String username;
     private String passHash;
     private byte[] privateKeyEncrypted;
-    private byte[] publicKey;
-
     private byte[] privateKeyDecrypted = null;
+    private byte[] publicKey;
 
     public String getName() {
         return this.username;
@@ -94,24 +111,34 @@ public class User {
         return this.passHash;
     }
 
-    public PrivateKey getPrivateKey() {
-        return this.keyPair.getPrivate();
+    /**
+     * Gibt den privaten Schlüssel zurück. Der Wert wird nur dann zurück gegeben, wenn der Benutzer sich zuvor mit einem
+     * gültigen Passwort authentifiziert hat. Das herausgeben eines privaten Schlüssels Dritter ist nicht möglich.
+     * 
+     * @return Gibt Den private Schlüssel zurück, wenn der Benutzer authentifiziert ist, andernfalls <code>null</code>.
+     */
+    public byte[] getPrivateKey() {
+        return this.keyPair.getPrivate().getEncoded();
     }
 
-    public PublicKey getPublicKey() {
-        return this.keyPair.getPublic();
+    public byte[] getPublicKey() {
+        return this.keyPair.getPublic().getEncoded();
     }
 
-    public boolean unlock(final String pass) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        String hash = Utils.toHexString(Utils.toMD5(pass));
+    public boolean unlock(final String pass) throws UserException {
+        try {
+            String hash = Utils.toHexString(Utils.toMD5(pass));
 
-        if (!hash.equals(this.passHash)) {
-            return false;
+            if (!hash.equals(this.passHash)) {
+                return false;
+            }
+
+            this.privateKeyDecrypted = Utils.decrypt(this.privateKeyEncrypted, pass);
+
+            return true;
+        } catch (Exception e) {
+            throw new UserException("Kann den Benutzer nicht authentifizieren!", e);
         }
-
-        this.privateKeyDecrypted = Utils.decrypt(this.privateKeyEncrypted, pass);
-
-        return true;
     }
 
     /**
@@ -126,7 +153,7 @@ public class User {
         this.privateKeyEncrypted = privateKeyValue;
         this.publicKey = publicKeyValue;
 
-        this.keyPair = new KeyPair(new PublicUserKey(), new PrivateUserKey());
+        this.keyPair = new KeyPair(new UserPublicKey(), new UserPrivateKey());
     }
 
     /**
@@ -136,7 +163,10 @@ public class User {
      *            Das Schlüsselpaar.
      */
     private void setKeyPair(final KeyPair pair) {
-        this.keyPair = pair;
+        this.privateKeyDecrypted = pair.getPrivate().getEncoded();
+        this.publicKey = pair.getPublic().getEncoded();
+
+        this.keyPair = new KeyPair(new UserPublicKey(), new UserPrivateKey());
     }
 
     /**
