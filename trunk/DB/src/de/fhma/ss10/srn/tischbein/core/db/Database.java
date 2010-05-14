@@ -108,7 +108,7 @@ public final class Database {
      * @return Der Vector mit allen Benutzernamen.
      */
     @Deprecated
-    public Vector<String> getUserList(final User user) {
+    public Vector<String> getUserList() {
         return new Vector<String>(this.users.keySet());
     }
 

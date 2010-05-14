@@ -20,6 +20,8 @@ import de.fhma.ss10.srn.tischbein.gui.actions.NewUserAction;
 
 public class MainFrame extends JFrame {
 
+    private static final long serialVersionUID = 5425989856036812026L;
+
     private JPasswordField userpass;
     private JTextField username;
 
@@ -29,12 +31,21 @@ public class MainFrame extends JFrame {
         this.initComponents();
     }
 
-    private void initComponents() {
-        BorderLayout layout = new BorderLayout();
+    public JTextField getUsername() {
+        return this.username;
+    }
 
-        this.getContentPane().setLayout(layout);
+    public JPasswordField getUserpass() {
+        return this.userpass;
+    }
 
-        this.getContentPane().add(this.createLoginPanel(), BorderLayout.CENTER);
+    public void setUser(final User user) {
+        this.getContentPane().removeAll();
+
+        this.createWorkbench(user);
+
+        this.getContentPane().repaint();
+        this.getContentPane().validate();
     }
 
     private Container createLoginPanel() {
@@ -58,38 +69,29 @@ public class MainFrame extends JFrame {
         return loginPanel;
     }
 
+    private void createWorkbench(final User user) {
+        JList list = new JList(Database.getInstance().getUserList());
+
+        this.getContentPane().add(list, BorderLayout.EAST);
+
+        this.getContentPane().add(new JButton("Logout"), BorderLayout.SOUTH);
+
+        this.getContentPane().add(new JLabel("Tischbein v0.1"), BorderLayout.NORTH);
+    }
+
+    private void initComponents() {
+        BorderLayout layout = new BorderLayout();
+
+        this.getContentPane().setLayout(layout);
+
+        this.getContentPane().add(this.createLoginPanel(), BorderLayout.CENTER);
+    }
+
     private void initFrame() {
         this.setTitle("Tischbein v0.1");
         this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         this.setSize(800, 600);
-    }
-
-    public JPasswordField getUserpass() {
-        return this.userpass;
-    }
-
-    public JTextField getUsername() {
-        return this.username;
-    }
-
-    public void setUser(final User user) {
-        this.getContentPane().removeAll();
-
-        this.createWorkbench(user);
-
-        this.getContentPane().repaint();
-        this.getContentPane().validate();
-    }
-
-    private void createWorkbench(final User user) {
-        JList list = new JList(Database.getInstance().getUserList(user));
-
-        this.getContentPane().add(list, BorderLayout.EAST);
-
-        this.getContentPane().add(new JButton("Logout"), BorderLayout.SOUTH);
-        
-        this.getContentPane().add(new JLabel("Tischbein v0.1"),BorderLayout.NORTH);
     }
 
 }
