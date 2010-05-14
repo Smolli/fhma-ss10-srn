@@ -7,14 +7,29 @@ package de.fhma.ss10.srn.tischbein.core.db;
  */
 public class DatabaseException extends Exception {
 
+    /** Serial UID. */
     private static final long serialVersionUID = -1946758572495693621L;
 
-    public DatabaseException(final String string) {
-        super(string);
+    /**
+     * Standard-Ctor.
+     * 
+     * @param message
+     *            Anzuzeigende Nachricht.
+     */
+    public DatabaseException(final String message) {
+        super(message);
     }
 
-    public DatabaseException(final String string, final Exception e) {
-        super(string, e);
+    /**
+     * Standard-Ctor mit Exception.
+     * 
+     * @param message
+     *            Anzuzeigende Nachricht.
+     * @param e
+     *            Verknüpfte Exception.
+     */
+    public DatabaseException(final String message, final Exception e) {
+        super(message, e);
     }
 
 }
