@@ -13,8 +13,8 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
-import de.fhma.ss10.srn.tischbein.core.User;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
+import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.NewUserAction;
 
