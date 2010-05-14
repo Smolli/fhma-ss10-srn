@@ -1,4 +1,4 @@
-package de.fama.ss10.srn.project.db;
+package de.fhma.ss10.srn.tischbein.core.db;
 
 import java.io.File;
 
