@@ -6,6 +6,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 
+import de.fhma.ss10.srn.tischbein.core.User;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
 
@@ -17,7 +18,9 @@ public class LoginAction extends AbstractAction {
         String pass = new String(Launcher.getFrame().getUserpass().getPassword());
 
         try {
-            Database.getInstance().loginUser(name, pass);
+            User user = Database.getInstance().loginUser(name, pass);
+
+            Launcher.getFrame().setUser(user);
         } catch (Exception ex) {
             ex.printStackTrace();
 
