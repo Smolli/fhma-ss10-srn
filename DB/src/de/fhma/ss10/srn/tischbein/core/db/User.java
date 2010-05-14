@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core;
+package de.fhma.ss10.srn.tischbein.core.db;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -8,6 +8,8 @@ import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+
+import de.fhma.ss10.srn.tischbein.core.Utils;
 
 public class User {
 
