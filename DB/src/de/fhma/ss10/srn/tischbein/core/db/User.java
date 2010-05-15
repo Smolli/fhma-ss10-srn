@@ -7,10 +7,21 @@ import java.security.PublicKey;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
+/**
+ * Userklasse. Enthält alle Methoden zur Benutzerverwaltung.
+ * 
+ * @author Smolli
+ */
 public final class User implements Serializable {
 
+    /**
+     * Innere Klasse zum Verwalten des privaten Schlüssels.
+     * 
+     * @author Smolli
+     */
     private final class UserPrivateKey implements PrivateKey {
 
+        /** Serial UID. */
         private static final long serialVersionUID = 8016515506145694357L;
 
         @Override
@@ -31,8 +42,14 @@ public final class User implements Serializable {
 
     }
 
+    /**
+     * Innere Klasse zum Verwalten des öffentlichen Schlüssels.
+     * 
+     * @author Smolli
+     */
     private final class UserPublicKey implements PublicKey {
 
+        /** Serial UID. */
         private static final long serialVersionUID = -4004473296448455411L;
 
         @Override
@@ -52,6 +69,15 @@ public final class User implements Serializable {
         }
 
     }
+
+    /** Benutzer-Tabelle Privater Schlüssel. */
+    private static final int COLUMN_PRIVATE_KEY = 3;
+    /** Benutzer-Tabelle Öffentlicher Schlüssel. */
+    private static final int COLUMN_PUBLIC_KEY = 2;
+    /** Benutzer-Tabelle Passwort. */
+    private static final int COLUMN_PASSWORD = 1;
+    /** Benutzer-Tabelle Benutzername. */
+    private static final int COLUMN_NAME = 0;
 
     /** serial UID. */
     private static final long serialVersionUID = 2490122214436444047L;
@@ -84,29 +110,53 @@ public final class User implements Serializable {
         }
     }
 
+    /**
+     * Parst eine Zeile der Benutzertabelle und gibt den Inhalt als Benutzer-Objekt zurück.
+     * 
+     * @param line
+     *            Die Zeile der Benutzertabelle.
+     * @return Das gepartse Benutzer-Objekt.
+     */
     static User parse(final String line) {
         User user = new User();
         String[] cols = line.split(";");
 
-        user.setName(cols[0]);
-        user.setPassHash(cols[1]);
+        user.setName(cols[User.COLUMN_NAME]);
+        user.setPassHash(cols[User.COLUMN_PASSWORD]);
         // REM: Privater Schlüssel ist immernoch verschlüsselt!
-        user.setKey(Utils.fromHexString(cols[2]), Utils.fromHexString(cols[3]));
+        user.setKey(Utils.fromHexString(cols[User.COLUMN_PUBLIC_KEY]), Utils
+                .fromHexString(cols[User.COLUMN_PRIVATE_KEY]));
 
         return user;
     }
 
+    /** Hält das RSA-Schlüsselpaar. */
     private KeyPair keyPair;
+    /** Hält den Benutzernamen. */
     private String username;
+    /** Hält den Hash-Wert des Benutzerpassworts. */
     private String passHash;
+    /** Hält den verschlüsselten privaten Schlüssel. */
     private byte[] privateKeyEncrypted;
+    /** Hält den entschlüsselten privaten Schlüssel. */
     private byte[] privateKeyDecrypted = null;
+    /** Hält den öffentlichen Schlüssel. */
     private byte[] publicKey;
 
+    /**
+     * Gibt den Benutzernamen zurück.
+     * 
+     * @return Der Benutzername.
+     */
     public String getName() {
         return this.username;
     }
 
+    /**
+     * Gibt den Hash-Wert des Benutzerpassworts zurück.
+     * 
+     * @return Der Hash-Wert des Passworts.
+     */
     public String getPassHash() {
         return this.passHash;
     }
@@ -121,10 +171,26 @@ public final class User implements Serializable {
         return this.keyPair.getPrivate().getEncoded();
     }
 
+    /**
+     * Gibt den öffentlichen Schlüssel des Benutzers zurück. Dieser Schlüssel kann von jedem eingesehen werden.
+     * 
+     * @return Der öffentliche Schlüssel.
+     */
     public byte[] getPublicKey() {
         return this.keyPair.getPublic().getEncoded();
     }
 
+    /**
+     * Versucht den Benutzer zu authentifizieren. Nur wenn das Passwort mit dem Hash-Wert des Benutzers übereinstimmt,
+     * wird der Benutzer freigeschaltet und sein privater Schlüssel entschlüsselt.
+     * 
+     * @param pass
+     *            Das Passwort des Benutzers.
+     * @return Gibt <code>true</code> zurück, wenn der Benutzer authentifiziert werden konnte, ansonsten
+     *         <code>false</code>.
+     * @throws UserException
+     *             Wird geworfen, wenn der private Schlüssel nicht entschlüsselt werden konnte.
+     */
     public boolean unlock(final String pass) throws UserException {
         try {
             String hash = Utils.toHexString(Utils.toMD5(pass));
