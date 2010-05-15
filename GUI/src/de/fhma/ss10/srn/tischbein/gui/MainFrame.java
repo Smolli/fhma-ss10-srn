@@ -16,6 +16,7 @@ import javax.swing.WindowConstants;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction;
+import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.NewUserAction;
 
 /**
@@ -128,7 +129,8 @@ public final class MainFrame extends JFrame {
     private void createWorkbenchSouth() {
         this.wbSouth = new JPanel();
 
-        this.wbSouth.add(new JButton("Logout"));
+        this.wbSouth.add(new JButton(new LogoutAction()));
+        this.wbSouth.add(new JButton("Beenden"));
     }
 
     /**
