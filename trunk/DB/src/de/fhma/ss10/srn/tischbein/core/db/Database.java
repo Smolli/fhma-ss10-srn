@@ -197,6 +197,8 @@ public final class Database {
             fw.flush();
 
             fw.close();
+
+            this.loadUsers();
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
         }
