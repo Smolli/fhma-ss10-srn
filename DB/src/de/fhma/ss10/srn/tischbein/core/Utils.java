@@ -102,7 +102,7 @@ public final class Utils {
             if (t <= Byte.MAX_VALUE) {
                 res[i] = (byte) t;
             } else {
-                res[i] = (byte) (t - Utils.UNSIGNED_BYTE_MAX_VALUE);
+                res[i] = (byte) (t - Utils.UNSIGNED_BYTE_MAX_VALUE - 1);
             }
         }
 
