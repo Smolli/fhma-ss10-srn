@@ -31,13 +31,6 @@ public class MainFrame extends JFrame {
         this.initComponents();
     }
 
-    public JTextField getUsername() {
-        return this.username;
-    }
-
-    public JPasswordField getUserpass() {
-        return this.userpass;
-    }
 
     public void setUser(final User user) {
         this.getContentPane().removeAll();
@@ -63,8 +56,8 @@ public class MainFrame extends JFrame {
         loginPanel.add(new JLabel("Passwort:"));
         loginPanel.add(this.userpass = new JPasswordField());
 
-        loginPanel.add(new JButton(new LoginAction()));
-        loginPanel.add(new JButton(new NewUserAction()));
+        loginPanel.add(new JButton(new LoginAction(this.username, this.userpass)));
+        loginPanel.add(new JButton(new NewUserAction(this.username, this.userpass)));
 
         return loginPanel;
     }
