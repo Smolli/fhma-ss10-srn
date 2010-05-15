@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
+
 /**
  * Action zum Ausloggen eines Benutzers.
  * 
@@ -17,6 +19,7 @@ public final class LogoutAction extends AbstractAction {
 
     @Override
     public void actionPerformed(final ActionEvent arg0) {
+        Launcher.getFrame().logout();
     }
 
     @Override
