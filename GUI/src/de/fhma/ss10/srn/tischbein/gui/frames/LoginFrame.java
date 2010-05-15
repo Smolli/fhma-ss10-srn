@@ -1,5 +1,6 @@
 package de.fhma.ss10.srn.tischbein.gui.frames;
 
+import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction;
@@ -36,6 +37,8 @@ public final class LoginFrame extends LoginForm implements LoginActionListener, 
      */
     @Override
     public void close() {
+        Database.shutdown();
+
         this.dispose();
     }
 
