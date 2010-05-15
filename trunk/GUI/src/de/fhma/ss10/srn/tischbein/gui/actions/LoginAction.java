@@ -4,12 +4,12 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
 
 /**
@@ -48,10 +48,7 @@ public final class LoginAction extends AbstractAction {
 
             Launcher.getFrame().setUser(user);
         } catch (Exception ex) {
-            ex.printStackTrace();
-
-            JOptionPane.showMessageDialog(null, ex.getMessage(), "Kann den Benutzer nicht anlegen!",
-                    JOptionPane.ERROR_MESSAGE);
+            GuiUtils.displayError("Kann den Benutzer nicht anlegen!", ex);
         }
     }
 
