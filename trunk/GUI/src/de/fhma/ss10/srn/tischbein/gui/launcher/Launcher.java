@@ -1,6 +1,7 @@
 package de.fhma.ss10.srn.tischbein.gui.launcher;
 
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import de.fhma.ss10.srn.tischbein.gui.frames.LoginFrame;
 
@@ -22,9 +23,13 @@ public final class Launcher {
 
             @Override
             public void run() {
-                LoginFrame frame = new LoginFrame();
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (Exception e) {
+                    System.out.println("Error setting native LAF: " + e);
+                }
 
-                frame.setVisible(true);
+                new LoginFrame();
             }
 
         });
