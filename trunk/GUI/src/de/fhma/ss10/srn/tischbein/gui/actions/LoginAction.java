@@ -43,12 +43,17 @@ public final class LoginAction extends AbstractAction {
     @Override
     public void actionPerformed(final ActionEvent arg0) {
         try {
-            User user = Database.getInstance().loginUser(this.username.getText(),
-                    new String(this.userpass.getPassword()));
+            String name = this.username.getText();
+
+            if (name.isEmpty()) {
+                throw new Exception("Benutzername muss angegeben werden!");
+            }
+
+            User user = Database.getInstance().loginUser(name, new String(this.userpass.getPassword()));
 
             Launcher.getFrame().setUser(user);
         } catch (Exception ex) {
-            GuiUtils.displayError("Kann den Benutzer nicht anlegen!", ex);
+            GuiUtils.displayError("Kann den Benutzer nicht einloggen!", ex);
         }
     }
 
