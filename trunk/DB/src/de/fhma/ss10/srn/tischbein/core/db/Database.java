@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.text.MessageFormat;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.concurrent.locks.ReentrantLock;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
@@ -22,6 +23,7 @@ public final class Database {
     private static final char SEPARATOR = ';';
     /** Singleton-Instanz der Datenbank. */
     private static Database instance = null;
+    private static final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Gibt die Instanz der Datenbank zurück. Wenn die Datenbank nicht gestartet werden kann, wird eine
@@ -30,17 +32,33 @@ public final class Database {
      * @return Gibt die Instanz der Datenbank zurück.
      */
     public static synchronized Database getInstance() {
-        if (Database.instance == null) {
-            try {
-                Database.instance = Database.open();
-            } catch (Exception e) {
-                e.printStackTrace();
+        Database.lock.lock();
 
-                throw new RuntimeException("FATAL: Kann keine Instanz der Datenbank erzeugen!", e);
+        try {
+            if (Database.instance == null) {
+                try {
+                    Database.instance = Database.open();
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    throw new RuntimeException("FATAL: Kann keine Instanz der Datenbank erzeugen!", e);
+                }
             }
-        }
 
-        return Database.instance;
+            return Database.instance;
+        } finally {
+            Database.lock.unlock();
+        }
+    }
+
+    public static void shutdown() {
+        Database.lock.lock();
+
+        try {
+            Database.instance = null;
+        } finally {
+            Database.lock.unlock();
+        }
     }
 
     /**
@@ -52,6 +70,8 @@ public final class Database {
      *             geladen werden konnte.
      */
     private static Database open() throws DatabaseException {
+        Database.lock.lock();
+
         try {
             Database db = new Database();
 
@@ -61,6 +81,8 @@ public final class Database {
             return db;
         } catch (Exception e) {
             throw new DatabaseException("Kann die Datenbankstruktur nicht laden!", e);
+        } finally {
+            Database.lock.unlock();
         }
     }
 
@@ -85,6 +107,8 @@ public final class Database {
      *             Wird geworfen, wenn der Benutzer nicht angelegt werden konnte.
      */
     public void createUser(final String name, final String pass) throws DatabaseException {
+        Database.lock.lock();
+
         try {
             if (this.users.containsKey(name.toLowerCase())) {
                 throw new DatabaseException("Benutzer existiert schon!");
@@ -95,6 +119,8 @@ public final class Database {
             this.saveToUsers(user, pass);
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
+        } finally {
+            Database.lock.unlock();
         }
     }
 
@@ -150,6 +176,8 @@ public final class Database {
      *             Wird geworfen, wenn die Tabelle nicht vollständig geladen werden kann.
      */
     private void loadUsers() throws DatabaseException {
+        Database.lock.lock();
+
         try {
             BufferedReader fr = new BufferedReader(new FileReader(Database.DB_USERS_TB));
             TreeMap<String, User> temp = new TreeMap<String, User>();
@@ -166,6 +194,8 @@ public final class Database {
             this.users = temp;
         } catch (Exception e) {
             throw new DatabaseException("Kann die Benutzertabelle nicht laden!", e);
+        } finally {
+            Database.lock.unlock();
         }
     }
 
@@ -180,6 +210,8 @@ public final class Database {
      *             Wird geworfen, wenn der neue Benutzer nicht zur Benutertabelle hinzugefügt werden konnte.
      */
     private void saveToUsers(final User user, final String pass) throws DatabaseException {
+        Database.lock.lock();
+
         try {
             FileWriter fw = new FileWriter(Database.DB_USERS_TB, true);
 
@@ -201,6 +233,8 @@ public final class Database {
             this.loadUsers();
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
+        } finally {
+            Database.lock.unlock();
         }
     }
 }
