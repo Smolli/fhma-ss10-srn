@@ -58,6 +58,9 @@ public final class MainFrame extends JFrame {
         this.initLoginView();
     }
 
+    /**
+     * Loggt den aktuell angemeldeten Benutzer aus.
+     */
     public void logout() {
         this.user = null;
 
@@ -156,6 +159,8 @@ public final class MainFrame extends JFrame {
         BorderLayout layout = new BorderLayout();
 
         this.getContentPane().setLayout(layout);
+
+        this.getContentPane().removeAll();
 
         this.createLoginPanel();
 
