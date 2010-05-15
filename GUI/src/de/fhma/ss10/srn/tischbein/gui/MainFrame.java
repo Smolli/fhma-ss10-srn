@@ -58,6 +58,12 @@ public final class MainFrame extends JFrame {
         this.initLoginView();
     }
 
+    public void logout() {
+        this.user = null;
+
+        this.initLoginView();
+    }
+
     /**
      * Setzt den eingeloggten Benutzer und schaltet die Arbeitsansicht frei.
      * 
@@ -154,6 +160,9 @@ public final class MainFrame extends JFrame {
         this.createLoginPanel();
 
         this.getContentPane().add(this.loginPanel, BorderLayout.CENTER);
+
+        this.getContentPane().repaint();
+        this.getContentPane().validate();
     }
 
     /**
