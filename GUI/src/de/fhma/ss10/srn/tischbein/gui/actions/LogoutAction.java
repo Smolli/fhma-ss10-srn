@@ -5,8 +5,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
-
 /**
  * Action zum Ausloggen eines Benutzers.
  * 
@@ -14,12 +12,23 @@ import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
  */
 public final class LogoutAction extends AbstractAction {
 
+    public interface LogoutActionListener {
+
+        void logout();
+
+    }
+
     /** Serial UID. */
     private static final long serialVersionUID = -177255198567493408L;
+    private final LogoutActionListener listener;
+
+    public LogoutAction(final LogoutActionListener listenerObject) {
+        this.listener = listenerObject;
+    }
 
     @Override
     public void actionPerformed(final ActionEvent arg0) {
-        Launcher.getFrame().logout();
+        this.listener.logout();
     }
 
     @Override

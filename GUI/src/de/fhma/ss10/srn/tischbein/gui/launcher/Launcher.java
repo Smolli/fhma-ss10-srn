@@ -2,7 +2,7 @@ package de.fhma.ss10.srn.tischbein.gui.launcher;
 
 import javax.swing.SwingUtilities;
 
-import de.fhma.ss10.srn.tischbein.gui.MainFrame;
+import de.fhma.ss10.srn.tischbein.gui.LoginFrame;
 
 /**
  * Launcher-Klasse für die GUI-Applikation.
@@ -10,18 +10,6 @@ import de.fhma.ss10.srn.tischbein.gui.MainFrame;
  * @author Smolli
  */
 public final class Launcher {
-
-    /** Hält des Hauptframe. */
-    private static MainFrame frame;
-
-    /**
-     * Gibt den {@link MainFrame}, der die Hauptansicht enthält, zurück.
-     * 
-     * @return Der Hauptframe.
-     */
-    public static MainFrame getFrame() {
-        return Launcher.frame;
-    }
 
     /**
      * Haupteinstiegspunkt für die GUI-Applikation.
@@ -34,9 +22,9 @@ public final class Launcher {
 
             @Override
             public void run() {
-                Launcher.frame = new MainFrame();
+                LoginFrame frame = new LoginFrame();
 
-                Launcher.frame.setVisible(true);
+                frame.setVisible(true);
             }
 
         });

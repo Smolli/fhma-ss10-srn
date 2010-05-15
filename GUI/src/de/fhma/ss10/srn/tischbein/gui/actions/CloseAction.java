@@ -5,8 +5,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
-
 /**
  * Programm schließen-Action.
  * 
@@ -14,12 +12,23 @@ import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
  */
 public final class CloseAction extends AbstractAction {
 
+    public interface CloseActionListener {
+
+        void close();
+
+    }
+
     /** Seruak UID. */
     private static final long serialVersionUID = 8194236130788886964L;
+    private final CloseActionListener listener;
+
+    public CloseAction(final CloseActionListener listenerObject) {
+        this.listener = listenerObject;
+    }
 
     @Override
-    public void actionPerformed(final ActionEvent arg0) {
-        Launcher.getFrame().close();
+    public void actionPerformed(final ActionEvent e) {
+        this.listener.close();
     }
 
     @Override
