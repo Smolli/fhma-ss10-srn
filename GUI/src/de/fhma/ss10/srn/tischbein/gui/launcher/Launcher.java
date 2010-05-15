@@ -2,7 +2,7 @@ package de.fhma.ss10.srn.tischbein.gui.launcher;
 
 import javax.swing.SwingUtilities;
 
-import de.fhma.ss10.srn.tischbein.gui.LoginFrame;
+import de.fhma.ss10.srn.tischbein.gui.frames.LoginFrame;
 
 /**
  * Launcher-Klasse für die GUI-Applikation.
