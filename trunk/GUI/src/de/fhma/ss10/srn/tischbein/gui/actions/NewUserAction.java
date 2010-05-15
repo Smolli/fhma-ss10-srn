@@ -17,16 +17,25 @@ import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction.LoginActionListener;
  */
 public final class NewUserAction extends AbstractAction implements LoginActionListener {
 
+    /**
+     * Listener-Interface für die NewUserAction.
+     * 
+     * @author Smolli
+     */
     public interface NewUserActionListener extends LoginActionListener {
-
     }
 
     /** Serial UID. */
     private static final long serialVersionUID = -6210538596713120230L;
+
+    /** Hält das Listner-Objekt. */
     private final NewUserActionListener listener;
 
     /**
      * Erstellt eine neue "Benutzer anlegen"-Action.
+     * 
+     * @param listenerObject
+     *            Das Listener-Objekt.
      */
     public NewUserAction(final NewUserActionListener listenerObject) {
         this.listener = listenerObject;
