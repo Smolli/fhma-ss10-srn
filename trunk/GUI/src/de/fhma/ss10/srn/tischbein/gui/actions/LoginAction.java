@@ -4,13 +4,10 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
-import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
 
 /**
  * Action zum einloggen eines Benutzers.
@@ -19,39 +16,41 @@ import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
  */
 public final class LoginAction extends AbstractAction {
 
+    public interface LoginActionListener {
+
+        String getPassword();
+
+        String getUsername();
+
+        void login(User user);
+
+    }
+
     /** Serial UID. */
     private static final long serialVersionUID = 4294231070983688689L;
 
-    /** Hält den Benutzernamen. */
-    private final JTextField username;
-    /** Hält das Benutzerpasswort. */
-    private final JPasswordField userpass;
+    private final LoginActionListener listener;
 
     /**
      * Erstellt eine neue "Benutzer einloggen"-Action.
-     * 
-     * @param nameField
-     *            Das {@link JTextField}, das den Benutzernamen enthält.
-     * @param passField
-     *            Das {@link JPasswordField}, das das Benutzerpasswort enthält.
      */
-    public LoginAction(final JTextField nameField, final JPasswordField passField) {
-        this.username = nameField;
-        this.userpass = passField;
+    public LoginAction(final LoginActionListener listenerObject) {
+        this.listener = listenerObject;
     }
 
     @Override
     public void actionPerformed(final ActionEvent arg0) {
         try {
-            String name = this.username.getText();
+            //            String name = this.username.getText();
+            String name = this.listener.getUsername();
 
             if (name.isEmpty()) {
                 throw new Exception("Benutzername muss angegeben werden!");
             }
 
-            User user = Database.getInstance().loginUser(name, new String(this.userpass.getPassword()));
+            User user = Database.getInstance().loginUser(name, this.listener.getPassword());
 
-            Launcher.getFrame().setUser(user);
+            this.listener.login(user);
         } catch (Exception ex) {
             GuiUtils.displayError("Kann den Benutzer nicht einloggen!", ex);
         }
