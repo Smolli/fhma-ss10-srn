@@ -20,13 +20,15 @@ public final class LoginFrame extends LoginForm implements LoginActionListener, 
     /** Serial UID. */
     private static final long serialVersionUID = 5425989856036812026L;
 
-    /** Hält das Benutzerobjekt. */
-    private User user;
-
+    /**
+     * Erstellt ein neues Login-Fenster.
+     */
     public LoginFrame() {
         this.closeButton.setAction(new CloseAction(this));
         this.addUserButton.setAction(new NewUserAction(this));
         this.loginButton.setAction(new LoginAction(this));
+
+        this.setVisible(true);
     }
 
     /**
@@ -55,7 +57,7 @@ public final class LoginFrame extends LoginForm implements LoginActionListener, 
      */
     @Override
     public void login(final User newUser) {
-        WorkFrame frame = new WorkFrame(newUser);
+        new WorkFrame(newUser);
 
         this.close();
     }
