@@ -15,6 +15,7 @@ import javax.swing.WindowConstants;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.NewUserAction;
@@ -56,6 +57,13 @@ public final class MainFrame extends JFrame {
         this.initFrame();
 
         this.initLoginView();
+    }
+
+    /**
+     * Schließt das Hauptfenster und beendet die Applikation.
+     */
+    public void close() {
+        this.dispose();
     }
 
     /**
@@ -139,7 +147,7 @@ public final class MainFrame extends JFrame {
         this.wbSouth = new JPanel();
 
         this.wbSouth.add(new JButton(new LogoutAction()));
-        this.wbSouth.add(new JButton("Beenden"));
+        this.wbSouth.add(new JButton(new CloseAction()));
     }
 
     /**
