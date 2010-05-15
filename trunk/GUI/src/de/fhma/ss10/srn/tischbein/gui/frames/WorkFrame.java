@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.gui;
+package de.fhma.ss10.srn.tischbein.gui.frames;
 
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
