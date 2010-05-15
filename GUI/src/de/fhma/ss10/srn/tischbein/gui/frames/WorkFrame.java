@@ -1,8 +1,11 @@
 package de.fhma.ss10.srn.tischbein.gui.frames;
 
+import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
+import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction;
+import de.fhma.ss10.srn.tischbein.gui.actions.UploadAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction.CloseActionListener;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction.LogoutActionListener;
 import de.fhma.ss10.srn.tischbein.gui.forms.WorkForm;
@@ -29,6 +32,8 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     public WorkFrame(final User newUser) {
         this.closeButton.setAction(new CloseAction(this));
         this.logoutButton.setAction(new LogoutAction(this));
+        this.uploadButton.setAction(new UploadAction());
+        this.deleteButton.setAction(new DeleteAction());
 
         this.user = newUser;
 
@@ -37,6 +42,8 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
     @Override
     public void close() {
+        Database.shutdown();
+
         this.dispose();
     }
 
