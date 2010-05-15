@@ -22,12 +22,22 @@ public final class LoginAction extends AbstractAction {
     /** Serial UID. */
     private static final long serialVersionUID = 4294231070983688689L;
 
+    /** Hält den Benutzernamen. */
     private final JTextField username;
+    /** Hält das Benutzerpasswort. */
     private final JPasswordField userpass;
 
-    public LoginAction(final JTextField username, final JPasswordField userpass) {
-        this.username = username;
-        this.userpass = userpass;
+    /**
+     * Erstellt eine neue "Benutzer einloggen"-Action.
+     * 
+     * @param nameField
+     *            Das {@link JTextField}, das den Benutzernamen enthält.
+     * @param passField
+     *            Das {@link JPasswordField}, das das Benutzerpasswort enthält.
+     */
+    public LoginAction(final JTextField nameField, final JPasswordField passField) {
+        this.username = nameField;
+        this.userpass = passField;
     }
 
     @Override
