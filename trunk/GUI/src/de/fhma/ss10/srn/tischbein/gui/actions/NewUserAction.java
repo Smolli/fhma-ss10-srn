@@ -4,11 +4,11 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
+import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 
 /**
  * Action zum Anlegen eines neuen Benutzers.
@@ -41,14 +41,22 @@ public final class NewUserAction extends AbstractAction {
     @Override
     public void actionPerformed(final ActionEvent e) {
         try {
+            String pass = new String(this.userpass.getPassword());
+            String name = this.username.getText();
+
+            if (pass.isEmpty()) {
+                throw new Exception("Passwort darf nicht leer sein!");
+            }
+
+            if (name.isEmpty()) {
+                throw new Exception("Benutzername darf nicht leer sein!");
+            }
+
             Database.getInstance().createUser(this.username.getText(), new String(this.userpass.getPassword()));
 
             new LoginAction(this.username, this.userpass).actionPerformed(e);
         } catch (Exception ex) {
-            ex.printStackTrace();
-
-            JOptionPane.showMessageDialog(null, ex.getMessage(), "Kann den Benutzer nicht anlegen!",
-                    JOptionPane.ERROR_MESSAGE);
+            GuiUtils.displayError("Kann den Benutzer nicht anlegen!", ex);
         }
     }
 
