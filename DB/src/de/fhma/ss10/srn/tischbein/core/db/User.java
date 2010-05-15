@@ -181,6 +181,13 @@ public final class User implements Serializable {
     }
 
     /**
+     * Schließt den Benutzer ab und macht seinen privaten Schlüssel wieder unzugänglich.
+     */
+    public void lock() {
+        this.privateKeyEncrypted = null;
+    }
+
+    /**
      * Versucht den Benutzer zu authentifizieren. Nur wenn das Passwort mit dem Hash-Wert des Benutzers übereinstimmt,
      * wird der Benutzer freigeschaltet und sein privater Schlüssel entschlüsselt.
      * 
