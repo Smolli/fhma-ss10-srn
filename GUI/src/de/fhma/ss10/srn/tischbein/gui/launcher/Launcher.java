@@ -4,23 +4,42 @@ import javax.swing.SwingUtilities;
 
 import de.fhma.ss10.srn.tischbein.gui.MainFrame;
 
-public class Launcher implements Runnable {
+/**
+ * Launcher-Klasse für die GUI-Applikation.
+ * 
+ * @author Smolli
+ */
+public final class Launcher {
 
+    /** Hält des Hauptframe. */
     private static MainFrame frame;
 
-    public static void main(final String[] args) {
-        SwingUtilities.invokeLater(new Launcher());
-    }
-
-    @Override
-    public void run() {
-        Launcher.frame = new MainFrame();
-
-        Launcher.frame.setVisible(true);
-    }
-
+    /**
+     * Gibt den {@link MainFrame}, der die Hauptansicht enthält, zurück.
+     * 
+     * @return Der Hauptframe.
+     */
     public static MainFrame getFrame() {
         return Launcher.frame;
+    }
+
+    /**
+     * Haupteinstiegspunkt für die GUI-Applikation.
+     * 
+     * @param args
+     *            Programmparameter.
+     */
+    public static void main(final String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                Launcher.frame = new MainFrame();
+
+                Launcher.frame.setVisible(true);
+            }
+
+        });
     }
 
 }
