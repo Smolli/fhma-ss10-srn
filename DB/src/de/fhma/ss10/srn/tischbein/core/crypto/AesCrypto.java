@@ -1,8 +1,10 @@
 package de.fhma.ss10.srn.tischbein.core.crypto;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
 import javax.crypto.spec.SecretKeySpec;
 
+import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
 
 /**
@@ -16,12 +18,14 @@ public class AesCrypto {
     public static final String AES_ALGO_NAME = "AES";
     /** Die Standard-Schlüssellänge für den AES-Algorithmus in Bytes. */
     public static final int AES_KEY_SIZE = 16;
+    /** Die Standard-Schlüssellänge für den AES-Algorithmus in Bits. */
+    public static final int AES_KEY_SIZE_BITS = AesCrypto.AES_KEY_SIZE * 8;
 
     /** Enthält den AES-Algorithmus. */
     private static Cipher cipher = null;
     static {
         try {
-            AesCrypto.cipher = Cipher.getInstance("AES_ALGO_NAME");
+            AesCrypto.cipher = Cipher.getInstance(AesCrypto.AES_ALGO_NAME);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -78,6 +82,18 @@ public class AesCrypto {
             return res;
         } catch (Exception e) {
             throw new UtilsException("Kann den Klartext nicht verschlüsseln!", e);
+        }
+    }
+
+    public static byte[] generateKey() throws CryptoException {
+        try {
+            KeyGenerator kg = KeyGenerator.getInstance("AES");
+
+            kg.init(AesCrypto.AES_KEY_SIZE_BITS, Utils.getRandom());
+
+            return kg.generateKey().getEncoded();
+        } catch (Exception e) {
+            throw new CryptoException("Kann den AES-Schlüssel nicht generieren!", e);
         }
     }
 
