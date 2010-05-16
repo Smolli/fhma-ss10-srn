@@ -136,8 +136,13 @@ public final class Database {
         try {
             Database db = new Database();
 
-            new java.io.File(Database.DB_USERS_TB).createNewFile();
-            new java.io.File(Database.DB_FILES_TB).createNewFile();
+            if (new java.io.File(Database.DB_USERS_TB).createNewFile()) {
+                System.out.println("User-Tabelle angelegt.");
+            }
+
+            if (new java.io.File(Database.DB_FILES_TB).createNewFile()) {
+                System.out.println("Dateien-Tabelle anegelegt.");
+            }
 
             db.loadUsers();
             db.loadFiles();
@@ -250,7 +255,7 @@ public final class Database {
      */
     public User loginUser(final String name, final String pass) throws DatabaseException {
         try {
-            User user = this.users.get(name.toLowerCase());
+            User user = this.getUser(name);
 
             if (user == null) {
                 throw new DatabaseException("Benutzer existiert nicht!");
@@ -277,9 +282,17 @@ public final class Database {
      *             Wird geworfen, wenn eine der Dateien nicht erstellt werden konnte.
      */
     private void createUserFiles(final User user) throws IOException, DatabaseException {
-        new java.io.File(Tables.FileTable.getFilename(user)).createNewFile();
-        new java.io.File(Tables.AccessTable.getFilename(user)).createNewFile();
-        new java.io.File(Tables.LendTable.getFilename(user)).createNewFile();
+        if (!new java.io.File(Tables.FileTable.getFilename(user)).createNewFile()) {
+            System.out.println("Dateien-Tabelle des Benutzers existiert schon!");
+        }
+
+        if (!new java.io.File(Tables.AccessTable.getFilename(user)).createNewFile()) {
+            System.out.println("Zugriffs-Tabelle des Benutzers existiert schon!");
+        }
+
+        if (!new java.io.File(Tables.LendTable.getFilename(user)).createNewFile()) {
+            System.out.println("Leih-Tabelle des Benutzers existiert schon!");
+        }
     }
 
     /**
@@ -297,6 +310,14 @@ public final class Database {
         }
 
         return this.files.get(id);
+    }
+
+    private User getUser(final String name) throws DatabaseException {
+        if (!this.users.containsKey(name.toLowerCase())) {
+            throw new DatabaseException("Benutzer ist nicht bekannt!");
+        }
+
+        return this.users.get(name.toLowerCase());
     }
 
     /**
@@ -381,10 +402,33 @@ public final class Database {
      * @param user
      *            Der Benutzerkontext.
      * @return Eine {@link List} mit allen Tupeln.
+     * @throws CryptoException
+     * @throws DatabaseException
      */
-    private List<UserFilePair> loadLendTable(final User user) {
-        // TODO Auto-generated method stub
-        return null;
+    private List<UserFilePair> loadLendTable(final User user) throws CryptoException, DatabaseException {
+        AESReader br = AESReader.createReader(Tables.LendTable.getFilename(user), user.getCryptKey());
+        String line;
+        List<UserFilePair> list = new ArrayList<UserFilePair>();
+
+        try {
+            while ((line = br.readLine()) != null) {
+                String[] cols = line.split(";");
+
+                String userName = cols[0];
+                int fileId = Integer.parseInt(cols[1]);
+
+                File fileObject = this.getFile(fileId);
+                User userObject = this.getUser(userName);
+
+                UserFilePair ufp = new UserFilePair(userObject, fileObject);
+
+                list.add(ufp);
+            }
+
+            return list;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Dateientabelle nicht laden!", e);
+        }
     }
 
     /**
