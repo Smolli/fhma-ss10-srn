@@ -8,6 +8,9 @@ import java.text.MessageFormat;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
+import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
+import de.fhma.ss10.srn.tischbein.core.crypto.RsaCrypto;
 
 /**
  * Userklasse. Enthält alle Methoden zur Benutzerverwaltung.
@@ -73,11 +76,13 @@ public final class User implements Serializable {
     }
 
     /** Benutzer-Tabelle Privater Schlüssel. */
-    private static final int COLUMN_PRIVATE_KEY = 3;
+    private static final int COLUMN_PRIVATE_KEY = 4;
     /** Benutzer-Tabelle Öffentlicher Schlüssel. */
-    private static final int COLUMN_PUBLIC_KEY = 2;
+    private static final int COLUMN_PUBLIC_KEY = 3;
+    /** Benutzer-Tabelle CryptKey. */
+    private static final int COLUMN_CRYPT_KEY = 2;
     /** Benutzer-Tabelle Passwort. */
-    private static final int COLUMN_PASSWORD = 1;
+    private static final int COLUMN_PW_HASH = 1;
     /** Benutzer-Tabelle Benutzername. */
     private static final int COLUMN_NAME = 0;
 
@@ -99,12 +104,13 @@ public final class User implements Serializable {
         try {
             User user = new User();
 
+            KeyPair generatedKeyPair = RsaCrypto.generateRSAKeyPair();
+            byte[] cryptoKey = AesCrypto.generateKey();
+
             user.setName(name);
             user.setPass(pass);
-
-            KeyPair generatedKeyPair = Utils.generateRSAKeyPair();
-
             user.setKeyPair(generatedKeyPair);
+            user.cryptKeyDecrypted = cryptoKey;
 
             return user;
         } catch (Exception e) {
@@ -118,13 +124,16 @@ public final class User implements Serializable {
      * @param line
      *            Die Zeile der Benutzertabelle.
      * @return Das gepartse Benutzer-Objekt.
+     * @throws CryptoException
+     *             Wird geworfen, wenn der CryptoKey nicht gesetzt werden kann.
      */
-    static User parse(final String line) {
+    static User parse(final String line) throws CryptoException {
         User user = new User();
         String[] cols = line.split(";");
 
         user.setName(cols[User.COLUMN_NAME]);
-        user.setPassHash(cols[User.COLUMN_PASSWORD]);
+        user.setPassHash(cols[User.COLUMN_PW_HASH]);
+        user.setCryptKey(Utils.fromHexString(cols[User.COLUMN_CRYPT_KEY]));
         // REM: Privater Schlüssel ist immernoch verschlüsselt!
         user.setKey(Utils.fromHexString(cols[User.COLUMN_PUBLIC_KEY]), Utils
                 .fromHexString(cols[User.COLUMN_PRIVATE_KEY]));
@@ -134,7 +143,6 @@ public final class User implements Serializable {
 
     /** Hält das RSA-Schlüsselpaar. */
     private KeyPair keyPair;
-
     /** Hält den Benutzernamen. */
     private String username;
     /** Hält den Hash-Wert des Benutzerpassworts. */
@@ -145,6 +153,12 @@ public final class User implements Serializable {
     private byte[] privateKeyDecrypted = null;
     /** Hält den öffentlichen Schlüssel. */
     private byte[] publicKey;
+    /** Hält den verschlüsselten CryptKey für die AES-Verschlüsselung. */
+    private byte[] cryptKeyEncrypted;
+    /** Hält den entschlüsselten CryptKey für die AES-Verschlüsselung. */
+    private byte[] cryptKeyDecrypted;
+    /** Hält die Dateidaten für den Benutzer. */
+    private FileListObject flo;
 
     /**
      * Gibt den Benutzernamen zurück.
@@ -188,6 +202,7 @@ public final class User implements Serializable {
      */
     public void lock() {
         this.privateKeyEncrypted = null;
+        this.cryptKeyEncrypted = null;
     }
 
     /**
@@ -203,13 +218,18 @@ public final class User implements Serializable {
      */
     public boolean unlock(final String pass) throws UserException {
         try {
-            String hash = Utils.toHexString(Utils.toMD5(pass));
+            byte[] secret = Utils.toMD5(pass);
+
+            String hash = Utils.toHexString(secret);
 
             if (!hash.equals(this.passHash)) {
                 return false;
             }
 
-            this.privateKeyDecrypted = Utils.decrypt(this.privateKeyEncrypted, pass);
+            this.privateKeyDecrypted = AesCrypto.decrypt(this.privateKeyEncrypted, secret);
+            this.cryptKeyDecrypted = AesCrypto.decrypt(this.cryptKeyEncrypted, secret);
+
+            this.flo = Database.getInstance().getFileList(this);
 
             return true;
         } catch (Exception e) {
@@ -221,23 +241,49 @@ public final class User implements Serializable {
      * Compiliert das User-Objekt und gibt es als Zeichenkette zurück. Die einzelnen Felder sind duch den
      * {@link Database#SEPARATOR} getrennt.
      * 
-     * @param secret
+     * @param pass
      *            Der Schlüssel mit dem der private Schlüssel des Benutzers verschlüsselt werden soll.
      * @return Gibt die Benutzerinformation als Zeichenkette zurück.
      * @throws UtilsException
      *             Wird geworfen, wenn die Benutzerinformation nicht erstellt werden kann.
      */
-    String compile(final String secret) throws UtilsException {
-        String pri = Utils.toHexString(Utils.encrypt(this.getPrivateKey(), secret));
-        String pub = Utils.toHexString(this.getPublicKey());
+    String compile(final String pass) throws UtilsException {
+        byte[] secret = Utils.toMD5(pass);
 
-        return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}\n", // Formatzeile
+        String pri = Utils.toHexString(AesCrypto.encrypt(this.getPrivateKey(), secret));
+        String pub = Utils.toHexString(this.getPublicKey());
+        String crypt = Utils.toHexString(AesCrypto.encrypt(this.getCryptKey(), secret));
+
+        return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}\n", // Formatzeile
+                Database.SEPARATOR, // 0 - Separator
                 this.getName(), // 1 - Benutzername
                 this.getPassHash(), // 2 - Hashwert des Benutzerpassworts
-                pub, // 3 - öffentlicher Schlüssel
-                pri, // 4 - private Schlüssel (verschlüsselt)
-                Database.SEPARATOR // 0 - Separator
+                crypt, // 3 - CryptKey
+                pub, // 4 - öffentlicher Schlüssel
+                pri // 5 - private Schlüssel (verschlüsselt)
                 );
+    }
+
+    /**
+     * Gibt den CryptKey für die AES-Verschlüsselung zurück. Wenn der Benutzer nicht freigeschaltet, wird
+     * <code>null</code> zurück gegeben.
+     * 
+     * @return Der CryptKey.
+     */
+    byte[] getCryptKey() {
+        return this.cryptKeyDecrypted;
+    }
+
+    /**
+     * Setzt den verschlüsselten CryptKey für die AES-Verschlüsselung.
+     * 
+     * @param key
+     *            Der verschlüsselte CryptKey. Er kann nur mit dem richtigen Passwort wieder entschlüsselt werden.
+     * @throws CryptoException
+     *             Wird geworfen, wenn die Schlüssellänge nicht {@value AesCrypto#AES_KEY_SIZE} entspricht.
+     */
+    private void setCryptKey(final byte[] key) throws CryptoException {
+        this.cryptKeyEncrypted = key;
     }
 
     /**
