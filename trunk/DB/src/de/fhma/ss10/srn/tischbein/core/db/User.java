@@ -4,8 +4,10 @@ import java.io.Serializable;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.text.MessageFormat;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
+import de.fhma.ss10.srn.tischbein.core.UtilsException;
 
 /**
  * Userklasse. Enthält alle Methoden zur Benutzerverwaltung.
@@ -132,6 +134,7 @@ public final class User implements Serializable {
 
     /** Hält das RSA-Schlüsselpaar. */
     private KeyPair keyPair;
+
     /** Hält den Benutzernamen. */
     private String username;
     /** Hält den Hash-Wert des Benutzerpassworts. */
@@ -212,6 +215,19 @@ public final class User implements Serializable {
         } catch (Exception e) {
             throw new UserException("Kann den Benutzer nicht authentifizieren!", e);
         }
+    }
+
+    String compile(final String pass) throws UtilsException {
+        String pri = Utils.toHexString(Utils.encrypt(this.getPrivateKey(), pass));
+        String pub = Utils.toHexString(this.getPublicKey());
+
+        return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}\n", // Formatzeile
+                this.getName(), // 1 - Benutzername
+                this.getPassHash(), // 2 - Hashwert des Benutzerpassworts
+                pub, // 3 - öffentlicher Schlüssel
+                pri, // 4 - private Schlüssel (verschlüsselt)
+                Database.SEPARATOR // 0 - Separator
+                );
     }
 
     /**
