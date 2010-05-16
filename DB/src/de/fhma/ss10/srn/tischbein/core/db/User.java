@@ -217,8 +217,18 @@ public final class User implements Serializable {
         }
     }
 
-    String compile(final String pass) throws UtilsException {
-        String pri = Utils.toHexString(Utils.encrypt(this.getPrivateKey(), pass));
+    /**
+     * Compiliert das User-Objekt und gibt es als Zeichenkette zurück. Die einzelnen Felder sind duch den
+     * {@link Database#SEPARATOR} getrennt.
+     * 
+     * @param secret
+     *            Der Schlüssel mit dem der private Schlüssel des Benutzers verschlüsselt werden soll.
+     * @return Gibt die Benutzerinformation als Zeichenkette zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn die Benutzerinformation nicht erstellt werden kann.
+     */
+    String compile(final String secret) throws UtilsException {
+        String pri = Utils.toHexString(Utils.encrypt(this.getPrivateKey(), secret));
         String pub = Utils.toHexString(this.getPublicKey());
 
         return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}\n", // Formatzeile
