@@ -7,7 +7,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Werkzeugklasse. Enthält viele Methoden zum Ent- und Verschlüsseln von Daten und zum Erzeugen von MD5-Summen.
@@ -21,71 +20,18 @@ public final class Utils {
     private static final int UNSIGNED_BYTE_MAX_VALUE = 0xff;
     /** Hält die Schlüssellänge für den RSA-Alogrithmus. */
     private static final int RSA_KEY_SIZE = 1024;
-    /** Der Java-interne Name für den AES-Algorithmus. */
-    public static final String AES_ALGO_NAME = "AES";
-    /** Die Standard-Schlüssellänge für den AES-Algorithmus in Bytes. */
-    public static final int AES_KEY_SIZE = 16;
 
     /** Enthält den MD5-Konverter. */
     private static MessageDigest md5 = null;
     /** Enthält den RSA-Algorithmus. */
     private static Cipher rsa = null;
-    /** Enthält den AES-Algorithmus. */
-    private static Cipher aes = null;
 
     static {
         try {
             Utils.md5 = MessageDigest.getInstance("MD5");
             Utils.rsa = Cipher.getInstance("RSA");
-            Utils.aes = Cipher.getInstance("AES_ALGO_NAME");
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Entschlüsselt einen Geheimtext mit dem AES-Algorithmus und dem übergebenen Passwort.
-     * 
-     * @param cipher
-     *            Der verschlüsselte Geheimtext.
-     * @param secret
-     *            Der geheime Schlüssel.
-     * @return Gibt den Klartext zurück.
-     * @throws UtilsException
-     *             Wird geworfen, wenn der Geheimtext nicht entschlüsselt werden konnte.
-     */
-    public static byte[] decrypt(final byte[] cipher, final String secret) throws UtilsException {
-        try {
-            Utils.aes.init(Cipher.DECRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), Utils.AES_ALGO_NAME));
-
-            byte[] res = Utils.aes.doFinal(cipher);
-
-            return res;
-        } catch (Exception e) {
-            throw new UtilsException("Konnte den Geheimtext nicht entschlüsseln!", e);
-        }
-    }
-
-    /**
-     * Verschlüsselt einen Klartext mit dem Übergebenen Schlüssel mit dem AES-Algorithmus.
-     * 
-     * @param message
-     *            Der Klartext.
-     * @param secret
-     *            Der geheime Schlüssel.
-     * @return Gibt den Geheimtext zurück.
-     * @throws UtilsException
-     *             Wird geworfen, wenn der Klartext nicht verschlüsselt werden konnte.
-     */
-    public static byte[] encrypt(final byte[] message, final String secret) throws UtilsException {
-        try {
-            Utils.aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), Utils.AES_ALGO_NAME));
-
-            byte[] res = Utils.aes.doFinal(message);
-
-            return res;
-        } catch (Exception e) {
-            throw new UtilsException("Kann den Klartext nicht verschlüsseln!", e);
         }
     }
 
@@ -180,6 +126,17 @@ public final class Utils {
      */
     public static byte[] toMD5(final String text) {
         return Utils.toMD5(text.getBytes());
+    }
+
+    /**
+     * Konvertiert einen String in eine MD5-Summe und gibt ihn als hexadezimalen String aus.
+     * 
+     * @param text
+     *            Der zu konvertierende String.
+     * @return Der Hexstring.
+     */
+    public static String toMD5Hex(final String text) {
+        return Utils.toHexString(Utils.toMD5(text));
     }
 
 }
