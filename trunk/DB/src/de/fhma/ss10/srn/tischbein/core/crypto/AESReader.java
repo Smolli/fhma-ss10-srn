@@ -10,8 +10,6 @@ import java.io.Reader;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import de.fhma.ss10.srn.tischbein.core.Utils;
-
 /**
  * Ein spezialisierter {@link BufferedReader}, der AES-verschlüsselte Dateien lesen kann.
  * 
@@ -84,7 +82,7 @@ public final class AESReader extends BufferedReader {
 
         try {
             cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(mySecret, Utils.AES_ALGO_NAME));
+            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(mySecret, AesCrypto.AES_ALGO_NAME));
         } catch (Exception e) {
             throw new RuntimeException("Kann den AESReader nicht erstellen!", e);
         }
@@ -123,7 +121,7 @@ public final class AESReader extends BufferedReader {
      *            Der Schlüssel.
      */
     private static void testKey(final byte[] mySecret) {
-        if (mySecret.length != Utils.AES_KEY_SIZE) {
+        if (mySecret.length != AesCrypto.AES_KEY_SIZE) {
             throw new IllegalArgumentException("Der Geheimschlüssel muss 128 Bit lang sein!");
         }
     }
