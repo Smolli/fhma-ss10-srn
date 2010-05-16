@@ -15,6 +15,16 @@ public class CryptoException extends Exception {
      * 
      * @param message
      *            Die Nachricht.
+     */
+    public CryptoException(final String message) {
+        super(message);
+    }
+
+    /**
+     * Erstellt eine neue CryptoException.
+     * 
+     * @param message
+     *            Die Nachricht.
      * @param e
      *            Der Grund.
      */
