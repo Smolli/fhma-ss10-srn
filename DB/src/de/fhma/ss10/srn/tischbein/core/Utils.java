@@ -21,6 +21,10 @@ public final class Utils {
     private static final int UNSIGNED_BYTE_MAX_VALUE = 0xff;
     /** Hält die Schlüssellänge für den RSA-Alogrithmus. */
     private static final int RSA_KEY_SIZE = 1024;
+    /** Der Java-interne Name für den AES-Algorithmus. */
+    public static final String AES_ALGO_NAME = "AES";
+    /** Die Standard-Schlüssellänge für den AES-Algorithmus in Bytes. */
+    public static final int AES_KEY_SIZE = 16;
 
     /** Enthält den MD5-Konverter. */
     private static MessageDigest md5 = null;
@@ -33,7 +37,7 @@ public final class Utils {
         try {
             Utils.md5 = MessageDigest.getInstance("MD5");
             Utils.rsa = Cipher.getInstance("RSA");
-            Utils.aes = Cipher.getInstance("AES");
+            Utils.aes = Cipher.getInstance("AES_ALGO_NAME");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -52,7 +56,7 @@ public final class Utils {
      */
     public static byte[] decrypt(final byte[] cipher, final String secret) throws UtilsException {
         try {
-            Utils.aes.init(Cipher.DECRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), "AES"));
+            Utils.aes.init(Cipher.DECRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), Utils.AES_ALGO_NAME));
 
             byte[] res = Utils.aes.doFinal(cipher);
 
@@ -75,7 +79,7 @@ public final class Utils {
      */
     public static byte[] encrypt(final byte[] message, final String secret) throws UtilsException {
         try {
-            Utils.aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), "AES"));
+            Utils.aes.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(Utils.toMD5(secret), Utils.AES_ALGO_NAME));
 
             byte[] res = Utils.aes.doFinal(message);
 
