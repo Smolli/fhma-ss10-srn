@@ -22,18 +22,18 @@ public final class AESReader extends BufferedReader {
      * 
      * @param filename
      *            Der Dateiname.
-     * @param mySecret
+     * @param secret
      *            Der Schlüssel.
      * @return Gibt den Reader zurück, der auf die entschlüsselten Daten zeigt.
      * @throws CryptoException
      *             Wird geworfen, wenn die Datei nicht entschlüsselt werden konnte.
      */
-    public static AESReader createReader(final String filename, final byte[] mySecret) throws CryptoException {
+    public static AESReader createReader(final String filename, final byte[] secret) throws CryptoException {
         // Schlüssel testen
-        AESReader.testKey(mySecret);
+        AESReader.testKey(secret);
 
         // Cipher initialisieren
-        Cipher cipher = AESReader.initCipher(mySecret);
+        Cipher cipher = AESReader.initCipher(secret);
 
         // Rohdaten lesen
         byte[] buffer = AESReader.readData(filename);
@@ -55,8 +55,15 @@ public final class AESReader extends BufferedReader {
      */
     private static Reader decodeAndWrap(final Cipher cipher, final byte[] encoded) throws CryptoException {
         try {
-            // Rohdaten entschlüsseln und in ein Array speichern.
-            byte[] decoded = cipher.doFinal(encoded);
+            byte[] decoded;
+
+            if (encoded.length != 0) {
+                // Rohdaten entschlüsseln und in ein Array speichern.
+                decoded = cipher.doFinal(encoded);
+            } else {
+                // Sonderfall, verschlüsselte Daten sind leer.
+                decoded = new byte[0];
+            }
 
             // ein Stream-Wrapper für das Array erzeugen
             ByteArrayInputStream bais = new ByteArrayInputStream(decoded);
@@ -73,16 +80,16 @@ public final class AESReader extends BufferedReader {
     /**
      * Erstellt ein AES-Cipher-Objekt mit dem übergenenen Schlüssel.
      * 
-     * @param mySecret
+     * @param secret
      *            Der Schlüssel, mit dem der Cipher initialisiert wird.
      * @return Gibt das {@link Cipher}-Objekt zurück.
      */
-    private static Cipher initCipher(final byte[] mySecret) {
+    private static Cipher initCipher(final byte[] secret) {
         Cipher cipher;
 
         try {
             cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(mySecret, AesCrypto.AES_ALGO_NAME));
+            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(secret, AesCrypto.AES_ALGO_NAME));
         } catch (Exception e) {
             throw new RuntimeException("Kann den AESReader nicht erstellen!", e);
         }
