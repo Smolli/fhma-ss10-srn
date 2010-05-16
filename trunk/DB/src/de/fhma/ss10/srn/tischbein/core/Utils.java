@@ -1,15 +1,10 @@
 package de.fhma.ss10.srn.tischbein.core;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
-import javax.crypto.Cipher;
-
 /**
- * Werkzeugklasse. Enthält viele Methoden zum Ent- und Verschlüsseln von Daten und zum Erzeugen von MD5-Summen.
+ * Werkzeugklasse. Enthält viele Methoden zum Konvertieren von Daten und zum Erzeugen von MD5-Summen.
  * 
  * @author Smolli
  */
@@ -18,18 +13,15 @@ public final class Utils {
     private static final int NIBBLE_MAX_VALUE = 16;
     /** Hält das Maximum eines Unsinged Byte (255). */
     private static final int UNSIGNED_BYTE_MAX_VALUE = 0xff;
-    /** Hält die Schlüssellänge für den RSA-Alogrithmus. */
-    private static final int RSA_KEY_SIZE = 1024;
+    /** Hält den globalen SecureRandom-Generator. */
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     /** Enthält den MD5-Konverter. */
     private static MessageDigest md5 = null;
-    /** Enthält den RSA-Algorithmus. */
-    private static Cipher rsa = null;
 
     static {
         try {
             Utils.md5 = MessageDigest.getInstance("MD5");
-            Utils.rsa = Cipher.getInstance("RSA");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,27 +51,8 @@ public final class Utils {
         return res;
     }
 
-    /**
-     * Erzeugt ein Public-Private-Schlüsselpaar für den RSA-Algorithmus.
-     * 
-     * @return Gibt das Schlüsselpaar als {@link java.security.KeyPair KeyPair} zurück.
-     * @throws NoSuchAlgorithmException
-     *             Wird geworfen, wenn der RSA-Algorithmus nicht zur Verfügung steht.
-     * @see java.security.KeyPair
-     * @see java.security.KeyPairGenerator
-     * @see java.security.SecureRandom
-     */
-    public static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException {
-        KeyPairGenerator kpgen = null;
-        SecureRandom random = new SecureRandom();
-
-        kpgen = KeyPairGenerator.getInstance("RSA");
-
-        kpgen.initialize(Utils.RSA_KEY_SIZE, random);
-
-        KeyPair generatedKeyPair = kpgen.generateKeyPair();
-
-        return generatedKeyPair;
+    public static SecureRandom getRandom() {
+        return Utils.SECURE_RANDOM;
     }
 
     /**
