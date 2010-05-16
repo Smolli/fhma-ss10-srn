@@ -3,11 +3,16 @@ package de.fhma.ss10.srn.tischbein.core.db;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.fhma.ss10.srn.tischbein.core.Utils;
+import de.fhma.ss10.srn.tischbein.core.crypto.AESReader;
+import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
 
 /**
@@ -17,6 +22,55 @@ import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
  */
 public final class Database {
 
+    /**
+     * Alle möglichen Tabellen (Helferklasse).
+     * 
+     * @author Smolli
+     */
+    private enum Tables {
+        /** Die Tabelle mit den Dateien anderer Benutzer, auf die der Benutzer Zugang hat. */
+        AccessTable,
+        /** Die Tabelle mit den Tupeln, welche Datei der Benutzer anderen Benutzern zugänglich gemacht hat. */
+        LendTable,
+        /** Die Tabelle mit den Dateien des Benutzers. */
+        FileTable;
+
+        /**
+         * Gibt den Dateinamen der Tabelle im Benutzerkontext zurück.
+         * 
+         * @param user
+         *            Der {@link User}-Kontext.
+         * @return Der eindeutige Dateiname.
+         */
+        public String getFilename(final User user) {
+            StringBuilder sb = new StringBuilder("db/users/");
+
+            sb.append(Utils.toMD5Hex(user.getName()));
+
+            switch (this) {
+                case FileTable:
+                    sb.append(".files");
+                    break;
+
+                case AccessTable:
+                    sb.append(".access");
+                    break;
+
+                case LendTable:
+                    sb.append(".lend");
+                    break;
+
+                default:
+                    throw new RuntimeException("Gnarf!");
+            }
+
+            sb.append(".tb");
+
+            return sb.toString();
+        }
+
+    }
+
     /** Standard-Datei für die User-Tabelle. */
     private static final String DB_USERS_TB = "db/users.tb";
     /** Standard-Datei für die Datei-Tabelle. */
@@ -25,6 +79,7 @@ public final class Database {
     private static final ReentrantLock LOCK = new ReentrantLock();
     /** CSV-Separator. */
     static final char SEPARATOR = ';';
+
     /** Singleton-Instanz der Datenbank. */
     private static Database instance = null;
 
@@ -81,6 +136,9 @@ public final class Database {
         try {
             Database db = new Database();
 
+            new java.io.File(Database.DB_USERS_TB).createNewFile();
+            new java.io.File(Database.DB_FILES_TB).createNewFile();
+
             db.loadUsers();
             db.loadFiles();
 
@@ -94,6 +152,7 @@ public final class Database {
 
     /** Enthält alle bekannten Benutzer in einer Map. Die Information ist öffentlich zugänglich. */
     private TreeMap<String, User> users = new TreeMap<String, User>();
+
     /** Hält alle bekannten Dateien in einer Map. Die Information ist öffentlich zugänglich. */
     private TreeMap<Integer, File> files = new TreeMap<Integer, File>();
 
@@ -124,6 +183,8 @@ public final class Database {
 
             User user = User.create(name, pass);
 
+            this.createUserFiles(user);
+
             this.saveToUsers(user, pass);
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
@@ -139,8 +200,12 @@ public final class Database {
      * @param user
      *            Der Benutzer.
      * @return Das {@link FileListObject} mit den Dateien.
+     * @throws CryptoException
+     *             Wird geworfen, wenn eine der Tabellen nicht entschlüsselt werden konnte.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
      */
-    public FileListObject getFileList(final User user) {
+    public FileListObject getFileList(final User user) throws CryptoException, DatabaseException {
         Database.LOCK.lock();
 
         try {
@@ -202,6 +267,39 @@ public final class Database {
     }
 
     /**
+     * Erstellt die Tabellen-Dateien für die Datenbank.
+     * 
+     * @param user
+     *            Der Benutzerkontext.
+     * @throws IOException
+     *             Wird geworfen, wenn eine der Dateien nicht erstellt werden konnte.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn eine der Dateien nicht erstellt werden konnte.
+     */
+    private void createUserFiles(final User user) throws IOException, DatabaseException {
+        new java.io.File(Tables.FileTable.getFilename(user)).createNewFile();
+        new java.io.File(Tables.AccessTable.getFilename(user)).createNewFile();
+        new java.io.File(Tables.LendTable.getFilename(user)).createNewFile();
+    }
+
+    /**
+     * Gibt eine Datei aus der Map zurück und prüft vorher, ob sie existiert.
+     * 
+     * @param id
+     *            Die ID der Datei.
+     * @return Gibt das {@link File}-Objekt der Datei zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Datei mit der ID nicht im System ist.
+     */
+    private File getFile(final int id) throws DatabaseException {
+        if (!this.files.containsKey(id)) {
+            throw new DatabaseException("Datei ist nicht bekannt!");
+        }
+
+        return this.files.get(id);
+    }
+
+    /**
      * Lädt die Zugriffsrechte eines Benutzer und gibt die Dateien zurück, auf die der Benutzer Zugriff hat.
      * 
      * @param user
@@ -249,10 +347,32 @@ public final class Database {
      * @param user
      *            Der Benutzerkontext.
      * @return Eine {@link List} mit allen IDs.
+     * @throws CryptoException
+     *             Wird geworfen, wenn die Tabelle nicht entschlüsselt werden kann.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht geladen werden kann.
      */
-    private List<File> loadFilesTable(final User user) {
-        // TODO Auto-generated method stub
-        return null;
+    private List<File> loadFilesTable(final User user) throws CryptoException, DatabaseException {
+        AESReader br = AESReader.createReader(Tables.FileTable.getFilename(user), user.getCryptKey());
+        String line;
+        List<File> list = new ArrayList<File>();
+
+        try {
+            while ((line = br.readLine()) != null) {
+                String[] cols = line.split(";");
+
+                int id = Integer.parseInt(cols[0]);
+                File file = this.getFile(id);
+
+                file.setKey(Utils.fromHexString(cols[1]));
+
+                list.add(file);
+            }
+
+            return list;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Dateientabelle nicht laden!", e);
+        }
     }
 
     /**
