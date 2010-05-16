@@ -56,6 +56,8 @@ public class WorkForm extends javax.swing.JFrame {
         setTitle("Tischbein v0.1");
         setMinimumSize(new java.awt.Dimension(640, 480));
 
+        buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
+
         logoutButton.setText("Logout");
         buttonPanel.add(logoutButton);
 
