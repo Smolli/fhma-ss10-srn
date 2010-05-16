@@ -2,6 +2,11 @@ package de.fhma.ss10.srn.tischbein.core.db;
 
 import java.util.List;
 
+/**
+ * Enthält alle Tupel, die beschreiben, welche Datei an welchen Benutzer freigeschaltet wurde.
+ * 
+ * @author Smolli
+ */
 public final class FileListObject {
 
     /**
@@ -49,16 +54,34 @@ public final class FileListObject {
 
     }
 
+    /**
+     * Setzt die Liste mit den Dateien anderer Benutzer, auf die der Benutzer zugreifen darf.
+     * 
+     * @param accessTable
+     *            Die Liste der Dateien.
+     */
     void setAccessTable(final List<File> accessTable) {
         // TODO Auto-generated method stub
 
     }
 
+    /**
+     * Setzt die Liste der Dateien, die dem Bentuzer gehören.
+     * 
+     * @param filesTable
+     *            Die List der Dateien.
+     */
     void setFilesTable(final List<File> filesTable) {
         // TODO Auto-generated method stub
 
     }
 
+    /**
+     * Setzt die Liste der Tupel, die angeben, welche Datei für welchen anderen Benutzer freigegeben wurde.
+     * 
+     * @param list
+     *            Die Liste.
+     */
     void setLendTable(final List<UserFilePair> list) {
         // TODO Auto-generated method stub
 
