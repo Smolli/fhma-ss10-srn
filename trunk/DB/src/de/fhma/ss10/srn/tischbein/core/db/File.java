@@ -1,6 +1,5 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-import de.fhma.ss10.srn.tischbein.core.Utils;
 
 /**
  * Fileklasse. Enhält alle Methoden zur Verwaltung der verschlüsselten Dateien.
@@ -9,8 +8,6 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
  */
 public final class File {
 
-    /** Datei-Tabelle Schlüssel. */
-    private static final int COLUMN_KEY = 3;
     /** Datei-Tabelle Hash. */
     private static final int COLUMN_HASH = 2;
     /** Datei-Tabelle Name. */
@@ -32,7 +29,6 @@ public final class File {
         file.setId(Integer.parseInt(cols[File.COLUMN_ID]));
         file.setName(cols[File.COLUMN_NAME]);
         file.setHash(cols[File.COLUMN_HASH]);
-        file.setKey(Utils.fromHexString(cols[File.COLUMN_KEY]));
 
         return file;
     }
@@ -62,6 +58,16 @@ public final class File {
     }
 
     /**
+     * Setzt den Schlüssel, mit dem der Inhalt der Datei verschlüssel ist.
+     * 
+     * @param value
+     *            Der Schlüssel.
+     */
+    void setKey(final byte[] value) {
+        this.fileKey = value;
+    }
+
+    /**
      * Setzt die Hash-Summe des Dateiinhalts. Dient zur späteren Überprüfung, ob die Datei erfolgreich entschlüsselt
      * wurde.
      * 
@@ -80,16 +86,6 @@ public final class File {
      */
     private void setId(final int value) {
         this.id = value;
-    }
-
-    /**
-     * Setzt den Schlüssel, mit dem der Inhalt der Datei verschlüssel ist.
-     * 
-     * @param value
-     *            Der Schlüssel.
-     */
-    private void setKey(final byte[] value) {
-        this.fileKey = value;
     }
 
     /**
