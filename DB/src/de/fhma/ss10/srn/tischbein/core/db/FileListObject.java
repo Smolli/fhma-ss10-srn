@@ -1,6 +1,6 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-import java.util.List;
+import java.util.Vector;
 
 /**
  * Enthält alle Tupel, die beschreiben, welche Datei an welchen Benutzer freigeschaltet wurde.
@@ -19,7 +19,7 @@ public final class FileListObject {
         /** Hält das Benutzerobjekt. */
         private final User user;
         /** Hält das Dateiobjekt. */
-        private final File file;
+        private final FileItem file;
 
         /**
          * Standard-Ctor, der das Tupel initialisiert.
@@ -29,7 +29,7 @@ public final class FileListObject {
          * @param fileObject
          *            Das Dateiobjekt.
          */
-        public UserFilePair(final User userObject, final File fileObject) {
+        public UserFilePair(final User userObject, final FileItem fileObject) {
             this.user = userObject;
             this.file = fileObject;
         }
@@ -37,9 +37,9 @@ public final class FileListObject {
         /**
          * Gibt das Dateiobjekt zurück.
          * 
-         * @return Das {@link File}-Objekt.
+         * @return Das {@link FileItem}-Objekt.
          */
-        public File getFile() {
+        public FileItem getFile() {
             return this.file;
         }
 
@@ -54,15 +54,18 @@ public final class FileListObject {
 
     }
 
+    private Vector<FileItem> accessList;
+    private Vector<FileItem> filesList;
+    private Vector<UserFilePair> lendList;
+
     /**
      * Setzt die Liste mit den Dateien anderer Benutzer, auf die der Benutzer zugreifen darf.
      * 
      * @param accessTable
      *            Die Liste der Dateien.
      */
-    void setAccessTable(final List<File> accessTable) {
-        // TODO Auto-generated method stub
-
+    void setAccessTable(final Vector<FileItem> accessTable) {
+        this.accessList = accessTable;
     }
 
     /**
@@ -71,9 +74,8 @@ public final class FileListObject {
      * @param filesTable
      *            Die List der Dateien.
      */
-    void setFilesTable(final List<File> filesTable) {
-        // TODO Auto-generated method stub
-
+    void setFilesTable(final Vector<FileItem> filesTable) {
+        this.filesList = filesTable;
     }
 
     /**
@@ -82,9 +84,12 @@ public final class FileListObject {
      * @param list
      *            Die Liste.
      */
-    void setLendTable(final List<UserFilePair> list) {
-        // TODO Auto-generated method stub
+    void setLendTable(final Vector<UserFilePair> list) {
+        this.lendList = list;
+    }
 
+    public Vector<FileItem> getFileList() {
+        return this.filesList;
     }
 
 }

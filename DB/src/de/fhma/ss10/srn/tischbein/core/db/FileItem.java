@@ -1,5 +1,13 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.MessageFormat;
+
+import de.fhma.ss10.srn.tischbein.core.Utils;
+
 /**
  * Fileklasse. Enhält alle Methoden zur Verwaltung der verschlüsselten Dateien.
  * 
@@ -27,7 +35,7 @@ public final class FileItem {
 
         file.setId(Integer.parseInt(cols[FileItem.COLUMN_ID]));
         file.setName(cols[FileItem.COLUMN_NAME]);
-        file.setHash(cols[FileItem.COLUMN_HASH]);
+        file.setHash(Utils.fromHexString(cols[FileItem.COLUMN_HASH]));
 
         return file;
     }
@@ -37,9 +45,10 @@ public final class FileItem {
     /** Hält den Dateinamen, wie er angezeigt werden soll. */
     private String fileName;
     /** Hält die MD5-Summe des Dateiinhalts. */
-    private String hash;
+    private byte[] hash;
     /** Hält den Dateischlüssel. */
     private byte[] fileKey;
+    private byte[] buffer;
 
     /**
      * Versteckter Standard-Ctor.
@@ -70,11 +79,11 @@ public final class FileItem {
      * Setzt die Hash-Summe des Dateiinhalts. Dient zur späteren Überprüfung, ob die Datei erfolgreich entschlüsselt
      * wurde.
      * 
-     * @param value
+     * @param bs
      *            Die MD5-Summe des Dateiinhalts.
      */
-    private void setHash(final String value) {
-        this.hash = value;
+    private void setHash(final byte[] bs) {
+        this.hash = bs;
     }
 
     /**
@@ -106,9 +115,36 @@ public final class FileItem {
         return this.fileName;
     }
 
-    public static FileItem create(java.io.File file) {
-        // TODO Auto-generated method stub
-        return null;
+    public static FileItem create(String filename, byte[] secret) throws IOException {
+        FileItem fi = new FileItem();
+        File file = new File(filename);
+
+        fi.buffer = new byte[(int) file.length()];
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+
+        bis.read(fi.buffer);
+
+        bis.close();
+
+        fi.setHash(Utils.toMD5(fi.buffer));
+        fi.setName(file.getName());
+        fi.setId(Database.getInstance().getNextFileId());
+        fi.setKey(secret);
+
+        return fi;
+    }
+
+    public String compile() {
+        return MessageFormat.format("{1}{0}{2}{0}{3}\n", Database.SEPARATOR, Integer.toString(this.id), this.getName(),
+                this.hash);
+    }
+
+    public byte[] getBuffer() {
+        return this.buffer;
+    }
+
+    public byte[] getKey() {
+        return this.fileKey;
     }
 
 }

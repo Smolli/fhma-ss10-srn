@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -12,6 +11,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AESReader;
+import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
 
@@ -159,7 +160,8 @@ public final class Database {
     private TreeMap<String, User> users = new TreeMap<String, User>();
 
     /** Hält alle bekannten Dateien in einer Map. Die Information ist öffentlich zugänglich. */
-    private TreeMap<Integer, File> files = new TreeMap<Integer, File>();
+    private TreeMap<Integer, FileItem> files = new TreeMap<Integer, FileItem>();
+    private int lastFileId;
 
     /**
      * Privater ctor, um die Instanziierung außerhalb zu verhindern.
@@ -210,7 +212,7 @@ public final class Database {
      * @throws DatabaseException
      *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
      */
-    public FileListObject getFileList(final User user) throws CryptoException, DatabaseException {
+    FileListObject getFileList(final User user) throws CryptoException, DatabaseException {
         Database.LOCK.lock();
 
         try {
@@ -224,19 +226,6 @@ public final class Database {
         } finally {
             Database.LOCK.unlock();
         }
-    }
-
-    /**
-     * Gibt einen <code>Vector</code> mit allen bekannten Benutzernamen zurück.
-     * 
-     * @param user
-     * @deprecated Diese Methode wird demnächst ersetzt. Ziel ist es ein <code>ListModel</code> zu erzeugen, in dem Alle
-     *             Benutzernamen und der Wert des Zuordnungshäkchens gespeichert ist.
-     * @return Der Vector mit allen Benutzernamen.
-     */
-    @Deprecated
-    public Vector<String> getUserList() {
-        return new Vector<String>(this.users.keySet());
     }
 
     /**
@@ -300,11 +289,11 @@ public final class Database {
      * 
      * @param id
      *            Die ID der Datei.
-     * @return Gibt das {@link File}-Objekt der Datei zurück.
+     * @return Gibt das {@link FileItem}-Objekt der Datei zurück.
      * @throws DatabaseException
      *             Wird geworfen, wenn die Datei mit der ID nicht im System ist.
      */
-    private File getFile(final int id) throws DatabaseException {
+    private FileItem getFile(final int id) throws DatabaseException {
         if (!this.files.containsKey(id)) {
             throw new DatabaseException("Datei ist nicht bekannt!");
         }
@@ -327,7 +316,7 @@ public final class Database {
      *            Der Benutzerkontext.
      * @return Eine {@link List} mit allen Dateien.
      */
-    private List<File> loadAccessTable(final User user) {
+    private Vector<FileItem> loadAccessTable(final User user) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -343,13 +332,17 @@ public final class Database {
 
         try {
             BufferedReader br = new BufferedReader(new FileReader(Database.DB_FILES_TB));
-            TreeMap<Integer, File> temp = new TreeMap<Integer, File>();
+            TreeMap<Integer, FileItem> temp = new TreeMap<Integer, FileItem>();
             String line;
 
             while ((line = br.readLine()) != null) {
-                File file = File.parse(line);
+                FileItem file = FileItem.parse(line);
+                int id = file.getId();
 
-                temp.put(file.getId(), file);
+                temp.put(id, file);
+
+                if (id > lastFileId)
+                    lastFileId = id;
             }
 
             br.close();
@@ -373,17 +366,17 @@ public final class Database {
      * @throws DatabaseException
      *             Wird geworfen, wenn die Tabelle nicht geladen werden kann.
      */
-    private List<File> loadFilesTable(final User user) throws CryptoException, DatabaseException {
+    private Vector<FileItem> loadFilesTable(final User user) throws CryptoException, DatabaseException {
         AESReader br = AESReader.createReader(Tables.FileTable.getFilename(user), user.getCryptKey());
         String line;
-        List<File> list = new ArrayList<File>();
+        Vector<FileItem> list = new Vector<FileItem>();
 
         try {
             while ((line = br.readLine()) != null) {
                 String[] cols = line.split(";");
 
                 int id = Integer.parseInt(cols[0]);
-                File file = this.getFile(id);
+                FileItem file = this.getFile(id);
 
                 file.setKey(Utils.fromHexString(cols[1]));
 
@@ -405,10 +398,10 @@ public final class Database {
      * @throws CryptoException
      * @throws DatabaseException
      */
-    private List<UserFilePair> loadLendTable(final User user) throws CryptoException, DatabaseException {
+    private Vector<UserFilePair> loadLendTable(final User user) throws CryptoException, DatabaseException {
         AESReader br = AESReader.createReader(Tables.LendTable.getFilename(user), user.getCryptKey());
         String line;
-        List<UserFilePair> list = new ArrayList<UserFilePair>();
+        Vector<UserFilePair> list = new Vector<UserFilePair>();
 
         try {
             while ((line = br.readLine()) != null) {
@@ -417,7 +410,7 @@ public final class Database {
                 String userName = cols[0];
                 int fileId = Integer.parseInt(cols[1]);
 
-                File fileObject = this.getFile(fileId);
+                FileItem fileObject = this.getFile(fileId);
                 User userObject = this.getUser(userName);
 
                 UserFilePair ufp = new UserFilePair(userObject, fileObject);
@@ -490,4 +483,41 @@ public final class Database {
         }
     }
 
+    public int getNextFileId() {
+        return this.lastFileId + 1;
+    }
+
+    public FileItem addFile(User user, String filename) throws DatabaseException {
+        try {
+            // Filekey erstellen
+            byte[] secret = AesCrypto.generateKey();
+
+            // Dateiinhalt verschlüsseln + speichern
+            FileItem fi = FileItem.create(filename, secret);
+
+            AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
+            w.write(Utils.toHexString(fi.getBuffer()));
+            w.close();
+
+            // in Dateitabelle des Benutzers Eintrag schreiben
+            FileListObject flo = user.getFileListObject();
+
+            flo.getFileList().add(fi);
+
+            w = AESWriter.createWriter(Tables.FileTable.getFilename(user), secret);
+            for (FileItem item : flo.getFileList()) {
+                w.writeLine(item.getId() + Database.SEPARATOR + Utils.toHexString(item.getKey()));
+            }
+            w.close();
+
+            // in globale Dateitablle Eintrag schreiben
+            FileWriter fw = new FileWriter(DB_FILES_TB, true);
+            fw.write(fi.compile());
+            fw.close();
+
+            return fi;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann Datei nicht huinzufügen!", e);
+        }
+    }
 }
