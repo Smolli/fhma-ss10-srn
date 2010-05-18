@@ -7,8 +7,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
+import de.fhma.ss10.srn.tischbein.core.Utils;
 
 /**
  * Ein spezialisierter {@link BufferedReader}, der AES-verschlüsselte Dateien lesen kann.
@@ -32,14 +31,11 @@ public final class AESReader extends BufferedReader {
         // Schlüssel testen
         AESReader.testKey(secret);
 
-        // Cipher initialisieren
-        Cipher cipher = AESReader.initCipher(secret);
-
         // Rohdaten lesen
         byte[] buffer = AESReader.readData(filename);
 
         // entschlüsseln und in einen Reader wandeln
-        return new AESReader(AESReader.decodeAndWrap(cipher, buffer));
+        return new AESReader(AESReader.decodeAndWrap(buffer, secret));
     }
 
     /**
@@ -49,17 +45,19 @@ public final class AESReader extends BufferedReader {
      *            Der Cipher, mit dem der Puffer entschlüsselt werden soll.
      * @param encoded
      *            Der Puffer mit den Rohdaten.
+     * @param secret
+     *            Der Schllüssel.
      * @return Der Reader, der auf die entschlüsselten Daten zeigt.
      * @throws CryptoException
      *             Wird geworfen, wenn der Puffer nicht entschlüsselt werden konnte.
      */
-    private static Reader decodeAndWrap(final Cipher cipher, final byte[] encoded) throws CryptoException {
+    private static Reader decodeAndWrap(final byte[] encoded, byte[] secret) throws CryptoException {
         try {
             byte[] decoded;
 
             if (encoded.length != 0) {
                 // Rohdaten entschlüsseln und in ein Array speichern.
-                decoded = cipher.doFinal(encoded);
+                decoded = AesCrypto.decrypt(encoded, secret);
             } else {
                 // Sonderfall, verschlüsselte Daten sind leer.
                 decoded = new byte[0];
@@ -75,25 +73,6 @@ public final class AESReader extends BufferedReader {
         } catch (Exception e) {
             throw new CryptoException("Kann die angegebene Datei nicht entschlüsseln!", e);
         }
-    }
-
-    /**
-     * Erstellt ein AES-Cipher-Objekt mit dem übergenenen Schlüssel.
-     * 
-     * @param secret
-     *            Der Schlüssel, mit dem der Cipher initialisiert wird.
-     * @return Gibt das {@link Cipher}-Objekt zurück.
-     */
-    private static Cipher initCipher(final byte[] secret) {
-        Cipher cipher;
-
-        try {
-            cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(secret, AesCrypto.AES_ALGO_NAME));
-        } catch (Exception e) {
-            throw new RuntimeException("Kann den AESReader nicht erstellen!", e);
-        }
-        return cipher;
     }
 
     /**
@@ -118,7 +97,8 @@ public final class AESReader extends BufferedReader {
         } catch (Exception e) {
             throw new CryptoException("Kann die angegebene Datei nicht öffnen!", e);
         }
-        return buffer;
+
+        return Utils.fromHexString(new String(buffer));
     }
 
     /**
