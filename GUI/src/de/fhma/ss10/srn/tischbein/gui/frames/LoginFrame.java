@@ -54,14 +54,6 @@ public final class LoginFrame extends LoginForm implements LoginActionListener, 
         return this.usernameField.getText();
     }
 
-    /**
-     * Setzt den eingeloggten Benutzer und schaltet die Arbeitsansicht frei.
-     * 
-     * @param newUser
-     *            Der Benutzer.
-     * @throws DatabaseException
-     * @throws CryptoException
-     */
     @Override
     public void login(final User newUser) throws CryptoException, DatabaseException {
         new WorkFrame(newUser);

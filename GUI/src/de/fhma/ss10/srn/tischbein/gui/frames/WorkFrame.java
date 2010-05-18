@@ -1,8 +1,6 @@
 package de.fhma.ss10.srn.tischbein.gui.frames;
 
-import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction;
@@ -30,10 +28,8 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      * 
      * @param newUser
      *            Der Benutzer.
-     * @throws DatabaseException
-     * @throws CryptoException
      */
-    public WorkFrame(final User newUser) throws CryptoException, DatabaseException {
+    public WorkFrame(final User newUser) {
         this.closeButton.setAction(new CloseAction(this));
         this.logoutButton.setAction(new LogoutAction(this));
         this.uploadButton.setAction(new UploadAction());
