@@ -45,7 +45,9 @@ public final class LoginAction extends AbstractAction {
          * @param user
          *            Der Benutzer.
          * @throws DatabaseException
+         *             Wird geworfen, wenn der Benutzer nicht eingeloggt werden konnte.
          * @throws CryptoException
+         *             Wird geworfen, wenn der Benutzer nicht eingeloggt werden konnte.
          */
         void login(User user) throws CryptoException, DatabaseException;
 
