@@ -157,9 +157,9 @@ public final class Database {
 
     /** Enthält alle bekannten Benutzer in einer Map. Die Information ist öffentlich zugänglich. */
     private TreeMap<String, User> users = new TreeMap<String, User>();
-
     /** Hält alle bekannten Dateien in einer Map. Die Information ist öffentlich zugänglich. */
     private TreeMap<Integer, FileItem> files = new TreeMap<Integer, FileItem>();
+    /** Hält die höchste vergebene Datei ID. */
     private int lastFileId;
 
     /**
@@ -186,31 +186,17 @@ public final class Database {
             byte[] secret = AesCrypto.generateKey();
 
             // Dateiinhalt verschlüsseln + speichern
-            FileItem fi = FileItem.create(filename, secret);
-
-            AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
-            w.write(Utils.toHexString(fi.getBuffer()));
-            w.close();
+            FileItem fi = this.createEncryptedFile(filename, secret);
 
             // in Dateitabelle des Benutzers Eintrag schreiben
-            FileListObject flo = user.getFileListObject();
-
-            flo.getFileList().add(fi);
-
-            w = AESWriter.createWriter(Tables.FileTable.getFilename(user), secret);
-            for (FileItem item : flo.getFileList()) {
-                w.writeLine(item.getId() + Database.SEPARATOR + Utils.toHexString(item.getKey()));
-            }
-            w.close();
+            this.updateUserTables(user, fi);
 
             // in globale Dateitablle Eintrag schreiben
-            FileWriter fw = new FileWriter(Database.DB_FILES_TB, true);
-            fw.write(fi.compile());
-            fw.close();
+            this.updateGlobalTable(fi);
 
             return fi;
         } catch (Exception e) {
-            throw new DatabaseException("Kann Datei nicht huinzufügen!", e);
+            throw new DatabaseException("Kann Datei nicht hinzufügen!", e);
         }
     }
 
@@ -315,6 +301,27 @@ public final class Database {
     }
 
     /**
+     * Erstellt den verschlüsselten Dateiinhalt.
+     * 
+     * @param filename
+     *            Der Dateiname.
+     * @param secret
+     *            Der Schlüssel, mit dem der Inhalt verschlüsselt werden soll.
+     * @return Das erzugte {@link FileItem} mit den Dateidaten.
+     * @throws IOException
+     *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
+     */
+    private FileItem createEncryptedFile(final String filename, final byte[] secret) throws IOException {
+        FileItem fi = FileItem.create(filename, secret);
+
+        AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
+        w.write(Utils.toHexString(fi.getBuffer()));
+        w.close();
+
+        return fi;
+    }
+
+    /**
      * Erstellt die Tabellen-Dateien für die Datenbank.
      * 
      * @param user
@@ -355,6 +362,15 @@ public final class Database {
         return this.files.get(id);
     }
 
+    /**
+     * Gibt das {@link User}-Objekt mit dem angegebenen Benutzernamen zurück.
+     * 
+     * @param name
+     *            Der Benutzername.
+     * @return Gibt den Benutzer zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der Benutzer dem System nicht bekannt ist.
+     */
     private User getUser(final String name) throws DatabaseException {
         if (!this.users.containsKey(name.toLowerCase())) {
             throw new DatabaseException("Benutzer ist nicht bekannt!");
@@ -470,9 +486,7 @@ public final class Database {
                 FileItem fileObject = this.getFile(fileId);
                 User userObject = this.getUser(userName);
 
-                UserFilePair ufp = new UserFilePair(userObject, fileObject);
-
-                list.add(ufp);
+                list.add(new UserFilePair(userObject, fileObject));
             }
 
             return list;
@@ -538,5 +552,46 @@ public final class Database {
         } finally {
             Database.LOCK.unlock();
         }
+    }
+
+    /**
+     * Aktualisiert die globale Dateien-Tabelle.
+     * 
+     * @param fi
+     *            Das {@link FileItem}, mit dem die Tabelle ergänzt werden soll.
+     * @throws IOException
+     *             Wird geworfen, wenn die Tabelle nicht erweitert werden kann.
+     */
+    private void updateGlobalTable(final FileItem fi) throws IOException {
+        FileWriter fw = new FileWriter(Database.DB_FILES_TB, true);
+
+        fw.write(fi.compile());
+
+        fw.close();
+    }
+
+    /**
+     * Aktualisiert die Benutzertabellen.
+     * 
+     * @param user
+     *            Der Benutzer, dessen Tabellen aktualisiert werden sollen.
+     * @param fi
+     *            Das {@link FileItem}, das hinzugefügt werden soll.
+     * @throws IOException
+     *             Wird geworfen, wenn die Tabellen nicht erweitert werden konnten.
+     */
+    private void updateUserTables(final User user, final FileItem fi) throws IOException {
+        AESWriter w;
+        FileListObject flo = user.getFileListObject();
+
+        flo.getFileList().add(fi);
+
+        w = AESWriter.createWriter(Tables.FileTable.getFilename(user), user.getCryptKey());
+
+        for (FileItem item : flo.getFileList()) {
+            w.writeLine(Integer.toString(item.getId()) + Database.SEPARATOR + Utils.toHexString(item.getKey()));
+        }
+
+        w.close();
     }
 }
