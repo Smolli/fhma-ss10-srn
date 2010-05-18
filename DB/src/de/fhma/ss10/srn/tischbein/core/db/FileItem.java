@@ -22,6 +22,25 @@ public final class FileItem {
     /** Datei-Tabelle ID. */
     private static final int COLUMN_ID = 0;
 
+    public static FileItem create(final String filename, final byte[] secret) throws IOException {
+        FileItem fi = new FileItem();
+        File file = new File(filename);
+
+        fi.buffer = new byte[(int) file.length()];
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+
+        bis.read(fi.buffer);
+
+        bis.close();
+
+        fi.setHash(Utils.toMD5(fi.buffer));
+        fi.setName(file.getName());
+        fi.setId(Database.getInstance().getNextFileId());
+        fi.setKey(secret);
+
+        return fi;
+    }
+
     /**
      * Parst die angegebene Zeile und gibt sie als {@link FileItem}-Objekt zurück.
      * 
@@ -48,12 +67,22 @@ public final class FileItem {
     private byte[] hash;
     /** Hält den Dateischlüssel. */
     private byte[] fileKey;
+
     private byte[] buffer;
 
     /**
      * Versteckter Standard-Ctor.
      */
     private FileItem() {
+    }
+
+    public String compile() {
+        return MessageFormat.format("{1}{0}{2}{0}{3}\n", Database.SEPARATOR, Integer.toString(this.id), this.getName(),
+                this.hash);
+    }
+
+    public byte[] getBuffer() {
+        return this.buffer;
     }
 
     /**
@@ -63,6 +92,19 @@ public final class FileItem {
      */
     public int getId() {
         return this.id;
+    }
+
+    public byte[] getKey() {
+        return this.fileKey;
+    }
+
+    public String getName() {
+        return this.fileName;
+    }
+
+    @Override
+    public String toString() {
+        return this.getName();
     }
 
     /**
@@ -104,47 +146,6 @@ public final class FileItem {
      */
     private void setName(final String value) {
         this.fileName = value;
-    }
-
-    @Override
-    public String toString() {
-        return this.getName();
-    }
-
-    public String getName() {
-        return this.fileName;
-    }
-
-    public static FileItem create(String filename, byte[] secret) throws IOException {
-        FileItem fi = new FileItem();
-        File file = new File(filename);
-
-        fi.buffer = new byte[(int) file.length()];
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-
-        bis.read(fi.buffer);
-
-        bis.close();
-
-        fi.setHash(Utils.toMD5(fi.buffer));
-        fi.setName(file.getName());
-        fi.setId(Database.getInstance().getNextFileId());
-        fi.setKey(secret);
-
-        return fi;
-    }
-
-    public String compile() {
-        return MessageFormat.format("{1}{0}{2}{0}{3}\n", Database.SEPARATOR, Integer.toString(this.id), this.getName(),
-                this.hash);
-    }
-
-    public byte[] getBuffer() {
-        return this.buffer;
-    }
-
-    public byte[] getKey() {
-        return this.fileKey;
     }
 
 }

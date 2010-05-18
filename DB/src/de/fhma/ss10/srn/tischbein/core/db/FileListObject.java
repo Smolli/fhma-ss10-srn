@@ -54,9 +54,39 @@ public final class FileListObject {
 
     }
 
+    /** Hält die Tabelle der Dateien anderer Benutzer, auf die der User zugriff hat. */
     private Vector<FileItem> accessList;
+    /** Hält die Tabelle der Dateien, die dem Benutzer gehören. */
     private Vector<FileItem> filesList;
+    /** Hält die Tabelle der Benutzer, denen die Dateien ausgeliehen wurden. */
     private Vector<UserFilePair> lendList;
+
+    /**
+     * Gibt die Zugriffstabelle zurück.
+     * 
+     * @return Die Tabelle der Dateien, auf die der Benutzer zugriff hat.
+     */
+    public Vector<FileItem> getAccessList() {
+        return this.accessList;
+    }
+
+    /**
+     * Gibt die Dateien-Tabelle zurück.
+     * 
+     * @return Die Dateien-Tabelle als {@link Vector}.
+     */
+    public Vector<FileItem> getFileList() {
+        return this.filesList;
+    }
+
+    /**
+     * Die Relation der Dateien und Benutzer, die auf die Dateien des Benutzers zugreifen können.
+     * 
+     * @return Die Relation als {@link Vector}.
+     */
+    public Vector<UserFilePair> getLendList() {
+        return this.lendList;
+    }
 
     /**
      * Setzt die Liste mit den Dateien anderer Benutzer, auf die der Benutzer zugreifen darf.
@@ -86,10 +116,6 @@ public final class FileListObject {
      */
     void setLendTable(final Vector<UserFilePair> list) {
         this.lendList = list;
-    }
-
-    public Vector<FileItem> getFileList() {
-        return this.filesList;
     }
 
 }
