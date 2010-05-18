@@ -22,6 +22,17 @@ public final class FileItem {
     /** Datei-Tabelle ID. */
     private static final int COLUMN_ID = 0;
 
+    /**
+     * Erstellt ein neues {@link FileItem} anhand des übergebenen Dateinamens erstellt.
+     * 
+     * @param filename
+     *            Der Dateiname der zugrundeliegenden Datei.
+     * @param secret
+     *            Der Schlüssel, mit dem der Inhalt der Datei verschlüsselt werden soll.
+     * @return Gibt das erstellte {@link FileItem} zurück.
+     * @throws IOException
+     *             Wird geworfen, wenn die Datei nicht gefunden oder gelesen werden konnte.
+     */
     public static FileItem create(final String filename, final byte[] secret) throws IOException {
         FileItem fi = new FileItem();
         File file = new File(filename);
@@ -67,7 +78,7 @@ public final class FileItem {
     private byte[] hash;
     /** Hält den Dateischlüssel. */
     private byte[] fileKey;
-
+    /** Hält den unverschlüsselten Dateiinhalt. */
     private byte[] buffer;
 
     /**
@@ -76,11 +87,21 @@ public final class FileItem {
     private FileItem() {
     }
 
+    /**
+     * Erstellt einen CSV-String für die Datenbank.
+     * 
+     * @return Die Tabellenzeile.
+     */
     public String compile() {
         return MessageFormat.format("{1}{0}{2}{0}{3}\n", Database.SEPARATOR, Integer.toString(this.id), this.getName(),
-                this.hash);
+                Utils.toHexString(this.hash));
     }
 
+    /**
+     * Gibt den unverschlüsselten Dateiinhalt zurück.
+     * 
+     * @return Der Dateiinhalt.
+     */
     public byte[] getBuffer() {
         return this.buffer;
     }
@@ -94,10 +115,20 @@ public final class FileItem {
         return this.id;
     }
 
+    /**
+     * Gibt den Schlüssel zurück, mit dem der Dateiinhalt verschlüsselt wurde.
+     * 
+     * @return Der Schlüssel.
+     */
     public byte[] getKey() {
         return this.fileKey;
     }
 
+    /**
+     * Gibt den Dateinamen zurück.
+     * 
+     * @return Der Dateiname, wie er in der Oberfläche erscheinen soll.
+     */
     public String getName() {
         return this.fileName;
     }
