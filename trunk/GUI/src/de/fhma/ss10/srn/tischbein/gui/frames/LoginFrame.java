@@ -1,6 +1,8 @@
 package de.fhma.ss10.srn.tischbein.gui.frames;
 
+import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
+import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction;
@@ -57,9 +59,11 @@ public final class LoginFrame extends LoginForm implements LoginActionListener, 
      * 
      * @param newUser
      *            Der Benutzer.
+     * @throws DatabaseException
+     * @throws CryptoException
      */
     @Override
-    public void login(final User newUser) {
+    public void login(final User newUser) throws CryptoException, DatabaseException {
         new WorkFrame(newUser);
 
         this.close();

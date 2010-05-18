@@ -84,7 +84,11 @@ public final class NewUserAction extends AbstractAction implements LoginActionLi
 
     @Override
     public void login(final User user) {
-        this.listener.login(user);
+        try {
+            this.listener.login(user);
+        } catch (Exception e) {
+            GuiUtils.displayError("kann den Benutzer nicht einloggen!", e);
+        }
     }
 
 }
