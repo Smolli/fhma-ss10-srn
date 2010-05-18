@@ -1,12 +1,11 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-
 /**
  * Fileklasse. Enhält alle Methoden zur Verwaltung der verschlüsselten Dateien.
  * 
  * @author Smolli
  */
-public final class File {
+public final class FileItem {
 
     /** Datei-Tabelle Hash. */
     private static final int COLUMN_HASH = 2;
@@ -16,19 +15,19 @@ public final class File {
     private static final int COLUMN_ID = 0;
 
     /**
-     * Parst die angegebene Zeile und gibt sie als {@link File}-Objekt zurück.
+     * Parst die angegebene Zeile und gibt sie als {@link FileItem}-Objekt zurück.
      * 
      * @param line
      *            Die zu parsende Zeile.
-     * @return Das {@link File}-Objekt.
+     * @return Das {@link FileItem}-Objekt.
      */
-    static File parse(final String line) {
+    static FileItem parse(final String line) {
         String[] cols = line.split(";");
-        File file = new File();
+        FileItem file = new FileItem();
 
-        file.setId(Integer.parseInt(cols[File.COLUMN_ID]));
-        file.setName(cols[File.COLUMN_NAME]);
-        file.setHash(cols[File.COLUMN_HASH]);
+        file.setId(Integer.parseInt(cols[FileItem.COLUMN_ID]));
+        file.setName(cols[FileItem.COLUMN_NAME]);
+        file.setHash(cols[FileItem.COLUMN_HASH]);
 
         return file;
     }
@@ -45,7 +44,7 @@ public final class File {
     /**
      * Versteckter Standard-Ctor.
      */
-    private File() {
+    private FileItem() {
     }
 
     /**
@@ -96,6 +95,20 @@ public final class File {
      */
     private void setName(final String value) {
         this.fileName = value;
+    }
+
+    @Override
+    public String toString() {
+        return this.getName();
+    }
+
+    public String getName() {
+        return this.fileName;
+    }
+
+    public static FileItem create(java.io.File file) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
