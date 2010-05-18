@@ -8,6 +8,11 @@ import javax.crypto.Cipher;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
+/**
+ * Enthält lauter RSA-Methoden.
+ * 
+ * @author Smolli
+ */
 public class RsaCrypto {
 
     /** Hält die Schlüssellänge für den RSA-Alogrithmus in Bytes. */
