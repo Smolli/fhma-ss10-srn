@@ -5,7 +5,9 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
+import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 
@@ -42,8 +44,10 @@ public final class LoginAction extends AbstractAction {
          * 
          * @param user
          *            Der Benutzer.
+         * @throws DatabaseException
+         * @throws CryptoException
          */
-        void login(User user);
+        void login(User user) throws CryptoException, DatabaseException;
 
     }
 
