@@ -345,4 +345,8 @@ public final class User implements Serializable {
         this.passHash = hash;
     }
 
+    public FileListObject getFileListObject() {
+        return this.flo;
+    }
+
 }
