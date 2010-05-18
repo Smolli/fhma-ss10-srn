@@ -158,7 +158,16 @@ public final class User implements Serializable {
     /** Hält den entschlüsselten CryptKey für die AES-Verschlüsselung. */
     private byte[] cryptKeyDecrypted;
     /** Hält die Dateidaten für den Benutzer. */
-    private FileListObject flo;
+    private transient FileListObject flo;
+
+    /**
+     * Gibt das {@link FileListObject} zurück, dass dem User angehört.
+     * 
+     * @return Das {@link FileListObject} des Benutzers.
+     */
+    public FileListObject getFileListObject() {
+        return this.flo;
+    }
 
     /**
      * Gibt den Benutzernamen zurück.
@@ -343,10 +352,6 @@ public final class User implements Serializable {
      */
     private void setPassHash(final String hash) {
         this.passHash = hash;
-    }
-
-    public FileListObject getFileListObject() {
-        return this.flo;
     }
 
 }

@@ -51,6 +51,11 @@ public final class Utils {
         return res;
     }
 
+    /**
+     * Stellt einen globalen Zufallszahlengenerator zur verfügung.
+     * 
+     * @return Ein {@link SecureRandom} Zufallszahlengenerator.
+     */
     public static SecureRandom getRandom() {
         return Utils.SECURE_RANDOM;
     }

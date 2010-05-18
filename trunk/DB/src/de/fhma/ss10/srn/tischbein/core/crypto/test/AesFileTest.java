@@ -1,18 +1,33 @@
 package de.fhma.ss10.srn.tischbein.core.crypto.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AESReader;
 import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
 
-public class AesFileTest {
+/**
+ * {@link AESReader}- & AESWriter-Tests.
+ * 
+ * @author Smolli
+ */
+public final class AesFileTest {
 
+    /**
+     * Testet, ob der {@link AESReader} und {@link AESWriter} auch wirklich funktionieren.
+     */
     @Test
-    public void createFile() {
+    public void makeAndRead() {
+        this.createFile();
+
+        this.readFile();
+    }
+
+    /**
+     * Testet {@link AESWriter}.
+     */
+    private void createFile() {
         AESWriter w = AESWriter.createWriter("test.file", Utils.toMD5("1234"));
 
         try {
@@ -20,20 +35,22 @@ public class AesFileTest {
 
             w.close();
         } catch (Exception e) {
-            fail();
+            Assert.fail();
         }
     }
 
-    @Test
-    public void readFile() {
+    /**
+     * Testet {@link AESReader}.
+     */
+    private void readFile() {
         try {
             AESReader r = AESReader.createReader("test.file", Utils.toMD5("1234"));
 
-            assertEquals("0;000102030405060708090a0b0c0d0e0f;000102030405060708090a0b0c0d0e0f", r.readLine());
+            Assert.assertEquals("0;000102030405060708090a0b0c0d0e0f;000102030405060708090a0b0c0d0e0f", r.readLine());
 
             r.close();
         } catch (Exception e) {
-            fail();
+            Assert.fail();
         }
     }
 }

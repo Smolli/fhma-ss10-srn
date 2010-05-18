@@ -10,13 +10,24 @@ import java.io.Writer;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
+/**
+ * Ein spezialisierter {@link BufferedWriter}, der AES-verschlüsselte Dateien lesen kann.
+ * 
+ * @author Smolli
+ */
 public final class AESWriter extends BufferedWriter {
 
-    private ByteArrayOutputStream buffer;
-    private String filename;
-    private byte[] secret;
-
-    public static AESWriter createWriter(String filename, byte[] secret) {
+    /**
+     * Erstellt einen neuen {@link AESWriter}, der die Daten in die Datei mit dem Namen übergebenen Dateinamen und dem
+     * angegebenen Schlüssel speichert.
+     * 
+     * @param filename
+     *            Der Dateiname der Datei.
+     * @param secret
+     *            Der geheime Schlüssel zur Verschlüsselung.
+     * @return Gibt ein neuen {@link AESWriter}-Objekt zurück.
+     */
+    public static AESWriter createWriter(final String filename, final byte[] secret) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
         AESWriter writer = new AESWriter(new OutputStreamWriter(buffer));
@@ -28,7 +39,20 @@ public final class AESWriter extends BufferedWriter {
         return writer;
     }
 
-    private AESWriter(Writer writer) {
+    /** Hält den Puffer-Stream im Speicher. */
+    private ByteArrayOutputStream buffer;
+    /** Hält den Ausgabedateinamen. */
+    private String filename;
+    /** Hält den geheimen Schlüssel. */
+    private byte[] secret;
+
+    /**
+     * Versteckter, privater Standard-Ctor.
+     * 
+     * @param writer
+     *            Der {@link Writer}, mit dem der {@link AESWriter} verbunden ist.
+     */
+    private AESWriter(final Writer writer) {
         super(writer);
     }
 
@@ -42,7 +66,7 @@ public final class AESWriter extends BufferedWriter {
             bos = new BufferedOutputStream(new FileOutputStream(this.filename));
 
             if (this.buffer.size() > 0) {
-                byte[] encrypted = AesCrypto.encrypt(buffer.toByteArray(), secret);
+                byte[] encrypted = AesCrypto.encrypt(this.buffer.toByteArray(), this.secret);
 
                 bos.write(Utils.toHexString(encrypted).getBytes());
             }
@@ -50,12 +74,21 @@ public final class AESWriter extends BufferedWriter {
         } catch (Exception e) {
             throw new IOException("Kann Datei nicht speichern!", e);
         } finally {
-            if (bos != null)
+            if (bos != null) {
                 bos.close();
+            }
         }
     }
 
-    public void writeLine(String line) throws IOException {
+    /**
+     * Schreibt eine Zeile in den Puffer und fügt einen Zeilenvorschub am Ende hinzu.
+     * 
+     * @param line
+     *            Die zu schreibende Zeile.
+     * @throws IOException
+     *             Wir geworfen, wenn die Zeile nicht angehängt werden konnte.
+     */
+    public void writeLine(final String line) throws IOException {
         this.write(line.toCharArray());
         this.write("\n");
     }

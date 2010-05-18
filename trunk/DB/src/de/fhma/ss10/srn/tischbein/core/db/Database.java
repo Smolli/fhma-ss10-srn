@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
@@ -170,6 +169,52 @@ public final class Database {
     }
 
     /**
+     * Fügt zu einem Benutzer eine Datei hinzu. Die Datei wird verschlüsselt und alle Änderungen an der Datenbank werden
+     * vorgenommen.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param filename
+     *            Der Dateiname mit vollständigem Pfad.
+     * @return Gibt das hinzugefügte {@link FileItem} zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn keine Änderungen an den Tabellen vorgenommen werden konnte.
+     */
+    public FileItem addFile(final User user, final String filename) throws DatabaseException {
+        try {
+            // Filekey erstellen
+            byte[] secret = AesCrypto.generateKey();
+
+            // Dateiinhalt verschlüsseln + speichern
+            FileItem fi = FileItem.create(filename, secret);
+
+            AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
+            w.write(Utils.toHexString(fi.getBuffer()));
+            w.close();
+
+            // in Dateitabelle des Benutzers Eintrag schreiben
+            FileListObject flo = user.getFileListObject();
+
+            flo.getFileList().add(fi);
+
+            w = AESWriter.createWriter(Tables.FileTable.getFilename(user), secret);
+            for (FileItem item : flo.getFileList()) {
+                w.writeLine(item.getId() + Database.SEPARATOR + Utils.toHexString(item.getKey()));
+            }
+            w.close();
+
+            // in globale Dateitablle Eintrag schreiben
+            FileWriter fw = new FileWriter(Database.DB_FILES_TB, true);
+            fw.write(fi.compile());
+            fw.close();
+
+            return fi;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann Datei nicht huinzufügen!", e);
+        }
+    }
+
+    /**
      * Erzeugt einen neuen Benutzer mit dem übergebenen Namen und Passwort. Es werden alle Schlüssel und die
      * Benutzereigenen Tabellen angelegt.
      * 
@@ -201,31 +246,12 @@ public final class Database {
     }
 
     /**
-     * Gibt ein {@link FileListObject} zurück, das alle eigenen und fremden Dateien enthält, auf den der übergebene
-     * Benutzer Zugriff hat.
+     * Gibt die nächte Datei ID zurück. Die IDs werden Datenbankweit vergeben und sind eindeutig.
      * 
-     * @param user
-     *            Der Benutzer.
-     * @return Das {@link FileListObject} mit den Dateien.
-     * @throws CryptoException
-     *             Wird geworfen, wenn eine der Tabellen nicht entschlüsselt werden konnte.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
+     * @return Die ID als {@link Integer}.
      */
-    FileListObject getFileList(final User user) throws CryptoException, DatabaseException {
-        Database.LOCK.lock();
-
-        try {
-            FileListObject flo = new FileListObject();
-
-            flo.setFilesTable(this.loadFilesTable(user));
-            flo.setAccessTable(this.loadAccessTable(user));
-            flo.setLendTable(this.loadLendTable(user));
-
-            return flo;
-        } finally {
-            Database.LOCK.unlock();
-        }
+    public int getNextFileId() {
+        return this.lastFileId + 1;
     }
 
     /**
@@ -257,6 +283,34 @@ public final class Database {
             return user;
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Einloggen!", e);
+        }
+    }
+
+    /**
+     * Gibt ein {@link FileListObject} zurück, das alle eigenen und fremden Dateien enthält, auf den der übergebene
+     * Benutzer Zugriff hat.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @return Das {@link FileListObject} mit den Dateien.
+     * @throws CryptoException
+     *             Wird geworfen, wenn eine der Tabellen nicht entschlüsselt werden konnte.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
+     */
+    FileListObject getFileList(final User user) throws CryptoException, DatabaseException {
+        Database.LOCK.lock();
+
+        try {
+            FileListObject flo = new FileListObject();
+
+            flo.setFilesTable(this.loadFilesTable(user));
+            flo.setAccessTable(this.loadAccessTable(user));
+            flo.setLendTable(this.loadLendTable(user));
+
+            return flo;
+        } finally {
+            Database.LOCK.unlock();
         }
     }
 
@@ -341,8 +395,9 @@ public final class Database {
 
                 temp.put(id, file);
 
-                if (id > lastFileId)
-                    lastFileId = id;
+                if (id > this.lastFileId) {
+                    this.lastFileId = id;
+                }
             }
 
             br.close();
@@ -360,7 +415,7 @@ public final class Database {
      * 
      * @param user
      *            Der Benutzerkontext.
-     * @return Eine {@link List} mit allen IDs.
+     * @return Eine {@link Vector} mit allen IDs.
      * @throws CryptoException
      *             Wird geworfen, wenn die Tabelle nicht entschlüsselt werden kann.
      * @throws DatabaseException
@@ -394,9 +449,11 @@ public final class Database {
      * 
      * @param user
      *            Der Benutzerkontext.
-     * @return Eine {@link List} mit allen Tupeln.
+     * @return Eine {@link Vector} mit allen Tupeln.
      * @throws CryptoException
+     *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
      * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
      */
     private Vector<UserFilePair> loadLendTable(final User user) throws CryptoException, DatabaseException {
         AESReader br = AESReader.createReader(Tables.LendTable.getFilename(user), user.getCryptKey());
@@ -480,44 +537,6 @@ public final class Database {
             throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
         } finally {
             Database.LOCK.unlock();
-        }
-    }
-
-    public int getNextFileId() {
-        return this.lastFileId + 1;
-    }
-
-    public FileItem addFile(User user, String filename) throws DatabaseException {
-        try {
-            // Filekey erstellen
-            byte[] secret = AesCrypto.generateKey();
-
-            // Dateiinhalt verschlüsseln + speichern
-            FileItem fi = FileItem.create(filename, secret);
-
-            AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
-            w.write(Utils.toHexString(fi.getBuffer()));
-            w.close();
-
-            // in Dateitabelle des Benutzers Eintrag schreiben
-            FileListObject flo = user.getFileListObject();
-
-            flo.getFileList().add(fi);
-
-            w = AESWriter.createWriter(Tables.FileTable.getFilename(user), secret);
-            for (FileItem item : flo.getFileList()) {
-                w.writeLine(item.getId() + Database.SEPARATOR + Utils.toHexString(item.getKey()));
-            }
-            w.close();
-
-            // in globale Dateitablle Eintrag schreiben
-            FileWriter fw = new FileWriter(DB_FILES_TB, true);
-            fw.write(fi.compile());
-            fw.close();
-
-            return fi;
-        } catch (Exception e) {
-            throw new DatabaseException("Kann Datei nicht huinzufügen!", e);
         }
     }
 }

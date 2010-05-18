@@ -41,8 +41,6 @@ public final class AESReader extends BufferedReader {
     /**
      * Entschlüsselt den übergebenen Puffer und wandelt ihn in ein {@link Reader}-Objekt zur weiteren Verarbeitung.
      * 
-     * @param cipher
-     *            Der Cipher, mit dem der Puffer entschlüsselt werden soll.
      * @param encoded
      *            Der Puffer mit den Rohdaten.
      * @param secret
@@ -51,7 +49,7 @@ public final class AESReader extends BufferedReader {
      * @throws CryptoException
      *             Wird geworfen, wenn der Puffer nicht entschlüsselt werden konnte.
      */
-    private static Reader decodeAndWrap(final byte[] encoded, byte[] secret) throws CryptoException {
+    private static Reader decodeAndWrap(final byte[] encoded, final byte[] secret) throws CryptoException {
         try {
             byte[] decoded;
 

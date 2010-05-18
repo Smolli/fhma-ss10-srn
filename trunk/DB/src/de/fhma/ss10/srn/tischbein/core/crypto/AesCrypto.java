@@ -85,6 +85,13 @@ public class AesCrypto {
         }
     }
 
+    /**
+     * Generiert einen zufälligen AES-Schlüssel.
+     * 
+     * @return Der Schlüssel.
+     * @throws CryptoException
+     *             Wird geworfen, wenn der Schlüssel nicht generiert werden konnte.
+     */
     public static byte[] generateKey() throws CryptoException {
         try {
             KeyGenerator kg = KeyGenerator.getInstance("AES");

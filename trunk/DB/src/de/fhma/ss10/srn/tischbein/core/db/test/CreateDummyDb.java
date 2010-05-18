@@ -3,9 +3,20 @@ package de.fhma.ss10.srn.tischbein.core.db.test;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 
+/**
+ * Erstellt eine Dummy-Datenbank. Kann zum Testen verwendet werden.
+ * 
+ * @author Smolli
+ */
 public class CreateDummyDb {
 
-    public static void main(String[] args) {
+    /**
+     * Erstellt eine Testdatenbank.
+     * 
+     * @param args
+     *            Wird nicht verwendet.
+     */
+    public static void main(final String[] args) {
         try {
             Database db = Database.getInstance();
 
