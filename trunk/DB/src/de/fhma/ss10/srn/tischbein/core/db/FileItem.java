@@ -93,7 +93,7 @@ public final class FileItem {
      * @return Die Tabellenzeile.
      */
     public String compile() {
-        return MessageFormat.format("{1}{0}{2}{0}{3}\n", Database.SEPARATOR, Integer.toString(this.id), this.getName(),
+        return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseModel.SEPARATOR, Integer.toString(this.id), this.getName(),
                 Utils.toHexString(this.hash));
     }
 

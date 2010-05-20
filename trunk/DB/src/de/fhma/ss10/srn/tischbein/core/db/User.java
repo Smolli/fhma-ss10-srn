@@ -161,6 +161,32 @@ public final class User implements Serializable {
     private transient FileListObject flo;
 
     /**
+     * Fügt zu einem Benutzer eine Datei hinzu. Die Datei wird verschlüsselt und alle Änderungen an der Datenbank werden
+     * vorgenommen.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param filename
+     *            Der Dateiname mit vollständigem Pfad.
+     * @return Gibt das hinzugefügte {@link FileItem} zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn keine Änderungen an den Tabellen vorgenommen werden konnte.
+     */
+    public FileItem addFile(final String filename) throws DatabaseException {
+        try {
+            // Filekey erstellen
+            byte[] secret = AesCrypto.generateKey();
+
+            // Dateiinhalt verschlüsseln + speichern
+            FileItem fi = Database.createEncryptedFile(filename, secret);
+
+            return fi;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann Datei nicht hinzufügen!", e);
+        }
+    }
+
+    /**
      * Gibt das {@link FileListObject} zurück, dass dem User angehört.
      * 
      * @return Das {@link FileListObject} des Benutzers.
@@ -264,7 +290,7 @@ public final class User implements Serializable {
         String crypt = Utils.toHexString(AesCrypto.encrypt(this.getCryptKey(), secret));
 
         return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}\n", // Formatzeile
-                Database.SEPARATOR, // 0 - Separator
+                DatabaseModel.SEPARATOR, // 0 - Separator
                 this.getName(), // 1 - Benutzername
                 this.getPassHash(), // 2 - Hashwert des Benutzerpassworts
                 crypt, // 3 - CryptKey
