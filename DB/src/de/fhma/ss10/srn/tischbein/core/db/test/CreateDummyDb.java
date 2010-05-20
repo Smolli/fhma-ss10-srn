@@ -20,11 +20,14 @@ public class CreateDummyDb {
         try {
             Database db = Database.getInstance();
 
-            db.createUser("Susi", "1234");
+            if (!db.hasUser("Susi"))
+                db.createUser("Susi", "1234");
 
-            User user = db.loginUser("Susi", "1234");
+            User user = db.getUser("Susi");
 
-            db.addFile(user, "Testdatei.txt");
+            user.unlock("1234");
+
+            user.addFile("Testdatei.txt");
         } catch (Exception e) {
             e.printStackTrace();
         }
