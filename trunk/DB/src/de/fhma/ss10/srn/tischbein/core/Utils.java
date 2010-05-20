@@ -63,14 +63,14 @@ public final class Utils {
     /**
      * Konvertiert ein Byte-Array in einen Hex-String.
      * 
-     * @param res
+     * @param hex
      *            Das zu konvertierende Byte-Array.
      * @return Das Array als Hex-String.
      */
-    public static String toHexString(final byte[] res) {
+    public static String toHexString(final byte[] hex) {
         StringBuilder hexString = new StringBuilder();
 
-        for (byte b : res) {
+        for (byte b : hex) {
             if ((b < Utils.NIBBLE_MAX_VALUE) && (b >= 0)) {
                 hexString.append("0");
             }
@@ -115,6 +115,33 @@ public final class Utils {
      */
     public static String toMD5Hex(final String text) {
         return Utils.toHexString(Utils.toMD5(text));
+    }
+
+    public static String toHexText(byte[] hex) {
+        String line = toHexString(hex);
+        StringBuilder sb = new StringBuilder();
+
+        while (line.length() > 64) {
+            sb.append(line.substring(0, 63));
+            sb.append("\n");
+
+            line = line.substring(64);
+        }
+
+        sb.append(line);
+
+        return sb.toString();
+    }
+
+    public static byte[] fromHexText(String text) {
+        String[] lines = text.split("\n");
+        StringBuilder sb = new StringBuilder();
+
+        for (String line : lines) {
+            sb.append(line);
+        }
+
+        return fromHexString(sb.toString());
     }
 
 }
