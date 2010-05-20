@@ -78,7 +78,9 @@ public final class LoginAction extends AbstractAction {
                 throw new Exception("Benutzername muss angegeben werden!");
             }
 
-            User user = Database.getInstance().loginUser(name, this.listener.getPassword());
+            User user = Database.getInstance().getUser(name);
+
+            user.unlock(this.listener.getPassword());
 
             this.listener.login(user);
         } catch (Exception ex) {
