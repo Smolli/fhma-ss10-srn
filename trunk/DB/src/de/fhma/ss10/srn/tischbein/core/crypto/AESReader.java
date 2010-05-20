@@ -96,7 +96,7 @@ public final class AESReader extends BufferedReader {
             throw new CryptoException("Kann die angegebene Datei nicht öffnen!", e);
         }
 
-        return Utils.fromHexString(new String(buffer));
+        return Utils.fromHexText(new String(buffer));
     }
 
     /**

@@ -68,7 +68,7 @@ public final class AESWriter extends BufferedWriter {
             if (this.buffer.size() > 0) {
                 byte[] encrypted = AesCrypto.encrypt(this.buffer.toByteArray(), this.secret);
 
-                bos.write(Utils.toHexString(encrypted).getBytes());
+                bos.write(Utils.toHexText(encrypted).getBytes());
             }
 
         } catch (Exception e) {
