@@ -11,8 +11,9 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.db"/>
         <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core"/>
         <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.crypto"/>
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.db.dbms"/>
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.db"/>
     </selectedElements>
 </jardesc>
