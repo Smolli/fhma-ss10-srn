@@ -37,7 +37,7 @@ public class DatabaseStructure {
         return fi;
     }
 
-    public DatabaseStructure() {
+    protected DatabaseStructure() {
         super();
     }
 
