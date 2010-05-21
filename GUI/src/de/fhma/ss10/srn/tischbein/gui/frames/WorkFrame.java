@@ -2,6 +2,7 @@ package de.fhma.ss10.srn.tischbein.gui.frames;
 
 import java.util.Vector;
 
+import javax.swing.Action;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelListener;
@@ -26,7 +27,123 @@ import de.fhma.ss10.srn.tischbein.gui.forms.WorkForm;
  */
 public final class WorkFrame extends WorkForm implements CloseActionListener, LogoutActionListener {
 
+    /**
+     * Spezialisiertes {@link TableModel} für die Rechtevergabe der Dateien.
+     * 
+     * @author Smolli
+     */
+    private final class AccessTableModel implements TableModel {
+
+        /** Hält die Liste der angezeigten Benutzer. */
+        private final Vector<User> users = Database.getInstance().getUsers(WorkFrame.this.currentUser);
+
+        @Override
+        public void addTableModelListener(final TableModelListener l) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public Class<?> getColumnClass(final int columnIndex) {
+            switch (columnIndex) {
+                case 0:
+                    return Boolean.class;
+
+                case 1:
+                    return String.class;
+
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 2;
+        }
+
+        @Override
+        public String getColumnName(final int columnIndex) {
+            switch (columnIndex) {
+                case 0:
+                    return "";
+
+                case 1:
+                    return "Benutzername";
+
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public int getRowCount() {
+            return this.users.size();
+        }
+
+        @Override
+        public Object getValueAt(final int rowIndex, final int columnIndex) {
+            User selectedUser = this.users.get(rowIndex);
+
+            switch (columnIndex) {
+                case 0:
+                    return WorkFrame.this.currentUser.getFileListObject().hasAccess(selectedUser,
+                            WorkFrame.this.selectedFile);
+
+                case 1:
+                    return selectedUser.getName();
+
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+            switch (columnIndex) {
+                case 0:
+                    return true;
+
+                case 1:
+                    return false;
+
+                default:
+                    return false;
+            }
+        }
+
+        @Override
+        public void removeTableModelListener(final TableModelListener l) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
+            if (columnIndex != 0) {
+                return;
+            }
+
+            User selectedUser = this.users.get(rowIndex);
+            try {
+                WorkFrame.this.currentUser.getFileListObject().setAccess(selectedUser, WorkFrame.this.selectedFile,
+                        (Boolean) value);
+            } catch (Exception e) {
+                GuiUtils.displayError("Konnte Recht nicht speichern!", e);
+            }
+        }
+    }
+
+    /**
+     * Spezialisiertes {@link ListSelectionModel} für die Datei-Liste.
+     * 
+     * @author Smolli
+     */
     private final class FilesSelectionModel extends DefaultListSelectionModel {
+
+        /** Serial UID. */
+        private static final long serialVersionUID = 9031173846551914083L;
+
         {
             this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         }
@@ -35,7 +152,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         public void setSelectionInterval(final int first, final int last) {
             super.setSelectionInterval(first, last);
 
-            WorkFrame.this.selectedFile = WorkFrame.this.user.getFileListObject().getFileList().get(last);
+            WorkFrame.this.selectedFile = WorkFrame.this.currentUser.getFileListObject().getFileList().get(last);
 
             WorkFrame.this.userTable.repaint();
 
@@ -47,30 +164,29 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     private static final long serialVersionUID = -5369888389274792872L;
 
     /** Hält den eingeloggten Benutzer. */
-    private final User user;
-    private FileItem selectedFile = null;
+    private final User currentUser;
+    /** Hält die momentan ausgewählte Datei. */
+    private transient FileItem selectedFile = null;
 
     /**
      * Erstellt ein neues Arbeitsfenster mit dem übergebenen Benutzer.
      * 
-     * @param newUser
+     * @param user
      *            Der Benutzer.
      */
-    public WorkFrame(final User newUser) {
-        this.user = newUser;
-        this.closeButton.setAction(new CloseAction(this));
-        this.logoutButton.setAction(new LogoutAction(this));
-        this.uploadButton.setAction(new UploadAction(newUser));
-        this.deleteButton.setAction(new DeleteAction());
+    public WorkFrame(final User user) {
+        this.currentUser = user;
 
-        this.myFilesLlist.setListData(this.user.getFileListObject().getFileList());
-
-        this.setVisible(true);
-
-        this.userTable.setModel(this.generateUserModel());
-        this.otherFilesList.setListData(this.user.getFileListObject().getAccessList());
+        this.setupActions();
 
         this.myFilesLlist.setSelectionModel(new FilesSelectionModel());
+        this.myFilesLlist.setListData(this.currentUser.getFileListObject().getFileList());
+
+        this.userTable.setModel(new AccessTableModel());
+
+        this.otherFilesList.setListData(this.currentUser.getFileListObject().getAccessList());
+
+        this.setVisible(true);
     }
 
     @Override
@@ -82,117 +198,21 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
     @Override
     public void logout() {
-        this.user.lock();
+        this.currentUser.lock();
 
         new LoginFrame();
 
         this.close();
     }
 
-    private TableModel generateUserModel() {
-
-        return new TableModel() {
-            Vector<User> users;
-
-            {
-                this.users = Database.getInstance().getUsers(WorkFrame.this.user);
-            }
-
-            @Override
-            public void addTableModelListener(final TableModelListener l) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public Class<?> getColumnClass(final int columnIndex) {
-                switch (columnIndex) {
-                    case 0:
-                        return Boolean.class;
-
-                    case 1:
-                        return String.class;
-
-                    default:
-                        return null;
-                }
-            }
-
-            @Override
-            public int getColumnCount() {
-                return 2;
-            }
-
-            @Override
-            public String getColumnName(final int columnIndex) {
-                switch (columnIndex) {
-                    case 0:
-                        return "";
-
-                    case 1:
-                        return "Benutzername";
-
-                    default:
-                        return null;
-                }
-            }
-
-            @Override
-            public int getRowCount() {
-                return this.users.size();
-            }
-
-            @Override
-            public Object getValueAt(final int rowIndex, final int columnIndex) {
-                User selectedUser = this.users.get(rowIndex);
-
-                switch (columnIndex) {
-                    case 0:
-                        return WorkFrame.this.user.getFileListObject().hasAccess(selectedUser,
-                                WorkFrame.this.selectedFile);
-
-                    case 1:
-                        return selectedUser.getName();
-
-                    default:
-                        return null;
-                }
-            }
-
-            @Override
-            public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-                switch (columnIndex) {
-                    case 0:
-                        return true;
-
-                    case 1:
-                        return false;
-
-                    default:
-                        return false;
-                }
-            }
-
-            @Override
-            public void removeTableModelListener(final TableModelListener l) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
-                if (columnIndex != 0) {
-                    return;
-                }
-
-                User selectedUser = this.users.get(rowIndex);
-                try {
-                    WorkFrame.this.user.getFileListObject().setAccess(selectedUser, WorkFrame.this.selectedFile,
-                            (Boolean) value);
-                } catch (Exception e) {
-                    GuiUtils.displayError("Konnte Recht nicht speichern!", e);
-                }
-            }
-        };
+    /**
+     * Vergibt die {@link Action}s an die GUI-Elemente.
+     */
+    private void setupActions() {
+        this.closeButton.setAction(new CloseAction(this));
+        this.logoutButton.setAction(new LogoutAction(this));
+        this.uploadButton.setAction(new UploadAction(this.currentUser));
+        this.deleteButton.setAction(new DeleteAction());
     }
+
 }
