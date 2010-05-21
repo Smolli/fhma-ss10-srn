@@ -17,12 +17,16 @@ import de.fhma.ss10.srn.tischbein.core.UtilsException;
 public class RSAAppender {
 
     /**
-     * Fügt eine einzelne Zeile
+     * Fügt eine einzelne Zeile zu einer RSA-verschlüsselten Datei hinzu.
      * 
      * @param filename
+     *            Die Datei.
      * @param publicKey
+     *            Der öffentliche Schlüssel der Datei.
      * @param line
+     *            Die Zeile, die hinzugefügt werden soll.
      * @throws UtilsException
+     *             Wird geworfen, wenn die Zeile nicht hinzugefügt werden kann.
      */
     public static void appendLine(final String filename, final PublicKey publicKey, final String line)
             throws UtilsException {
