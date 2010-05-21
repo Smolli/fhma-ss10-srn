@@ -44,7 +44,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
     @Override
     public void close() {
-        Database.shutdown();
+        Database.getInstance().shutdown();
 
         this.dispose();
     }
