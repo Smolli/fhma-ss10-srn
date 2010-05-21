@@ -47,7 +47,7 @@ public final class User {
 
         user.setName(cols[User.COLUMN_NAME]);
         user.setPassHash(cols[User.COLUMN_PW_HASH]);
-        user.setCryptKey(Utils.fromHexString(cols[User.COLUMN_CRYPT_KEY]));
+        user.setCryptKey(Utils.fromHexLine(cols[User.COLUMN_CRYPT_KEY]));
         user.setKeyPair(new KeyPair((PublicKey) Utils.loadKey(cols[User.COLUMN_PUBLIC_KEY]), (PrivateKey) Utils
                 .loadKey(cols[User.COLUMN_PRIVATE_KEY])));
 
@@ -139,7 +139,7 @@ public final class User {
 
         String pri = Utils.saveKey(this.keyPair.getPrivate());
         String pub = Utils.saveKey(this.keyPair.getPublic());
-        String crypt = Utils.toHexString(AesCrypto.encrypt(this.getCryptKey(), secret));
+        String crypt = Utils.toHexLine(AesCrypto.encrypt(this.getCryptKey(), secret));
 
         return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}\n", // Formatzeile
                 DatabaseStructure.SEPARATOR, // 0 - Separator
@@ -251,7 +251,7 @@ public final class User {
         try {
             byte[] secret = Utils.toMD5(pass);
 
-            String hash = Utils.toHexString(secret);
+            String hash = Utils.toHexLine(secret);
 
             if (!hash.equals(this.passHash)) {
                 return false;
@@ -308,7 +308,7 @@ public final class User {
      *            Das Benutzerpasswort.
      */
     private void setPass(final String pass) {
-        this.passHash = Utils.toHexString(Utils.toMD5(pass));
+        this.passHash = Utils.toHexLine(Utils.toMD5(pass));
     }
 
     /**

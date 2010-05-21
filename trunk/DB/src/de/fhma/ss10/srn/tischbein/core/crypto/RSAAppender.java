@@ -36,7 +36,7 @@ public class RSAAppender {
             writer = new BufferedWriter(new FileWriter(new File(filename), true));
             byte[] encoded = RsaCrypto.encode(line, publicKey);
 
-            writer.write(Utils.toHexString(encoded));
+            writer.write(Utils.toHexLine(encoded));
             writer.write("\n");
         } catch (Exception e) {
             throw new UtilsException("Kann die Zeile nicht schreiben!", e);

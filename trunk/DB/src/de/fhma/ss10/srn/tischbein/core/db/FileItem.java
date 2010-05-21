@@ -70,7 +70,7 @@ public final class FileItem {
 
         file.setId(Integer.parseInt(cols[FileItem.COLUMN_ID]));
         file.setName(cols[FileItem.COLUMN_NAME]);
-        file.setHash(Utils.fromHexString(cols[FileItem.COLUMN_HASH]));
+        file.setHash(Utils.fromHexLine(cols[FileItem.COLUMN_HASH]));
 
         return file;
     }
@@ -105,7 +105,7 @@ public final class FileItem {
      */
     public String compile() {
         return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseStructure.SEPARATOR, Integer.toString(this.id), this
-                .getName(), Utils.toHexString(this.hash));
+                .getName(), Utils.toHexLine(this.hash));
     }
 
     @Override
