@@ -2,6 +2,11 @@ package de.fhma.ss10.srn.tischbein.core.db;
 
 import java.util.Vector;
 
+import de.fhma.ss10.srn.tischbein.core.Utils;
+import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
+import de.fhma.ss10.srn.tischbein.core.crypto.RSAAppender;
+import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
+
 /**
  * Datanbankklasse. Kapselt die gesamte Datenbankstruktur.
  * 
@@ -118,6 +123,34 @@ public final class Database extends DatabaseModel {
         users.remove(without);
 
         return users;
+    }
+
+    public void grantAccess(final User user, final FileItem file) throws DatabaseException {
+        if ((file == null) || (user == null)) {
+            return;
+        }
+
+        try {
+            RSAAppender.appendLine(Tables.AccessTable.getFilename(user), user.getKeyPair().getPublic(), file.getId()
+                    + DatabaseModel.SEPARATOR + Utils.toHexString(file.getKey()));
+
+            User owner = file.getOwner();
+            AESWriter w = AESWriter.createWriter(Tables.LendTable.getFilename(owner), owner.getCryptKey());
+
+            Vector<UserFilePair> list = owner.getFileListObject().getLendList();
+
+            list.add(new UserFilePair(user, file));
+
+            for (UserFilePair ufp : list) {
+                w.writeLine(ufp.compile());
+            }
+
+            w.close();
+        } catch (Exception e) {
+            throw new DatabaseException("Kann Recht nicht speichern!", e);
+        }
+
+        this.shutdown();
     }
 
     public boolean hasUser(final String name) {
