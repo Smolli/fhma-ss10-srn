@@ -23,7 +23,6 @@ public final class UploadAction extends AbstractAction {
 	
 	//Neues UploadActionObjekt mit dem aktuellen Benutzer
 	public UploadAction(User newUser) {
-		// TODO Auto-generated constructor stub
 		this.user = newUser;
 	}
 
@@ -33,9 +32,7 @@ public final class UploadAction extends AbstractAction {
 	 */
 	public void actionPerformed(final ActionEvent arg0) {
 		UploadFrame frame = new UploadFrame(user);
-
 		frame.setVisible(true);
-
 	}
 
 	@Override
