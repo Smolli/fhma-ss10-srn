@@ -17,13 +17,22 @@ public final class UploadAction extends AbstractAction {
 
 	/** Serial UID. */
 	private static final long serialVersionUID = 7077305932498378892L;
+	
+	//User der aktuellen Session
+	User user;
+	
+	//Neues UploadActionObjekt mit dem aktuellen Benutzer
+	public UploadAction(User newUser) {
+		// TODO Auto-generated constructor stub
+		this.user = newUser;
+	}
 
 	@Override
 	/*
 	 * Neues UploadFrame erstellen
 	 */
 	public void actionPerformed(final ActionEvent arg0) {
-		UploadFrame frame = new UploadFrame();
+		UploadFrame frame = new UploadFrame(user);
 
 		frame.setVisible(true);
 

@@ -30,12 +30,13 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      *            Der Benutzer.
      */
     public WorkFrame(final User newUser) {
+    	this.user = newUser;
         this.closeButton.setAction(new CloseAction(this));
         this.logoutButton.setAction(new LogoutAction(this));
-        this.uploadButton.setAction(new UploadAction());
+        this.uploadButton.setAction(new UploadAction(newUser));
         this.deleteButton.setAction(new DeleteAction());
 
-        this.user = newUser;
+        
 
         this.myFilesLlist.setListData(this.user.getFileListObject().getFileList());
 

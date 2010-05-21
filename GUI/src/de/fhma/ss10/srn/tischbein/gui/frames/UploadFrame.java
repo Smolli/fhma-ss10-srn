@@ -11,7 +11,11 @@ import de.fhma.ss10.srn.tischbein.gui.forms.UploadForm;
 
 public class UploadFrame extends UploadForm implements ActionListener {
 
-	public UploadFrame() {
+	// User Objekt ist nötig zum Speichern der Dateien in der DB
+	User user;
+
+	public UploadFrame(User user) {
+		this.user = user;
 		this.searchButton.addActionListener(this);
 		this.abbortButton.addActionListener(this);
 		this.saveButton.addActionListener(this);
@@ -35,13 +39,12 @@ public class UploadFrame extends UploadForm implements ActionListener {
 			File file = fc.getSelectedFile();
 			// Namensfeld auf Pfad der Datei setzen
 			this.filenameField.setText(file.getPath());
-			
-			
+
 		} else if (button.getSource() == saveButton) {
-			
-			//Läd den Pfad aus dem filenameField
+
+			// Läd den Pfad aus dem filenameField
 			File file = new File(this.filenameField.getText());
-			
+
 		} else if (button.getSource() == abbortButton) {
 
 		}
