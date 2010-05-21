@@ -1,13 +1,9 @@
 package de.fhma.ss10.srn.tischbein.core.db.test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.File;
 import java.io.FileOutputStream;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
@@ -18,8 +14,13 @@ public class DatabaseTest {
 
     private static final String TESTFILE = "Testfile.txt";
 
+    private static final String TEST_SECRET = "secret!";
+
+    private static final String TEST_USER = "UserThatWillBeDeleted";
+    private User user;
+
     public void setupBeforeClass() {
-        File file = new File(TESTFILE);
+        File file = new File(DatabaseTest.TESTFILE);
 
         if (!file.exists()) {
             try {
@@ -31,90 +32,87 @@ public class DatabaseTest {
             } catch (Exception e) {
                 e.printStackTrace();
 
-                fail("Setup error!");
+                Assert.fail("Setup error!");
             }
         }
 
-        user = null;
-    }
-
-    private static final String TEST_SECRET = "secret!";
-    private static final String TEST_USER = "UserThatWillBeDeleted";
-    private User user;
-
-    @Test
-    public void testSingleton() {
-        assertNotNull(Database.getInstance());
+        this.user = null;
     }
 
     @Test
-    public void testHasUserNegative() {
-        assertFalse(Database.getInstance().hasUser(TEST_USER));
+    public void test00Singleton() {
+        Assert.assertNotNull(Database.getInstance());
     }
 
     @Test
-    public void testCreateUser() {
+    public void test01HasUserNegative() {
+        Assert.assertFalse(Database.getInstance().hasUser(DatabaseTest.TEST_USER));
+    }
+
+    @Test
+    public void test02CreateUser() {
         try {
-            Database.getInstance().createUser(TEST_USER, TEST_SECRET);
+            Database.getInstance().createUser(DatabaseTest.TEST_USER, DatabaseTest.TEST_SECRET);
         } catch (DatabaseException e) {
             e.printStackTrace();
 
-            fail();
+            Assert.fail();
         }
     }
 
     @Test
-    public void testHasUser() {
-        assertTrue(Database.getInstance().hasUser(TEST_USER));
+    public void test03HasUser() {
+        Assert.assertTrue(Database.getInstance().hasUser(DatabaseTest.TEST_USER));
     }
 
     @Test
-    public void testGetUser() {
+    public void test04GetUser() {
         try {
-            assertNotNull(Database.getInstance().getUser(TEST_USER));
+            Assert.assertNotNull(Database.getInstance().getUser(DatabaseTest.TEST_USER));
         } catch (DatabaseException e) {
             e.printStackTrace();
 
-            fail();
+            Assert.fail();
         }
     }
 
     @Test
-    public void testLoginUser() {
+    public void test05LoginUser() {
         try {
-            if (user != null)
-                fail("Setup error!");
+            if (this.user != null) {
+                Assert.fail("Setup error!");
+            }
 
-            user = Database.getInstance().getUser(TEST_USER);
+            this.user = Database.getInstance().getUser(DatabaseTest.TEST_USER);
 
-            user.unlock(TEST_SECRET);
+            this.user.unlock(DatabaseTest.TEST_SECRET);
 
-            assertNotNull(user);
+            Assert.assertNotNull(this.user);
         } catch (Exception e) {
             e.printStackTrace();
 
-            fail();
+            Assert.fail();
         }
     }
 
     @Test
-    public void testAddFile() {
+    public void test06AddFile() {
         try {
-            user.addFile(TESTFILE);
+            this.user.addFile(DatabaseTest.TESTFILE);
         } catch (DatabaseException e) {
             e.printStackTrace();
 
-            fail();
+            Assert.fail();
         }
     }
 
     @Test
-    public void testLogoutUser() {
-        user.lock();
+    public void test07LogoutUser() {
+        this.user.lock();
     }
 
     @Test
-    public void testRemoveUser() {
+    public void test08RemoveUser() {
         //        Database.getInstance().removeUser(TEST_USER);
     }
 
