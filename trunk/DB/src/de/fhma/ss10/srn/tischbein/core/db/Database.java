@@ -1,13 +1,10 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-import java.io.IOException;
 import java.util.Vector;
 
-import de.fhma.ss10.srn.tischbein.core.Utils;
-import de.fhma.ss10.srn.tischbein.core.UtilsException;
-import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
-import de.fhma.ss10.srn.tischbein.core.crypto.RSAAppender;
-import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
+import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseModel;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
 
 /**
  * Datanbankklasse. Kapselt die gesamte Datenbankstruktur.
@@ -31,7 +28,9 @@ public final class Database extends DatabaseModel {
         try {
             if (Database.instance == null) {
                 try {
-                    Database.instance = Database.open();
+                    Database.instance = new Database();
+
+                    Database.instance.open();
                 } catch (Exception e) {
                     e.printStackTrace();
 
@@ -53,42 +52,31 @@ public final class Database extends DatabaseModel {
     }
 
     /**
-     * Öffnet ein bestehendes Datenbankschema.
-     * 
-     * @return Gibt die geladene Datenbank zurück.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Datenbankstruktur korrupt ist oder die Datenbank aus anderen Gründen nicht
-     *             geladen werden konnte.
-     */
-    private static Database open() throws DatabaseException {
-        DatabaseStructure.LOCK.lock();
-
-        try {
-            Database db = new Database();
-
-            if (new java.io.File(DatabaseStructure.DB_USERS_TB).createNewFile()) {
-                System.out.println("User-Tabelle angelegt.");
-            }
-
-            if (new java.io.File(DatabaseStructure.DB_FILES_TB).createNewFile()) {
-                System.out.println("Dateien-Tabelle anegelegt.");
-            }
-
-            db.loadUsers();
-            db.loadFiles();
-
-            return db;
-        } catch (Exception e) {
-            throw new DatabaseException("Kann die Datenbankstruktur nicht laden!", e);
-        } finally {
-            DatabaseStructure.LOCK.unlock();
-        }
-    }
-
-    /**
      * Privater ctor, um die Instanziierung außerhalb zu verhindern.
      */
     private Database() {
+    }
+
+    /**
+     * Fügt ein {@link FileItem} zur Datenbank hinzu.
+     * 
+     * @param item
+     *            Das {@link FileItem}, das hinzugefügt werden soll.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn das {@link FileItem} nicht hinzugefügt werden konnte.
+     */
+    public void addFileItem(final FileItem item) throws DatabaseException {
+        try {
+            // in Dateitabelle des Benutzers Eintrag schreiben
+            this.updateUserTables(item);
+
+            // in globale Dateitablle Eintrag schreiben
+            this.updateGlobalTable(item);
+
+            this.shutdown();
+        } catch (Exception e) {
+            throw new DatabaseException("Die Datei kann nicht hinzugefügt werden!", e);
+        }
     }
 
     /**
@@ -112,14 +100,96 @@ public final class Database extends DatabaseModel {
 
             User user = User.create(name, pass);
 
-            this.createUserFiles(user);
-
-            this.saveToUsers(user, pass);
+            this.addUser(user, pass);
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
         } finally {
             DatabaseStructure.LOCK.unlock();
         }
+    }
+
+    /**
+     * Entzieht dem angegebenen Benutzer das Zugriffsrecht für die angegebene Datei.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param file
+     *            Die Datei.
+     */
+    public void denyAccess(final User user, final FileItem file) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * Gibt eine Datei aus der Map zurück und prüft vorher, ob sie existiert.
+     * 
+     * @param id
+     *            Die ID der Datei.
+     * @return Gibt das {@link FileItem}-Objekt der Datei zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Datei mit der ID nicht im System ist.
+     */
+    public FileItem getFile(final int id) throws DatabaseException {
+        if (!this.getFileMap().containsKey(id)) {
+            throw new DatabaseException("Datei ist nicht bekannt!");
+        }
+
+        return this.getFileMap().get(id);
+    }
+
+    /**
+     * Gibt ein {@link FileListObject} zurück, das alle eigenen und fremden Dateien enthält, auf den der übergebene
+     * Benutzer Zugriff hat.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @return Das {@link FileListObject} mit den Dateien.
+     * @throws CryptoException
+     *             Wird geworfen, wenn eine der Tabellen nicht entschlüsselt werden konnte.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
+     */
+    public FileListObject getFileListObject(final User user) throws CryptoException, DatabaseException {
+        DatabaseStructure.LOCK.lock();
+
+        try {
+            FileListObject flo = new FileListObject();
+
+            flo.setFilesTable(this.loadUserFilesTable(user));
+            flo.setAccessTable(this.loadUserAccessTable(user));
+            flo.setLendTable(this.loadUserLendTable(user));
+
+            return flo;
+        } finally {
+            DatabaseStructure.LOCK.unlock();
+        }
+    }
+
+    /**
+     * Gibt die nächte Datei ID zurück. Die IDs werden Datenbankweit vergeben und sind eindeutig.
+     * 
+     * @return Die ID als {@link Integer}.
+     */
+    public int getNextFileId() {
+        return this.getLastFileId() + 1;
+    }
+
+    /**
+     * Gibt das {@link User}-Objekt mit dem angegebenen Benutzernamen zurück.
+     * 
+     * @param name
+     *            Der Benutzername.
+     * @return Gibt den Benutzer zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der Benutzer dem System nicht bekannt ist.
+     */
+    public User getUser(final String name) throws DatabaseException {
+        if (!this.getUserMap().containsKey(name.toLowerCase())) {
+            throw new DatabaseException("Benutzer ist nicht bekannt!");
+        }
+
+        return this.getUserMap().get(name.toLowerCase());
     }
 
     /**
@@ -194,68 +264,6 @@ public final class Database extends DatabaseModel {
         } finally {
             DatabaseStructure.LOCK.unlock();
         }
-    }
-
-    /**
-     * Fügt ein {@link FileItem} zur Datenbank hinzu.
-     * 
-     * @param item
-     *            Das {@link FileItem}, das hinzugefügt werden soll.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn das {@link FileItem} nicht hinzugefügt werden konnte.
-     */
-    void addFileItem(final FileItem item) throws DatabaseException {
-        try {
-            // in Dateitabelle des Benutzers Eintrag schreiben
-            DatabaseModel.updateUserTables(item);
-
-            // in globale Dateitablle Eintrag schreiben
-            DatabaseModel.updateGlobalTable(item);
-
-            this.shutdown();
-        } catch (Exception e) {
-            throw new DatabaseException("Die Datei kann nicht hinzugefügt werden!", e);
-        }
-    }
-
-    /**
-     * Fügt das Nutzungsrecht in der Access-Tabelle des {@link User} hinzu.
-     * 
-     * @param user
-     *            Der Benutzer.
-     * @param file
-     *            Die Datei.
-     * @throws UtilsException
-     *             Wird geworfen, wenn die Tabelle nicht geschrieben werden konnte.
-     */
-    private void appendToUser(final User user, final FileItem file) throws UtilsException {
-        RSAAppender.appendLine(Tables.AccessTable.getFilename(user), user.getPublicKey(), file.getId()
-                + DatabaseModel.SEPARATOR + Utils.toHexString(file.getKey()));
-    }
-
-    /**
-     * Merkt sich beim Besitzer der Datei, wohin er die Datei ausgeliehen hat.
-     * 
-     * @param user
-     *            Der Besitzer der Datei.
-     * @param file
-     *            Die Datei.
-     * @throws IOException
-     *             Wird geworfen, wenn die Tabelle nicht gespeichert werden konnte.
-     */
-    private void remarkToOwner(final User user, final FileItem file) throws IOException {
-        User owner = file.getOwner();
-        AESWriter w = AESWriter.createWriter(Tables.LendTable.getFilename(owner), owner.getCryptKey());
-
-        Vector<UserFilePair> list = owner.getFileListObject().getLendList();
-
-        list.add(new UserFilePair(user, file));
-
-        for (UserFilePair ufp : list) {
-            w.writeLine(ufp.compile());
-        }
-
-        w.close();
     }
 
 }

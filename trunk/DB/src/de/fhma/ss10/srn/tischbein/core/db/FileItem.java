@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
 
 /**
  * Fileklasse. Enhält alle Methoden zur Verwaltung der verschlüsselten Dateien.
@@ -35,7 +36,7 @@ public final class FileItem {
      * @throws IOException
      *             Wird geworfen, wenn die Datei nicht gefunden oder gelesen werden konnte.
      */
-    static FileItem create(final User owner, final String filename, final byte[] secret) throws IOException {
+    public static FileItem create(final User owner, final String filename, final byte[] secret) throws IOException {
         FileItem fi = new FileItem(owner);
         File file = new File(filename);
 
@@ -63,8 +64,8 @@ public final class FileItem {
      *            Die zu parsende Zeile.
      * @return Das {@link FileItem}-Objekt.
      */
-    static FileItem parse(final User owner, final String line) {
-        String[] cols = line.split(DatabaseModel.SEPARATOR);
+    public static FileItem parse(final User owner, final String line) {
+        String[] cols = line.split(DatabaseStructure.SEPARATOR);
         FileItem file = new FileItem(owner);
 
         file.setId(Integer.parseInt(cols[FileItem.COLUMN_ID]));
@@ -95,6 +96,16 @@ public final class FileItem {
      */
     private FileItem(final User ownerObject) {
         this.owner = ownerObject;
+    }
+
+    /**
+     * Erstellt einen CSV-String für die Datenbank.
+     * 
+     * @return Die Tabellenzeile.
+     */
+    public String compile() {
+        return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseStructure.SEPARATOR, Integer.toString(this.id), this
+                .getName(), Utils.toHexString(this.hash));
     }
 
     @Override
@@ -148,33 +159,18 @@ public final class FileItem {
         return this.fileName;
     }
 
-    @Override
-    public int hashCode() {
-        return this.id;
-    }
-
-    @Override
-    public String toString() {
-        return this.getName();
-    }
-
-    /**
-     * Erstellt einen CSV-String für die Datenbank.
-     * 
-     * @return Die Tabellenzeile.
-     */
-    String compile() {
-        return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseModel.SEPARATOR, Integer.toString(this.id), this
-                .getName(), Utils.toHexString(this.hash));
-    }
-
     /**
      * Gibt den Besitzer der Datei zurück oder <code>null</code> wenn der Besitzer nicht bekannt ist.
      * 
      * @return Der Besitzer.
      */
-    User getOwner() {
+    public User getOwner() {
         return this.owner;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id;
     }
 
     /**
@@ -183,7 +179,7 @@ public final class FileItem {
      * @param value
      *            Der Schlüssel.
      */
-    void setKey(final byte[] value) {
+    public void setKey(final byte[] value) {
         this.fileKey = value;
     }
 
@@ -193,8 +189,13 @@ public final class FileItem {
      * @param user
      *            Der Besitzer der Datei.
      */
-    void setOwner(final User user) {
+    public void setOwner(final User user) {
         this.owner = user;
+    }
+
+    @Override
+    public String toString() {
+        return this.getName();
     }
 
     /**
