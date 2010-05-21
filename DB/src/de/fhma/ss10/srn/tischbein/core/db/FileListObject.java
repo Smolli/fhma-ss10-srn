@@ -2,6 +2,8 @@ package de.fhma.ss10.srn.tischbein.core.db;
 
 import java.util.Vector;
 
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
+
 /**
  * Enthält alle Tupel, die beschreiben, welche Datei an welchen Benutzer freigeschaltet wurde.
  * 
@@ -16,8 +18,30 @@ public final class FileListObject {
      */
     public static final class UserFilePair {
 
+        /**
+         * Parst du übergebene Zeile und gibt sie als {@link UserFilePair} zurück.
+         * 
+         * @param line
+         *            Die Tabellenzeile.
+         * @return Das {@link UserFilePair}-Objekt.
+         * @throws DatabaseException
+         *             Wird geworfen, wenn die Zeile nicht geparst werden konnte.
+         */
+        public static UserFilePair parse(final String line) throws DatabaseException {
+            String[] cols = line.split(";");
+
+            String userName = cols[0];
+            int fileId = Integer.parseInt(cols[1]);
+
+            FileItem fileObject = Database.getInstance().getFile(fileId);
+            User userObject = Database.getInstance().getUser(userName);
+
+            return new UserFilePair(userObject, fileObject);
+        }
+
         /** Hält das Benutzerobjekt. */
         private final User user;
+
         /** Hält das Dateiobjekt. */
         private final FileItem file;
 
@@ -34,8 +58,13 @@ public final class FileListObject {
             this.file = fileObject;
         }
 
+        /**
+         * Erstellt aus dem aktuellen Objekt eine Tabellenzeile.
+         * 
+         * @return Die Tabellenzeile.
+         */
         public String compile() {
-            return this.user.getName() + DatabaseModel.SEPARATOR + this.file.getId();
+            return this.user.getName() + DatabaseStructure.SEPARATOR + this.file.getId();
         }
 
         /**
@@ -92,6 +121,16 @@ public final class FileListObject {
         return this.lendList;
     }
 
+    /**
+     * Gibt an, ob der angegebene Benutzer zugriff auf die angegebene Datei hat.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param file
+     *            Die Datei.
+     * @return Gibt <code>true</code> zurück, wenn der Benutzer auf die Datei zugreifen darf, andernfalls
+     *         <code>false</code>.
+     */
     public boolean hasAccess(final User user, final FileItem file) {
         for (UserFilePair ufp : this.getLendList()) {
             if (ufp.getUser().equals(user) && ufp.getFile().equals(file)) {
@@ -103,11 +142,24 @@ public final class FileListObject {
         return false;
     }
 
+    /**
+     * Setzt oder entzieht die Berechtigung dem angegebenen Benutzer für die angegebene Datei.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param file
+     *            Die Datei.
+     * @param value
+     *            Wenn der Wert auf <code>true</code> gesetzt ist, wird die Berechtigung erteilt, andernfalls wird sie
+     *            entzogen.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Änderung nicht gespeichert werden konnte.
+     */
     public void setAccess(final User user, final FileItem file, final Boolean value) throws DatabaseException {
         if (value) {
             Database.getInstance().grantAccess(user, file);
         } else {
-            //            Database.getInstance().denyAccess(user, file);
+            Database.getInstance().denyAccess(user, file);
         }
     }
 
@@ -117,7 +169,7 @@ public final class FileListObject {
      * @param accessTable
      *            Die Liste der Dateien.
      */
-    void setAccessTable(final Vector<FileItem> accessTable) {
+    public void setAccessTable(final Vector<FileItem> accessTable) {
         this.accessList = accessTable;
     }
 
@@ -127,7 +179,7 @@ public final class FileListObject {
      * @param filesTable
      *            Die List der Dateien.
      */
-    void setFilesTable(final Vector<FileItem> filesTable) {
+    public void setFilesTable(final Vector<FileItem> filesTable) {
         this.filesList = filesTable;
     }
 
@@ -137,7 +189,7 @@ public final class FileListObject {
      * @param list
      *            Die Liste.
      */
-    void setLendTable(final Vector<UserFilePair> list) {
+    public void setLendTable(final Vector<UserFilePair> list) {
         this.lendList = list;
     }
 
