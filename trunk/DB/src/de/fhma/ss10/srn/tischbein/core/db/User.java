@@ -164,8 +164,6 @@ public final class User implements Serializable {
      * Fügt zu einem Benutzer eine Datei hinzu. Die Datei wird verschlüsselt und alle Änderungen an der Datenbank werden
      * vorgenommen.
      * 
-     * @param user
-     *            Der Benutzer.
      * @param filename
      *            Der Dateiname mit vollständigem Pfad.
      * @return Gibt das hinzugefügte {@link FileItem} zurück.
@@ -180,10 +178,25 @@ public final class User implements Serializable {
             // Dateiinhalt verschlüsseln + speichern
             FileItem fi = DatabaseStructure.createEncryptedFile(filename, secret);
 
+            Database.getInstance().addFile(this, fi);
+
+            System.out.println("Datei " + filename + " hinzugefügt.");
+
             return fi;
         } catch (Exception e) {
             throw new DatabaseException("Kann Datei nicht hinzufügen!", e);
         }
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (!(obj instanceof User)) {
+            return false;
+        }
+
+        User other = (User) obj;
+
+        return this.getName().equals(other.getName());
     }
 
     /**
@@ -232,12 +245,22 @@ public final class User implements Serializable {
         return this.keyPair.getPublic().getEncoded();
     }
 
+    @Override
+    public int hashCode() {
+        return this.getName().hashCode();
+    }
+
     /**
      * Schließt den Benutzer ab und macht seinen privaten Schlüssel wieder unzugänglich.
      */
     public void lock() {
         this.privateKeyEncrypted = null;
         this.cryptKeyEncrypted = null;
+    }
+
+    @Override
+    public String toString() {
+        return this.getName();
     }
 
     /**
@@ -379,5 +402,4 @@ public final class User implements Serializable {
     private void setPassHash(final String hash) {
         this.passHash = hash;
     }
-
 }
