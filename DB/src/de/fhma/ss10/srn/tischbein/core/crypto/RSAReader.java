@@ -45,7 +45,7 @@ public final class RSAReader extends BufferedReader {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                lines.add(ByteBuffer.wrap(Utils.fromHexString(line)));
+                lines.add(ByteBuffer.wrap(Utils.fromHexLine(line)));
             }
 
             reader.close();
