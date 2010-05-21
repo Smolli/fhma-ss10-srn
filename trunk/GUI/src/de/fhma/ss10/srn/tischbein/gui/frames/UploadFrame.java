@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import de.fhma.ss10.srn.tischbein.core.db.User;
-import de.fhma.ss10.srn.tischbein.gui.actions.SearchAction;
 import de.fhma.ss10.srn.tischbein.gui.forms.UploadForm;
 
 public class UploadFrame extends UploadForm implements ActionListener {
