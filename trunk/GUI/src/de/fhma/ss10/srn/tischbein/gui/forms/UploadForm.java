@@ -1,11 +1,3 @@
-/*
- * To change this template, choose Tools | Templates and open the template in the editor.
- */
-
-/*
- * UploadForm.java Created on 17.05.2010, 19:23:52
- */
-
 package de.fhma.ss10.srn.tischbein.gui.forms;
 
 // CHECKSTYLE:OFF
