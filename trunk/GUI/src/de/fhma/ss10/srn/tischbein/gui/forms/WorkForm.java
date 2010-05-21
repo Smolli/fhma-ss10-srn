@@ -1,5 +1,8 @@
 package de.fhma.ss10.srn.tischbein.gui.forms;
 
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+
 // CHECKSTYLE:OFF
 
 public class WorkForm extends javax.swing.JFrame {
@@ -11,7 +14,7 @@ public class WorkForm extends javax.swing.JFrame {
     protected javax.swing.JButton deleteButton;
     protected javax.swing.JTextArea fileView;
     protected javax.swing.JButton logoutButton;
-    protected javax.swing.JList myFilesLlist;
+    protected javax.swing.JList myFilesList;
     protected javax.swing.JList otherFilesList;
     protected javax.swing.JButton uploadButton;
     protected javax.swing.JList userList;
@@ -20,6 +23,7 @@ public class WorkForm extends javax.swing.JFrame {
 
     /** Creates new form WorkForm */
     public WorkForm() {
+    	// TEST !!!!!
         this.initComponents();
     }
 
@@ -39,16 +43,20 @@ public class WorkForm extends javax.swing.JFrame {
         javax.swing.JPanel filesPanel = new javax.swing.JPanel();
         javax.swing.JPanel myFilesPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
-        this.myFilesLlist = new javax.swing.JList();
+        this.myFilesList = new javax.swing.JList();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+ 
         this.uploadButton = new javax.swing.JButton();
         this.deleteButton = new javax.swing.JButton();
+        
         javax.swing.JPanel otherFilesPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
+        javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();     
         this.otherFilesList = new javax.swing.JList();
+        
         javax.swing.JSplitPane jSplitPane2 = new javax.swing.JSplitPane();
         javax.swing.JPanel viewPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane4 = new javax.swing.JScrollPane();
+        
         this.fileView = new javax.swing.JTextArea();
         javax.swing.JPanel userPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
@@ -83,7 +91,7 @@ public class WorkForm extends javax.swing.JFrame {
         myFilesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Eigene Dateien"));
         myFilesPanel.setLayout(new javax.swing.BoxLayout(myFilesPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        jScrollPane2.setViewportView(this.myFilesLlist);
+        jScrollPane2.setViewportView(this.myFilesList);
 
         myFilesPanel.add(jScrollPane2);
 
