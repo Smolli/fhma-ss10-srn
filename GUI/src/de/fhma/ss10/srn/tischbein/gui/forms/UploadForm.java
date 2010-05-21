@@ -13,35 +13,14 @@ public class UploadForm extends javax.swing.JFrame {
 
     private static final long serialVersionUID = -6128747519959199333L;
 
-    /**
-     * @param args
-     *            the command line arguments
-     */
-    public static void main(final String[] args) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new UploadForm().setVisible(true);
-            }
-        });
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-
-    private javax.swing.JButton jButton2;
-
-    private javax.swing.JButton jButton3;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JProgressBar jProgressBar1;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
+    protected javax.swing.JButton abbortButton;
+    protected javax.swing.JTextField filenameField;
+    protected javax.swing.JTextField hashField;
+    protected javax.swing.JProgressBar hashingProgress;
+    protected javax.swing.JButton saveButton;
+    protected javax.swing.JButton searchButton;
+    protected javax.swing.JTextField secretField;
 
     // End of variables declaration//GEN-END:variables
     /** Creates new form UploadForm. */
@@ -56,62 +35,64 @@ public class UploadForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        this.jPanel1 = new javax.swing.JPanel();
-        this.jTextField1 = new javax.swing.JTextField();
-        this.jButton1 = new javax.swing.JButton();
-        this.jSeparator2 = new javax.swing.JSeparator();
-        this.jPanel2 = new javax.swing.JPanel();
-        this.jLabel1 = new javax.swing.JLabel();
-        this.jTextField2 = new javax.swing.JTextField();
-        this.jLabel2 = new javax.swing.JLabel();
-        this.jTextField3 = new javax.swing.JTextField();
-        this.jSeparator1 = new javax.swing.JSeparator();
-        this.jPanel3 = new javax.swing.JPanel();
-        this.jProgressBar1 = new javax.swing.JProgressBar();
-        this.jButton2 = new javax.swing.JButton();
-        this.jButton3 = new javax.swing.JButton();
+        javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+        this.filenameField = new javax.swing.JTextField();
+        this.searchButton = new javax.swing.JButton();
+        javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
+        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
+        this.hashField = new javax.swing.JTextField();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        this.secretField = new javax.swing.JTextField();
+        javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
+        javax.swing.JPanel jPanel3 = new javax.swing.JPanel();
+        this.hashingProgress = new javax.swing.JProgressBar();
+        this.saveButton = new javax.swing.JButton();
+        this.abbortButton = new javax.swing.JButton();
 
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        this.setAlwaysOnTop(true);
+        this.setResizable(false);
         this.getContentPane().setLayout(new javax.swing.BoxLayout(this.getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
-        this.jPanel1.setLayout(new javax.swing.BoxLayout(this.jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+        jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
+        jPanel1.add(this.filenameField);
 
-        this.jTextField1.setText("jTextField1");
-        this.jPanel1.add(this.jTextField1);
+        this.searchButton.setText("Durchsuchen...");
+        jPanel1.add(this.searchButton);
 
-        this.jButton1.setText("jButton1");
-        this.jPanel1.add(this.jButton1);
+        this.getContentPane().add(jPanel1);
+        this.getContentPane().add(jSeparator2);
 
-        this.getContentPane().add(this.jPanel1);
-        this.getContentPane().add(this.jSeparator2);
+        jPanel2.setLayout(new java.awt.GridLayout(2, 2, 5, 5));
 
-        this.jPanel2.setLayout(new java.awt.GridLayout(2, 2, 5, 5));
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel1.setText("Datei-Hash:");
+        jPanel2.add(jLabel1);
 
-        this.jLabel1.setText("jLabel1");
-        this.jPanel2.add(this.jLabel1);
+        this.hashField.setEditable(false);
+        jPanel2.add(this.hashField);
 
-        this.jTextField2.setText("jTextField2");
-        this.jPanel2.add(this.jTextField2);
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel2.setText("Datei-Schlüssel:");
+        jPanel2.add(jLabel2);
 
-        this.jLabel2.setText("jLabel2");
-        this.jPanel2.add(this.jLabel2);
+        this.secretField.setEditable(false);
+        jPanel2.add(this.secretField);
 
-        this.jTextField3.setText("jTextField3");
-        this.jPanel2.add(this.jTextField3);
+        this.getContentPane().add(jPanel2);
+        this.getContentPane().add(jSeparator1);
 
-        this.getContentPane().add(this.jPanel2);
-        this.getContentPane().add(this.jSeparator1);
+        jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        jPanel3.add(this.hashingProgress);
 
-        this.jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        this.jPanel3.add(this.jProgressBar1);
+        this.saveButton.setText("Speichern");
+        jPanel3.add(this.saveButton);
 
-        this.jButton2.setText("jButton2");
-        this.jPanel3.add(this.jButton2);
+        this.abbortButton.setText("Abbrechen");
+        jPanel3.add(this.abbortButton);
 
-        this.jButton3.setText("jButton3");
-        this.jPanel3.add(this.jButton3);
-
-        this.getContentPane().add(this.jPanel3);
+        this.getContentPane().add(jPanel3);
 
         this.pack();
     }// </editor-fold>//GEN-END:initComponents
