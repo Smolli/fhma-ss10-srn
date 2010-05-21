@@ -15,9 +15,6 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
 public final class RSAReader extends BufferedReader {
 
     public static RSAReader createReader(final String filename, final PrivateKey privateKey) throws CryptoException {
-        //        // Schlüssel testen
-        //        RSAReader.testKey(privateKey);
-
         // Rohdaten lesen
         List<ByteBuffer> buffers = RSAReader.readData(filename);
 
@@ -56,12 +53,6 @@ public final class RSAReader extends BufferedReader {
             return lines;
         } catch (Exception e) {
             throw new CryptoException("Kann die Datei nicht lesen!", e);
-        }
-    }
-
-    private static void testKey(final byte[] privateKey) throws CryptoException {
-        if (privateKey.length != RsaCrypto.RSA_KEY_SIZE) {
-            throw new CryptoException("Schlüssel muss eine Länge von 128 Bit haben!");
         }
     }
 
