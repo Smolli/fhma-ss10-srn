@@ -11,6 +11,7 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AESReader;
 import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
+import de.fhma.ss10.srn.tischbein.core.crypto.RSAReader;
 import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
 
 public class DatabaseModel extends DatabaseStructure {
@@ -65,7 +66,7 @@ public class DatabaseModel extends DatabaseStructure {
     }
 
     /** CSV-Separator. */
-    protected static final char SEPARATOR = ';';
+    protected static final String SEPARATOR = ";";
 
     /**
      * Aktualisiert die globale Dateien-Tabelle.
@@ -190,7 +191,7 @@ public class DatabaseModel extends DatabaseStructure {
             String line;
 
             while ((line = br.readLine()) != null) {
-                FileItem file = FileItem.parse(line);
+                FileItem file = FileItem.parse(null, line);
                 int id = file.getId();
 
                 temp.put(id, file);
@@ -292,10 +293,27 @@ public class DatabaseModel extends DatabaseStructure {
      * @param user
      *            Der Benutzerkontext.
      * @return Eine {@link List} mit allen Dateien.
+     * @throws DatabaseException
      */
-    private Vector<FileItem> loadAccessTable(final User user) {
-        // TODO Auto-generated method stub
-        return null;
+    private Vector<FileItem> loadAccessTable(final User user) throws DatabaseException {
+        try {
+            Vector<FileItem> list = new Vector<FileItem>();
+            RSAReader r = RSAReader.createReader(Tables.AccessTable.getFilename(user), user.getKeyPair().getPrivate());
+            String line;
+
+            while ((line = r.readLine()) != null) {
+                String[] cols = line.split(DatabaseModel.SEPARATOR);
+                FileItem file = this.getFile(Integer.parseInt(cols[0]));
+
+                file.setKey(Utils.fromHexString(cols[1]));
+
+                list.add(file);
+            }
+
+            return list;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Access-Tabelle nicht laden!", e);
+        }
     }
 
     /**
@@ -322,6 +340,7 @@ public class DatabaseModel extends DatabaseStructure {
                 FileItem file = this.getFile(id);
 
                 file.setKey(Utils.fromHexString(cols[1]));
+                file.setOwner(user);
 
                 list.add(file);
             }
