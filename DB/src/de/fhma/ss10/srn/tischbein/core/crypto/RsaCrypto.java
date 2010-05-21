@@ -49,10 +49,6 @@ public class RsaCrypto {
 
     public static byte[] encode(final String string, final PublicKey publicKey) throws UtilsException {
         try {
-            //            if (privateKey.length != RsaCrypto.RSA_KEY_SIZE) {
-            //                throw new IllegalArgumentException("Schlüssel muss 128 Bit lang sein!");
-            //            }
-
             RsaCrypto.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
             byte[] res = RsaCrypto.cipher.doFinal(string.getBytes());
