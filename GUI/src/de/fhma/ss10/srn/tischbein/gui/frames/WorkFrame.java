@@ -10,6 +10,7 @@ import javax.swing.table.TableModel;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction;
@@ -24,6 +25,23 @@ import de.fhma.ss10.srn.tischbein.gui.forms.WorkForm;
  * @author Smolli
  */
 public final class WorkFrame extends WorkForm implements CloseActionListener, LogoutActionListener {
+
+    private final class FilesSelectionModel extends DefaultListSelectionModel {
+        {
+            this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        }
+
+        @Override
+        public void setSelectionInterval(final int first, final int last) {
+            super.setSelectionInterval(first, last);
+
+            WorkFrame.this.selectedFile = WorkFrame.this.user.getFileListObject().getFileList().get(last);
+
+            WorkFrame.this.userTable.repaint();
+
+            System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
+        }
+    }
 
     /** Serial UID. */
     private static final long serialVersionUID = -5369888389274792872L;
@@ -50,23 +68,9 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         this.setVisible(true);
 
         this.userTable.setModel(this.generateUserModel());
-        //        this.otherFilesList.setListData(this.user.getFileListObject().getAccessList());
+        this.otherFilesList.setListData(this.user.getFileListObject().getAccessList());
 
-        this.myFilesLlist.setSelectionModel(new DefaultListSelectionModel() {
-            {
-                this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            }
-
-            @Override
-            public void setSelectionInterval(final int first, final int last) {
-                super.setSelectionInterval(first, last);
-
-                WorkFrame.this.selectedFile = WorkFrame.this.user.getFileListObject().getFileList().get(last);
-
-                System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
-            }
-
-        });
+        this.myFilesLlist.setSelectionModel(new FilesSelectionModel());
     }
 
     @Override
@@ -140,14 +144,15 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
             @Override
             public Object getValueAt(final int rowIndex, final int columnIndex) {
-                User user = this.users.get(rowIndex);
+                User selectedUser = this.users.get(rowIndex);
 
                 switch (columnIndex) {
                     case 0:
-                        return WorkFrame.this.user.getFileListObject().hasAccess(user, WorkFrame.this.selectedFile);
+                        return WorkFrame.this.user.getFileListObject().hasAccess(selectedUser,
+                                WorkFrame.this.selectedFile);
 
                     case 1:
-                        return user.getName();
+                        return selectedUser.getName();
 
                     default:
                         return null;
@@ -175,9 +180,18 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
             }
 
             @Override
-            public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
-                // TODO Auto-generated method stub
+            public void setValueAt(final Object value, final int rowIndex, final int columnIndex) {
+                if (columnIndex != 0) {
+                    return;
+                }
 
+                User selectedUser = this.users.get(rowIndex);
+                try {
+                    WorkFrame.this.user.getFileListObject().setAccess(selectedUser, WorkFrame.this.selectedFile,
+                            (Boolean) value);
+                } catch (Exception e) {
+                    GuiUtils.displayError("Konnte Recht nicht speichern!", e);
+                }
             }
         };
     }
