@@ -1,5 +1,10 @@
 package de.fhma.ss10.srn.tischbein.core;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
@@ -72,6 +77,29 @@ public final class Utils {
         return Utils.SECURE_RANDOM;
     }
 
+    public static <U extends Key> U loadKey(final String string) throws UtilsException {
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Utils.fromHexString(string)));
+
+            return (U) ois.readObject();
+        } catch (Exception e) {
+            throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
+        }
+    }
+
+    public static String saveKey(final Key key) throws UtilsException {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+
+            oos.writeObject(key);
+
+            return Utils.toHexString(bos.toByteArray());
+        } catch (Exception e) {
+            throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
+        }
+    }
+
     /**
      * Konvertiert ein Byte-Array in einen Hex-String.
      * 
@@ -97,11 +125,11 @@ public final class Utils {
         String line = Utils.toHexString(hex);
         StringBuilder sb = new StringBuilder();
 
-        while (line.length() > TEXT_BLOCK_WIDTH) {
-            sb.append(line.substring(0, TEXT_BLOCK_WIDTH));
+        while (line.length() > Utils.TEXT_BLOCK_WIDTH) {
+            sb.append(line.substring(0, Utils.TEXT_BLOCK_WIDTH));
             sb.append("\n");
 
-            line = line.substring(TEXT_BLOCK_WIDTH);
+            line = line.substring(Utils.TEXT_BLOCK_WIDTH);
         }
 
         sb.append(line);
