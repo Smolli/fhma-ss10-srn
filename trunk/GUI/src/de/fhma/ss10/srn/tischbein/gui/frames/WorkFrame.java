@@ -186,6 +186,8 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         this.otherFilesList.setListData(this.currentUser.getFileListObject().getAccessList());
 
+        this.setTitle("Tischbein v0.2 - " + user.getName());
+
         this.setVisible(true);
     }
 
