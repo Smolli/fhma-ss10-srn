@@ -33,8 +33,8 @@ public final class FileItem {
      * @throws IOException
      *             Wird geworfen, wenn die Datei nicht gefunden oder gelesen werden konnte.
      */
-    static FileItem create(final String filename, final byte[] secret) throws IOException {
-        FileItem fi = new FileItem();
+    static FileItem create(final User owner, final String filename, final byte[] secret) throws IOException {
+        FileItem fi = new FileItem(owner);
         File file = new File(filename);
 
         fi.buffer = new byte[(int) file.length()];
@@ -59,9 +59,9 @@ public final class FileItem {
      *            Die zu parsende Zeile.
      * @return Das {@link FileItem}-Objekt.
      */
-    static FileItem parse(final String line) {
-        String[] cols = line.split(";");
-        FileItem file = new FileItem();
+    static FileItem parse(final User owner, final String line) {
+        String[] cols = line.split(DatabaseModel.SEPARATOR);
+        FileItem file = new FileItem(owner);
 
         file.setId(Integer.parseInt(cols[FileItem.COLUMN_ID]));
         file.setName(cols[FileItem.COLUMN_NAME]);
@@ -80,11 +80,13 @@ public final class FileItem {
     private byte[] fileKey;
     /** Hält den unverschlüsselten Dateiinhalt. */
     private byte[] buffer;
+    private User owner;
 
     /**
      * Versteckter Standard-Ctor.
      */
-    private FileItem() {
+    private FileItem(final User owner) {
+        this.owner = owner;
     }
 
     @Override
@@ -138,9 +140,17 @@ public final class FileItem {
         return this.fileName;
     }
 
+    public User getOwner() {
+        return this.owner;
+    }
+
     @Override
     public int hashCode() {
         return this.id;
+    }
+
+    public void setOwner(final User user) {
+        this.owner = user;
     }
 
     @Override

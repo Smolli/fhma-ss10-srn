@@ -27,8 +27,9 @@ public class DatabaseStructure {
      * @throws IOException
      *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
      */
-    protected static FileItem createEncryptedFile(final String filename, final byte[] secret) throws IOException {
-        FileItem fi = FileItem.create(filename, secret);
+    protected static FileItem createEncryptedFile(final User owner, final String filename, final byte[] secret)
+            throws IOException {
+        FileItem fi = FileItem.create(owner, filename, secret);
 
         AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
         w.write(Utils.toHexString(fi.getBuffer()));
