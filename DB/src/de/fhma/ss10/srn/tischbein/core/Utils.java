@@ -9,6 +9,7 @@ import java.security.SecureRandom;
  * @author Smolli
  */
 public final class Utils {
+    private static final int TEXT_BLOCK_WIDTH = 64;
     /** Hält den Wert für 0xff. */
     private static final int NIBBLE_MAX_VALUE = 16;
     /** Hält das Maximum eines Unsinged Byte (255). */
@@ -51,6 +52,17 @@ public final class Utils {
         return res;
     }
 
+    public static byte[] fromHexText(final String text) {
+        String[] lines = text.split("\n");
+        StringBuilder sb = new StringBuilder();
+
+        for (String line : lines) {
+            sb.append(line);
+        }
+
+        return Utils.fromHexString(sb.toString());
+    }
+
     /**
      * Stellt einen globalen Zufallszahlengenerator zur verfügung.
      * 
@@ -79,6 +91,22 @@ public final class Utils {
         }
 
         return hexString.toString();
+    }
+
+    public static String toHexText(final byte[] hex) {
+        String line = Utils.toHexString(hex);
+        StringBuilder sb = new StringBuilder();
+
+        while (line.length() > TEXT_BLOCK_WIDTH) {
+            sb.append(line.substring(0, TEXT_BLOCK_WIDTH));
+            sb.append("\n");
+
+            line = line.substring(TEXT_BLOCK_WIDTH);
+        }
+
+        sb.append(line);
+
+        return sb.toString();
     }
 
     /**
@@ -115,33 +143,6 @@ public final class Utils {
      */
     public static String toMD5Hex(final String text) {
         return Utils.toHexString(Utils.toMD5(text));
-    }
-
-    public static String toHexText(byte[] hex) {
-        String line = toHexString(hex);
-        StringBuilder sb = new StringBuilder();
-
-        while (line.length() > 64) {
-            sb.append(line.substring(0, 63));
-            sb.append("\n");
-
-            line = line.substring(64);
-        }
-
-        sb.append(line);
-
-        return sb.toString();
-    }
-
-    public static byte[] fromHexText(String text) {
-        String[] lines = text.split("\n");
-        StringBuilder sb = new StringBuilder();
-
-        for (String line : lines) {
-            sb.append(line);
-        }
-
-        return fromHexString(sb.toString());
     }
 
 }
