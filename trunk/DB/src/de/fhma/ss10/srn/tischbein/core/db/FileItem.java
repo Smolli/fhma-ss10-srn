@@ -25,6 +25,8 @@ public final class FileItem {
     /**
      * Erstellt ein neues {@link FileItem} anhand des übergebenen Dateinamens erstellt.
      * 
+     * @param owner
+     *            Der Besitzer der Datei.
      * @param filename
      *            Der Dateiname der zugrundeliegenden Datei.
      * @param secret
@@ -55,6 +57,8 @@ public final class FileItem {
     /**
      * Parst die angegebene Zeile und gibt sie als {@link FileItem}-Objekt zurück.
      * 
+     * @param owner
+     *            Der Besitzer der Datei.
      * @param line
      *            Die zu parsende Zeile.
      * @return Das {@link FileItem}-Objekt.
@@ -80,13 +84,17 @@ public final class FileItem {
     private byte[] fileKey;
     /** Hält den unverschlüsselten Dateiinhalt. */
     private byte[] buffer;
+    /** Hält den Benistzer der Datei oder <code>null</code> wenn der Besitzer nicht bekannt ist. */
     private User owner;
 
     /**
      * Versteckter Standard-Ctor.
+     * 
+     * @param ownerObject
+     *            Das {@link User}-Objekt, dass der Besitzer der Datei ist.
      */
-    private FileItem(final User owner) {
-        this.owner = owner;
+    private FileItem(final User ownerObject) {
+        this.owner = ownerObject;
     }
 
     @Override
@@ -140,17 +148,9 @@ public final class FileItem {
         return this.fileName;
     }
 
-    public User getOwner() {
-        return this.owner;
-    }
-
     @Override
     public int hashCode() {
         return this.id;
-    }
-
-    public void setOwner(final User user) {
-        this.owner = user;
     }
 
     @Override
@@ -169,6 +169,15 @@ public final class FileItem {
     }
 
     /**
+     * Gibt den Besitzer der Datei zurück oder <code>null</code> wenn der Besitzer nicht bekannt ist.
+     * 
+     * @return Der Besitzer.
+     */
+    User getOwner() {
+        return this.owner;
+    }
+
+    /**
      * Setzt den Schlüssel, mit dem der Inhalt der Datei verschlüssel ist.
      * 
      * @param value
@@ -176,6 +185,16 @@ public final class FileItem {
      */
     void setKey(final byte[] value) {
         this.fileKey = value;
+    }
+
+    /**
+     * Setzt den Benitzer auf das angegeben {@link User}-Objekt.
+     * 
+     * @param user
+     *            Der Besitzer der Datei.
+     */
+    void setOwner(final User user) {
+        this.owner = user;
     }
 
     /**
