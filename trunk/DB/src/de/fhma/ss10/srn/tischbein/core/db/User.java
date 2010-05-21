@@ -19,61 +19,61 @@ import de.fhma.ss10.srn.tischbein.core.crypto.RsaCrypto;
  */
 public final class User implements Serializable {
 
-    /**
-     * Innere Klasse zum Verwalten des privaten Schlüssels.
-     * 
-     * @author Smolli
-     */
-    private final class UserPrivateKey implements PrivateKey {
-
-        /** Serial UID. */
-        private static final long serialVersionUID = 8016515506145694357L;
-
-        @Override
-        public String getAlgorithm() {
-            return "AES";
-        }
-
-        @Override
-        public byte[] getEncoded() {
-            return User.this.privateKeyDecrypted;
-        }
-
-        @Override
-        public String getFormat() {
-            // TODO: Klären, was hier zurück gegeben werden muss!
-            return null;
-        }
-
-    }
-
-    /**
-     * Innere Klasse zum Verwalten des öffentlichen Schlüssels.
-     * 
-     * @author Smolli
-     */
-    private final class UserPublicKey implements PublicKey {
-
-        /** Serial UID. */
-        private static final long serialVersionUID = -4004473296448455411L;
-
-        @Override
-        public String getAlgorithm() {
-            return "AES";
-        }
-
-        @Override
-        public byte[] getEncoded() {
-            return User.this.publicKey;
-        }
-
-        @Override
-        public String getFormat() {
-            // TODO: Klären, was hier zurück gegeben werden muss!
-            return null;
-        }
-
-    }
+    //    /**
+    //     * Innere Klasse zum Verwalten des privaten Schlüssels.
+    //     * 
+    //     * @author Smolli
+    //     */
+    //    private final class UserPrivateKey implements PrivateKey {
+    //
+    //        /** Serial UID. */
+    //        private static final long serialVersionUID = 8016515506145694357L;
+    //
+    //        @Override
+    //        public String getAlgorithm() {
+    //            return "AES";
+    //        }
+    //
+    //        @Override
+    //        public byte[] getEncoded() {
+    //            return User.this.privateKeyDecrypted;
+    //        }
+    //
+    //        @Override
+    //        public String getFormat() {
+    //            // TODO: Klären, was hier zurück gegeben werden muss!
+    //            return null;
+    //        }
+    //
+    //    }
+    //
+    //    /**
+    //     * Innere Klasse zum Verwalten des öffentlichen Schlüssels.
+    //     * 
+    //     * @author Smolli
+    //     */
+    //    private final class UserPublicKey implements PublicKey {
+    //
+    //        /** Serial UID. */
+    //        private static final long serialVersionUID = -4004473296448455411L;
+    //
+    //        @Override
+    //        public String getAlgorithm() {
+    //            return null;
+    //        }
+    //
+    //        @Override
+    //        public byte[] getEncoded() {
+    //            return User.this.publicKey;
+    //        }
+    //
+    //        @Override
+    //        public String getFormat() {
+    //            // TODO: Klären, was hier zurück gegeben werden muss!
+    //            return null;
+    //        }
+    //
+    //    }
 
     /** Benutzer-Tabelle Privater Schlüssel. */
     private static final int COLUMN_PRIVATE_KEY = 4;
@@ -126,17 +126,18 @@ public final class User implements Serializable {
      * @return Das gepartse Benutzer-Objekt.
      * @throws CryptoException
      *             Wird geworfen, wenn der CryptoKey nicht gesetzt werden kann.
+     * @throws UtilsException
      */
-    static User parse(final String line) throws CryptoException {
+    static User parse(final String line) throws CryptoException, UtilsException {
         User user = new User();
-        String[] cols = line.split(";");
+        String[] cols = line.split(DatabaseModel.SEPARATOR);
 
         user.setName(cols[User.COLUMN_NAME]);
         user.setPassHash(cols[User.COLUMN_PW_HASH]);
         user.setCryptKey(Utils.fromHexString(cols[User.COLUMN_CRYPT_KEY]));
         // REM: Privater Schlüssel ist immernoch verschlüsselt!
-        user.setKey(Utils.fromHexString(cols[User.COLUMN_PUBLIC_KEY]), Utils
-                .fromHexString(cols[User.COLUMN_PRIVATE_KEY]));
+        user.setKeyPair(new KeyPair((PublicKey) Utils.loadKey(cols[User.COLUMN_PUBLIC_KEY]), (PrivateKey) Utils
+                .loadKey(cols[User.COLUMN_PRIVATE_KEY])));
 
         return user;
     }
@@ -147,12 +148,12 @@ public final class User implements Serializable {
     private String username;
     /** Hält den Hash-Wert des Benutzerpassworts. */
     private String passHash;
-    /** Hält den verschlüsselten privaten Schlüssel. */
-    private byte[] privateKeyEncrypted;
-    /** Hält den entschlüsselten privaten Schlüssel. */
-    private byte[] privateKeyDecrypted = null;
-    /** Hält den öffentlichen Schlüssel. */
-    private byte[] publicKey;
+    //    /** Hält den verschlüsselten privaten Schlüssel. */
+    //    private byte[] privateKeyEncrypted;
+    //    /** Hält den entschlüsselten privaten Schlüssel. */
+    //    private byte[] privateKeyDecrypted = null;
+    //    /** Hält den öffentlichen Schlüssel. */
+    //    private byte[] publicKey;
     /** Hält den verschlüsselten CryptKey für die AES-Verschlüsselung. */
     private byte[] cryptKeyEncrypted;
     /** Hält den entschlüsselten CryptKey für die AES-Verschlüsselung. */
@@ -176,7 +177,7 @@ public final class User implements Serializable {
             byte[] secret = AesCrypto.generateKey();
 
             // Dateiinhalt verschlüsseln + speichern
-            FileItem fi = DatabaseStructure.createEncryptedFile(filename, secret);
+            FileItem fi = DatabaseStructure.createEncryptedFile(this, filename, secret);
 
             Database.getInstance().addFile(this, fi);
 
@@ -226,24 +227,24 @@ public final class User implements Serializable {
         return this.passHash;
     }
 
-    /**
-     * Gibt den privaten Schlüssel zurück. Der Wert wird nur dann zurück gegeben, wenn der Benutzer sich zuvor mit einem
-     * gültigen Passwort authentifiziert hat. Das herausgeben eines privaten Schlüssels Dritter ist nicht möglich.
-     * 
-     * @return Gibt Den private Schlüssel zurück, wenn der Benutzer authentifiziert ist, andernfalls <code>null</code>.
-     */
-    public byte[] getPrivateKey() {
-        return this.keyPair.getPrivate().getEncoded();
-    }
+    //    /**
+    //     * Gibt den privaten Schlüssel zurück. Der Wert wird nur dann zurück gegeben, wenn der Benutzer sich zuvor mit einem
+    //     * gültigen Passwort authentifiziert hat. Das herausgeben eines privaten Schlüssels Dritter ist nicht möglich.
+    //     * 
+    //     * @return Gibt Den private Schlüssel zurück, wenn der Benutzer authentifiziert ist, andernfalls <code>null</code>.
+    //     */
+    //    public byte[] getPrivateKey() {
+    //        return this.keyPair.getPrivate().getEncoded();
+    //    }
 
-    /**
-     * Gibt den öffentlichen Schlüssel des Benutzers zurück. Dieser Schlüssel kann von jedem eingesehen werden.
-     * 
-     * @return Der öffentliche Schlüssel.
-     */
-    public byte[] getPublicKey() {
-        return this.keyPair.getPublic().getEncoded();
-    }
+    //    /**
+    //     * Gibt den öffentlichen Schlüssel des Benutzers zurück. Dieser Schlüssel kann von jedem eingesehen werden.
+    //     * 
+    //     * @return Der öffentliche Schlüssel.
+    //     */
+    //    public byte[] getPublicKey() {
+    //        return this.keyPair.getPublic().getEncoded();
+    //    }
 
     @Override
     public int hashCode() {
@@ -254,7 +255,8 @@ public final class User implements Serializable {
      * Schließt den Benutzer ab und macht seinen privaten Schlüssel wieder unzugänglich.
      */
     public void lock() {
-        this.privateKeyEncrypted = null;
+        //        this.privateKeyEncrypted = null;
+        this.keyPair = null;
         this.cryptKeyEncrypted = null;
     }
 
@@ -284,7 +286,7 @@ public final class User implements Serializable {
                 return false;
             }
 
-            this.privateKeyDecrypted = AesCrypto.decrypt(this.privateKeyEncrypted, secret);
+            //            this.privateKeyDecrypted = AesCrypto.decrypt(this.privateKeyEncrypted, secret);
             this.cryptKeyDecrypted = AesCrypto.decrypt(this.cryptKeyEncrypted, secret);
 
             this.flo = Database.getInstance().getFileList(this);
@@ -308,8 +310,8 @@ public final class User implements Serializable {
     String compile(final String pass) throws UtilsException {
         byte[] secret = Utils.toMD5(pass);
 
-        String pri = Utils.toHexString(AesCrypto.encrypt(this.getPrivateKey(), secret));
-        String pub = Utils.toHexString(this.getPublicKey());
+        String pri = Utils.saveKey(this.keyPair.getPrivate());
+        String pub = Utils.saveKey(this.keyPair.getPublic());
         String crypt = Utils.toHexString(AesCrypto.encrypt(this.getCryptKey(), secret));
 
         return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}\n", // Formatzeile
@@ -332,6 +334,25 @@ public final class User implements Serializable {
         return this.cryptKeyDecrypted;
     }
 
+    KeyPair getKeyPair() {
+        return this.keyPair;
+    }
+
+    //    /**
+    //     * Setzt das RSA-Schlüsselpaar auf die beiden privaten und öffentlichen Werte.
+    //     * 
+    //     * @param publicKeyValue
+    //     *            Der Öffentliche Schlüssel.
+    //     * @param privateKeyValue
+    //     *            Der private Schlüssel.
+    //     */
+    //    private void setKey(final byte[] publicKeyValue, final byte[] privateKeyValue) {
+    //        this.privateKeyEncrypted = privateKeyValue;
+    //        this.publicKey = publicKeyValue;
+    //
+    //        this.keyPair = new KeyPair(new UserPublicKey(), new UserPrivateKey());
+    //    }
+
     /**
      * Setzt den verschlüsselten CryptKey für die AES-Verschlüsselung.
      * 
@@ -345,31 +366,18 @@ public final class User implements Serializable {
     }
 
     /**
-     * Setzt das RSA-Schlüsselpaar auf die beiden privaten und öffentlichen Werte.
-     * 
-     * @param publicKeyValue
-     *            Der Öffentliche Schlüssel.
-     * @param privateKeyValue
-     *            Der private Schlüssel.
-     */
-    private void setKey(final byte[] publicKeyValue, final byte[] privateKeyValue) {
-        this.privateKeyEncrypted = privateKeyValue;
-        this.publicKey = publicKeyValue;
-
-        this.keyPair = new KeyPair(new UserPublicKey(), new UserPrivateKey());
-    }
-
-    /**
      * Setzt das Schlüsselpaar auf direktem Weg.
      * 
      * @param pair
      *            Das Schlüsselpaar.
      */
     private void setKeyPair(final KeyPair pair) {
-        this.privateKeyDecrypted = pair.getPrivate().getEncoded();
-        this.publicKey = pair.getPublic().getEncoded();
+        this.keyPair = pair;
+        //        this.privateKeyDecrypted = pair.getPrivate().getEncoded();
+        //        this.publicKey = pair.getPublic().getEncoded();
 
-        this.keyPair = new KeyPair(new UserPublicKey(), new UserPrivateKey());
+        //        this.keyPair = new KeyPair(new UserPublicKey(), new UserPrivateKey());
+        //        this.keyPair=new 
     }
 
     /**
@@ -402,4 +410,5 @@ public final class User implements Serializable {
     private void setPassHash(final String hash) {
         this.passHash = hash;
     }
+
 }
