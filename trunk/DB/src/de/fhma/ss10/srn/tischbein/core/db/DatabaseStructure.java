@@ -7,6 +7,11 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseModel.Tables;
 
+/**
+ * Enthält die Datenbankstruktur.
+ * 
+ * @author Smolli
+ */
 public class DatabaseStructure {
 
     /** Das Reentrantlock. */
@@ -19,6 +24,8 @@ public class DatabaseStructure {
     /**
      * Erstellt den verschlüsselten Dateiinhalt.
      * 
+     * @param owner
+     *            Der Beitzer der Datei.
      * @param filename
      *            Der Dateiname.
      * @param secret
@@ -38,6 +45,9 @@ public class DatabaseStructure {
         return fi;
     }
 
+    /**
+     * Geschützter Ctor.
+     */
     protected DatabaseStructure() {
         super();
     }

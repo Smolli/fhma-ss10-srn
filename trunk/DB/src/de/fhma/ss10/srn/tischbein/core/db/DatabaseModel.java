@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -87,20 +88,18 @@ public class DatabaseModel extends DatabaseStructure {
     /**
      * Aktualisiert die Benutzertabellen.
      * 
-     * @param user
-     *            Der Benutzer, dessen Tabellen aktualisiert werden sollen.
      * @param fi
      *            Das {@link FileItem}, das hinzugefügt werden soll.
      * @throws IOException
      *             Wird geworfen, wenn die Tabellen nicht erweitert werden konnten.
      */
-    protected static void updateUserTables(final User user, final FileItem fi) throws IOException {
+    protected static void updateUserTables(final FileItem fi) throws IOException {
         AESWriter w;
-        FileListObject flo = user.getFileListObject();
+        FileListObject flo = fi.getOwner().getFileListObject();
 
         flo.getFileList().add(fi);
 
-        w = AESWriter.createWriter(Tables.FileTable.getFilename(user), user.getCryptKey());
+        w = AESWriter.createWriter(Tables.FileTable.getFilename(fi.getOwner()), fi.getOwner().getCryptKey());
 
         for (FileItem item : flo.getFileList()) {
             w.writeLine(Integer.toString(item.getId()) + DatabaseModel.SEPARATOR + Utils.toHexString(item.getKey()));
@@ -110,15 +109,18 @@ public class DatabaseModel extends DatabaseStructure {
     }
 
     /** Enthält alle bekannten Benutzer in einer Map. Die Information ist öffentlich zugänglich. */
-    protected TreeMap<String, User> users = new TreeMap<String, User>();
+    private TreeMap<String, User> users = new TreeMap<String, User>();
 
     /** Hält alle bekannten Dateien in einer Map. Die Information ist öffentlich zugänglich. */
     private TreeMap<Integer, FileItem> files = new TreeMap<Integer, FileItem>();
 
     /** Hält die höchste vergebene Datei ID. */
-    protected int lastFileId;
+    private int lastFileId;
 
-    public DatabaseModel() {
+    /**
+     * Geschützter Ctor.
+     */
+    protected DatabaseModel() {
         super();
     }
 
@@ -174,6 +176,15 @@ public class DatabaseModel extends DatabaseStructure {
      */
     protected int getNextFileId() {
         return this.lastFileId + 1;
+    }
+
+    /**
+     * Gibt die {@link User}-Map zurück.
+     * 
+     * @return Alle Benutzer des Systems.
+     */
+    protected Map<String, User> getUserMap() {
+        return this.users;
     }
 
     /**
@@ -294,11 +305,12 @@ public class DatabaseModel extends DatabaseStructure {
      *            Der Benutzerkontext.
      * @return Eine {@link List} mit allen Dateien.
      * @throws DatabaseException
+     *             Wird geworfen, wenn die Access-Tabelle nicht geladen werden konnte.
      */
     private Vector<FileItem> loadAccessTable(final User user) throws DatabaseException {
         try {
             Vector<FileItem> list = new Vector<FileItem>();
-            RSAReader r = RSAReader.createReader(Tables.AccessTable.getFilename(user), user.getKeyPair().getPrivate());
+            RSAReader r = RSAReader.createReader(Tables.AccessTable.getFilename(user), user.getPrivateKey());
             String line;
 
             while ((line = r.readLine()) != null) {
