@@ -87,6 +87,21 @@ public final class FileItem {
     private FileItem() {
     }
 
+    @Override
+    public boolean equals(final Object obj) {
+        if (!(obj instanceof FileItem)) {
+            return false;
+        }
+
+        FileItem item = (FileItem) obj;
+
+        if (this.id == item.id) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Gibt den unverschlüsselten Dateiinhalt zurück.
      * 
@@ -121,6 +136,11 @@ public final class FileItem {
      */
     public String getName() {
         return this.fileName;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id;
     }
 
     @Override
