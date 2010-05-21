@@ -70,7 +70,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
      */
     protected void appendToUser(final User user, final FileItem file) throws UtilsException {
         RSAAppender.appendLine(DatabaseTables.AccessTable.getFilename(user), user.getPublicKey(), file.getId()
-                + DatabaseStructure.SEPARATOR + Utils.toHexString(file.getKey()));
+                + DatabaseStructure.SEPARATOR + Utils.toHexLine(file.getKey()));
     }
 
     /**
@@ -112,7 +112,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
         DatabaseStructure.LOCK.lock();
 
         try {
-            this.testBaseFiles();
+            this.testBaseStructure();
 
             this.fetchUsers();
 
@@ -189,7 +189,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
                 @Override
                 protected String process(final FileItem item) {
                     return Integer.toString(item.getId()) + DatabaseStructure.SEPARATOR
-                            + Utils.toHexString(item.getKey());
+                            + Utils.toHexLine(item.getKey());
                 }
 
             };

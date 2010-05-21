@@ -85,7 +85,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
                     String[] cols = line.split(DatabaseStructure.SEPARATOR);
                     FileItem file = Database.getInstance().getFile(Integer.parseInt(cols[0]));
 
-                    file.setKey(Utils.fromHexString(cols[1]));
+                    file.setKey(Utils.fromHexLine(cols[1]));
 
                     return file;
                 }
@@ -120,7 +120,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
                 int id = Integer.parseInt(cols[0]);
                 FileItem file = Database.getInstance().getFile(id);
 
-                file.setKey(Utils.fromHexString(cols[1]));
+                file.setKey(Utils.fromHexLine(cols[1]));
                 file.setOwner(user);
 
                 return file;
