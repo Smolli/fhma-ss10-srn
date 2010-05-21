@@ -1,5 +1,7 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
+import java.util.Vector;
+
 /**
  * Datanbankklasse. Kapselt die gesamte Datenbankstruktur.
  * 
@@ -106,6 +108,18 @@ public final class Database extends DatabaseModel {
         }
     }
 
+    public Vector<User> getUsers() {
+        return new Vector<User>(this.users.values());
+    }
+
+    public Vector<User> getUsers(final User without) {
+        Vector<User> users = this.getUsers();
+
+        users.remove(without);
+
+        return users;
+    }
+
     public boolean hasUser(final String name) {
         return this.users.containsKey(name.toLowerCase());
     }
@@ -130,6 +144,8 @@ public final class Database extends DatabaseModel {
 
             // in globale Dateitablle Eintrag schreiben
             DatabaseModel.updateGlobalTable(item);
+
+            this.shutdown();
         } catch (Exception e) {
             throw new DatabaseException("Die Datei kann nicht hinzugefügt werden!", e);
         }
