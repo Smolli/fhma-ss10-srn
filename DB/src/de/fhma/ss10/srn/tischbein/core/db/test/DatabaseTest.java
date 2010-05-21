@@ -10,15 +10,26 @@ import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 
+/**
+ * Testet die Konsistenz der Datenbank.
+ * 
+ * @author Smolli
+ */
 public class DatabaseTest {
 
+    /** Testdatei. */
     private static final String TESTFILE = "Testfile.txt";
-
+    /** Testpasswort. */
     private static final String TEST_SECRET = "secret!";
-
+    /** Testuser. */
     private static final String TEST_USER = "UserThatWillBeDeleted";
+
+    /** Hält den Testbenutzer. */
     private User user;
 
+    /**
+     * Die Datenbank wird hier vor der erstmaligen Verwendung initialisiert.
+     */
     public void setupBeforeClass() {
         File file = new File(DatabaseTest.TESTFILE);
 
@@ -39,16 +50,25 @@ public class DatabaseTest {
         this.user = null;
     }
 
+    /**
+     * Testet das Singleton-Verhalten.
+     */
     @Test
     public void test00Singleton() {
         Assert.assertNotNull(Database.getInstance());
     }
 
+    /**
+     * Prüft ob der Benutzer nicht existiert.
+     */
     @Test
     public void test01HasUserNegative() {
         Assert.assertFalse(Database.getInstance().hasUser(DatabaseTest.TEST_USER));
     }
 
+    /**
+     * Prüft das Erstellen des Benutzers.
+     */
     @Test
     public void test02CreateUser() {
         try {
@@ -60,11 +80,17 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Prüft, ob die Existenz eines Benutzers abgefragt werden kann.
+     */
     @Test
     public void test03HasUser() {
         Assert.assertTrue(Database.getInstance().hasUser(DatabaseTest.TEST_USER));
     }
 
+    /**
+     * Ermittelt einen Benutzer.
+     */
     @Test
     public void test04GetUser() {
         try {
@@ -76,6 +102,9 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Prüft das Login eines Users.
+     */
     @Test
     public void test05LoginUser() {
         try {
@@ -95,6 +124,9 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Fügt eine Datei zum Benutzer hinzu.
+     */
     @Test
     public void test06AddFile() {
         try {
@@ -106,11 +138,17 @@ public class DatabaseTest {
         }
     }
 
+    /**
+     * Testet den Logout eines Benutzers.
+     */
     @Test
     public void test07LogoutUser() {
         this.user.lock();
     }
 
+    /**
+     * Prüft, ob ein Benutzers auch wieder gelöscht werden kann.
+     */
     @Test
     public void test08RemoveUser() {
         //        Database.getInstance().removeUser(TEST_USER);
