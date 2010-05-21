@@ -17,7 +17,7 @@ public final class Database extends DatabaseModel {
      * @return Gibt die Instanz der Datenbank zurück.
      */
     public static synchronized Database getInstance() {
-        Database.LOCK.lock();
+        DatabaseStructure.LOCK.lock();
 
         try {
             if (Database.instance == null) {
@@ -32,20 +32,7 @@ public final class Database extends DatabaseModel {
 
             return Database.instance;
         } finally {
-            Database.LOCK.unlock();
-        }
-    }
-
-    /**
-     * Fährt die Datenbank runter und speichert noch ausstehende Daten ab.
-     */
-    public static void shutdown() {
-        Database.LOCK.lock();
-
-        try {
-            Database.instance = null;
-        } finally {
-            Database.LOCK.unlock();
+            DatabaseStructure.LOCK.unlock();
         }
     }
 
@@ -58,16 +45,16 @@ public final class Database extends DatabaseModel {
      *             geladen werden konnte.
      */
     private static Database open() throws DatabaseException {
-        Database.LOCK.lock();
+        DatabaseStructure.LOCK.lock();
 
         try {
             Database db = new Database();
 
-            if (new java.io.File(DB_USERS_TB).createNewFile()) {
+            if (new java.io.File(DatabaseStructure.DB_USERS_TB).createNewFile()) {
                 System.out.println("User-Tabelle angelegt.");
             }
 
-            if (new java.io.File(DB_FILES_TB).createNewFile()) {
+            if (new java.io.File(DatabaseStructure.DB_FILES_TB).createNewFile()) {
                 System.out.println("Dateien-Tabelle anegelegt.");
             }
 
@@ -78,7 +65,7 @@ public final class Database extends DatabaseModel {
         } catch (Exception e) {
             throw new DatabaseException("Kann die Datenbankstruktur nicht laden!", e);
         } finally {
-            Database.LOCK.unlock();
+            DatabaseStructure.LOCK.unlock();
         }
     }
 
@@ -100,7 +87,7 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn der Benutzer nicht angelegt werden konnte.
      */
     public void createUser(final String name, final String pass) throws DatabaseException {
-        Database.LOCK.lock();
+        DatabaseStructure.LOCK.lock();
 
         try {
             if (this.users.containsKey(name.toLowerCase())) {
@@ -115,59 +102,37 @@ public final class Database extends DatabaseModel {
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
         } finally {
-            Database.LOCK.unlock();
+            DatabaseStructure.LOCK.unlock();
         }
     }
 
-    public boolean hasUser(String name) {
+    public boolean hasUser(final String name) {
         return this.users.containsKey(name.toLowerCase());
     }
 
-    static void addFile(User user, FileItem item) throws DatabaseException {
+    /**
+     * Fährt die Datenbank runter und speichert noch ausstehende Daten ab.
+     */
+    public void shutdown() {
+        DatabaseStructure.LOCK.lock();
+
+        try {
+            Database.instance = null;
+        } finally {
+            DatabaseStructure.LOCK.unlock();
+        }
+    }
+
+    void addFile(final User user, final FileItem item) throws DatabaseException {
         try {
             // in Dateitabelle des Benutzers Eintrag schreiben
-            Database.updateUserTables(user, item);
+            DatabaseModel.updateUserTables(user, item);
 
             // in globale Dateitablle Eintrag schreiben
-            Database.updateGlobalTable(item);
+            DatabaseModel.updateGlobalTable(item);
         } catch (Exception e) {
             throw new DatabaseException("Die Datei kann nicht hinzugefügt werden!", e);
         }
     }
 
-    //    /**
-    //     * Versucht einen Benutzer anhand der übergebenen Parameter einzuloggen. Stimmen Benutzername und -passwort mit
-    //     * einem Eintrag in der Usertabelle überein, so wird der betreffende Benutzer geladen und sein Objekt zurück
-    //     * gegeben. Können die Daten nicht verifiziert werden, so wird eine <code>DatabaseException</code> geworfen.
-    //     * 
-    //     * @param name
-    //     *            Der Benutzername.
-    //     * @param pass
-    //     *            Das Benutzerpasswort.
-    //     * @return Wenn der Benutzername gültig ist und die Passwörter übereinstimmen, wird das ermittelte Benutzer-Objekt
-    //     *         zurückgegebe.
-    //     * @throws DatabaseException
-    //     *             Wird geworfen, wenn der Benutzer nicht angemeldet werden kann.
-    //     */
-    //    public User loginUser(final String name, final String pass) throws DatabaseException {
-    //        try {
-    //            User user = this.getUser(name);
-    //
-    //            if (user == null) {
-    //                throw new DatabaseException("Benutzer existiert nicht!");
-    //            }
-    //
-    //            if (!user.unlock(pass)) {
-    //                throw new DatabaseException("Falsches Passwort!");
-    //            }
-    //
-    //            return user;
-    //        } catch (Exception e) {
-    //            throw new DatabaseException("Fehler beim Einloggen!", e);
-    //        }
-    //    }
-
-    //    public void logoutUser(User user) {
-    //        user.lock();
-    //    }
 }
