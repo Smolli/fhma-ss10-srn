@@ -3,9 +3,10 @@ package de.fhma.ss10.srn.tischbein.core.crypto;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
@@ -34,15 +35,27 @@ public class RsaCrypto {
         }
     }
 
-    public static byte[] encode(final byte[] plainText, final byte[] publicKey) throws UtilsException {
+    public static byte[] decode(final byte[] cipherText, final PrivateKey privateKey) throws UtilsException {
         try {
-            if (publicKey.length != RsaCrypto.RSA_KEY_SIZE) {
-                throw new IllegalArgumentException("Schlüssel muss 128 Bit lang sein!");
-            }
+            RsaCrypto.cipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-            RsaCrypto.cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(publicKey, RsaCrypto.RSA_ALGO_NAME));
+            byte[] res = RsaCrypto.cipher.doFinal(cipherText);
 
-            byte[] res = RsaCrypto.cipher.doFinal(plainText);
+            return res;
+        } catch (Exception e) {
+            throw new UtilsException("Kann den Text nicht entschlüsseln!", e);
+        }
+    }
+
+    public static byte[] encode(final String string, final PublicKey publicKey) throws UtilsException {
+        try {
+            //            if (privateKey.length != RsaCrypto.RSA_KEY_SIZE) {
+            //                throw new IllegalArgumentException("Schlüssel muss 128 Bit lang sein!");
+            //            }
+
+            RsaCrypto.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+
+            byte[] res = RsaCrypto.cipher.doFinal(string.getBytes());
 
             return res;
         } catch (Exception e) {
