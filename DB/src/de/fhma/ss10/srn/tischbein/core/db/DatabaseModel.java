@@ -15,6 +15,11 @@ import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.crypto.RSAReader;
 import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
 
+/**
+ * Stellt das Datenbank-Modell dar und spezialisiert somit die Datenbankstruktur.
+ * 
+ * @author Smolli
+ */
 public class DatabaseModel extends DatabaseStructure {
 
     /**
@@ -42,27 +47,85 @@ public class DatabaseModel extends DatabaseStructure {
 
             sb.append(Utils.toMD5Hex(user.getName()));
 
-            switch (this) {
-                case FileTable:
-                    sb.append(".files");
-                    break;
+            if (this == Tables.FileTable) {
+                sb.append(".files");
+            }
 
-                case AccessTable:
-                    sb.append(".access");
-                    break;
+            if (this == AccessTable) {
+                sb.append(".access");
+            }
 
-                case LendTable:
-                    sb.append(".lend");
-                    break;
-
-                default:
-                    throw new RuntimeException("Gnarf!");
+            if (this == LendTable) {
+                sb.append(".lend");
             }
 
             sb.append(".tb");
 
             return sb.toString();
         }
+
+    }
+
+    /**
+     * Kleine Hilfsklasse um die Coderedundanz zu verringern. Ließt einen {@link BufferedReader} zeilenweise aus und
+     * übergibt jede Zeile einer Callback-Methode zum Verarbeiten. Das Ergebnis wird in einem Vector mit dem Type
+     * <code>T</code> gespeichert.
+     * 
+     * @author Smolli
+     * @param <T>
+     *            Jede beliebige Klasse.
+     */
+    private abstract class LineReader<T> {
+
+        /** Hält den Ergebnisvector. */
+        private final Vector<T> list = new Vector<T>();
+
+        /**
+         * Standard-Ctor. Startet auch gleichzeitig die Verarbeitung.
+         * 
+         * @param reader
+         *            Ein {@link BufferedReader}-Objekt, das zeilenweise ausgelesen werden soll.
+         * @throws DatabaseException
+         *             Wird geworfen, wenn der Reader nicht gelesen werden konnte.
+         */
+        public LineReader(final BufferedReader reader) throws DatabaseException {
+
+            try {
+                String line;
+                int count = 0;
+
+                while ((line = reader.readLine()) != null) {
+                    this.list.add(this.process(line));
+                    count++;
+                }
+
+                System.out.println(Integer.toString(count) + " Zeilen aus Datei " + reader.toString() + " gelesen.");
+
+                reader.close();
+            } catch (Exception e) {
+                throw new DatabaseException("Kann die Datei nicht lesen!", e);
+            }
+        }
+
+        /**
+         * Gibt den Ergbenisvektor zurück.
+         * 
+         * @return Das Ergebnis des Auslesens als {@link Vector}.
+         */
+        public Vector<T> getResult() {
+            return this.list;
+        }
+
+        /**
+         * Abstrakte Callback-Methode. Sie muss das Ergebnis der Zeile als <code>T</code>-Objekt zurück geben.
+         * 
+         * @param line
+         *            Die zu verarbeitende Zeile
+         * @return Das Objekt, das im Ergebnisvektor gespeichert werden soll.
+         * @throws Exception
+         *             Kann jede beliebige {@link Exception} sein.
+         */
+        protected abstract T process(String line) throws Exception;
 
     }
 
@@ -197,22 +260,13 @@ public class DatabaseModel extends DatabaseStructure {
         DatabaseStructure.LOCK.lock();
 
         try {
-            BufferedReader br = new BufferedReader(new FileReader(DatabaseStructure.DB_FILES_TB));
+            Vector<FileItem> fileItems = this.readFilesTable();
+
             TreeMap<Integer, FileItem> temp = new TreeMap<Integer, FileItem>();
-            String line;
 
-            while ((line = br.readLine()) != null) {
-                FileItem file = FileItem.parse(null, line);
-                int id = file.getId();
-
-                temp.put(id, file);
-
-                if (id > this.lastFileId) {
-                    this.lastFileId = id;
-                }
+            for (FileItem file : fileItems) {
+                temp.put(file.getId(), file);
             }
-
-            br.close();
 
             this.files = temp;
         } catch (Exception e) {
@@ -309,20 +363,22 @@ public class DatabaseModel extends DatabaseStructure {
      */
     private Vector<FileItem> loadAccessTable(final User user) throws DatabaseException {
         try {
-            Vector<FileItem> list = new Vector<FileItem>();
-            RSAReader r = RSAReader.createReader(Tables.AccessTable.getFilename(user), user.getPrivateKey());
-            String line;
+            LineReader<FileItem> lr = new LineReader<FileItem>(RSAReader.createReader(Tables.AccessTable
+                    .getFilename(user), user.getPrivateKey())) {
 
-            while ((line = r.readLine()) != null) {
-                String[] cols = line.split(DatabaseModel.SEPARATOR);
-                FileItem file = this.getFile(Integer.parseInt(cols[0]));
+                @Override
+                protected FileItem process(final String line) throws Exception {
+                    String[] cols = line.split(DatabaseModel.SEPARATOR);
+                    FileItem file = DatabaseModel.this.getFile(Integer.parseInt(cols[0]));
 
-                file.setKey(Utils.fromHexString(cols[1]));
+                    file.setKey(Utils.fromHexString(cols[1]));
 
-                list.add(file);
-            }
+                    return file;
+                }
 
-            return list;
+            };
+
+            return lr.getResult();
         } catch (Exception e) {
             throw new DatabaseException("Kann die Access-Tabelle nicht laden!", e);
         }
@@ -340,27 +396,25 @@ public class DatabaseModel extends DatabaseStructure {
      *             Wird geworfen, wenn die Tabelle nicht geladen werden kann.
      */
     private Vector<FileItem> loadFilesTable(final User user) throws CryptoException, DatabaseException {
-        AESReader br = AESReader.createReader(Tables.FileTable.getFilename(user), user.getCryptKey());
-        String line;
-        Vector<FileItem> list = new Vector<FileItem>();
+        LineReader<FileItem> lr = new LineReader<FileItem>(AESReader.createReader(Tables.FileTable.getFilename(user),
+                user.getCryptKey())) {
 
-        try {
-            while ((line = br.readLine()) != null) {
+            @Override
+            protected FileItem process(final String line) throws Exception {
                 String[] cols = line.split(";");
 
                 int id = Integer.parseInt(cols[0]);
-                FileItem file = this.getFile(id);
+                FileItem file = DatabaseModel.this.getFile(id);
 
                 file.setKey(Utils.fromHexString(cols[1]));
                 file.setOwner(user);
 
-                list.add(file);
+                return file;
             }
 
-            return list;
-        } catch (Exception e) {
-            throw new DatabaseException("Kann die Dateientabelle nicht laden!", e);
-        }
+        };
+
+        return lr.getResult();
     }
 
     /**
@@ -375,26 +429,56 @@ public class DatabaseModel extends DatabaseStructure {
      *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
      */
     private Vector<UserFilePair> loadLendTable(final User user) throws CryptoException, DatabaseException {
-        AESReader br = AESReader.createReader(Tables.LendTable.getFilename(user), user.getCryptKey());
-        String line;
-        Vector<UserFilePair> list = new Vector<UserFilePair>();
+        LineReader<UserFilePair> lr = new LineReader<UserFilePair>(AESReader.createReader(Tables.LendTable
+                .getFilename(user), user.getCryptKey())) {
 
-        try {
-            while ((line = br.readLine()) != null) {
+            @Override
+            protected UserFilePair process(final String line) throws Exception {
                 String[] cols = line.split(";");
 
                 String userName = cols[0];
                 int fileId = Integer.parseInt(cols[1]);
 
-                FileItem fileObject = this.getFile(fileId);
-                User userObject = this.getUser(userName);
+                FileItem fileObject = DatabaseModel.this.getFile(fileId);
+                User userObject = DatabaseModel.this.getUser(userName);
 
-                list.add(new UserFilePair(userObject, fileObject));
+                return new UserFilePair(userObject, fileObject);
             }
 
-            return list;
+        };
+
+        return lr.getResult();
+    }
+
+    /**
+     * Ließt die eigentliche Dateien-Tabelle aus.
+     * 
+     * @return Gibt die {@link FileItem} als {@link Vector} zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
+     */
+    private Vector<FileItem> readFilesTable() throws DatabaseException {
+        try {
+            LineReader<FileItem> lr = new LineReader<FileItem>(new BufferedReader(new FileReader(
+                    DatabaseStructure.DB_FILES_TB))) {
+
+                @Override
+                protected FileItem process(final String line) throws Exception {
+                    FileItem file = FileItem.parse(null, line);
+                    int id = file.getId();
+
+                    if (id > DatabaseModel.this.lastFileId) {
+                        DatabaseModel.this.lastFileId = id;
+                    }
+
+                    return file;
+                }
+
+            };
+
+            return lr.getResult();
         } catch (Exception e) {
-            throw new DatabaseException("Kann die Dateientabelle nicht laden!", e);
+            throw new DatabaseException("Kann die Dateien-Tabelle nicht laden!", e);
         }
     }
 
