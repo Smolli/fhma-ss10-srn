@@ -19,6 +19,7 @@ import de.fhma.ss10.srn.tischbein.core.db.User;
  * @author Smolli
  */
 public final class Utils {
+    /** Hält die Breite eines Hextextes. */
     private static final int TEXT_BLOCK_WIDTH = 64;
     /** Hält den Wert für 0xff. */
     private static final int NIBBLE_MAX_VALUE = 16;
@@ -56,7 +57,7 @@ public final class Utils {
         FileItem fi = FileItem.create(owner, filename, secret);
 
         AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
-        w.write(Utils.toHexString(fi.getBuffer()));
+        w.write(Utils.toHexLine(fi.getBuffer()));
         w.close();
 
         return fi;
@@ -70,7 +71,7 @@ public final class Utils {
      *            Der Hex-String.
      * @return Gibt den String als Byte-Array zurück.
      */
-    public static byte[] fromHexString(final String hex) {
+    public static byte[] fromHexLine(final String hex) {
         byte[] res = new byte[hex.length() / 2];
 
         for (int i = 0; i < hex.length() / 2; i++) {
@@ -86,6 +87,13 @@ public final class Utils {
         return res;
     }
 
+    /**
+     * Konvertiert einen {@link Utils#TEXT_BLOCK_WIDTH} breiten Text in ein {@link Byte}-Array.
+     * 
+     * @param text
+     *            Der Text.
+     * @return Gibt den Text als byte-Array zurück.
+     */
     public static byte[] fromHexText(final String text) {
         String[] lines = text.split("\n");
         StringBuilder sb = new StringBuilder();
@@ -94,7 +102,7 @@ public final class Utils {
             sb.append(line);
         }
 
-        return Utils.fromHexString(sb.toString());
+        return Utils.fromHexLine(sb.toString());
     }
 
     /**
@@ -106,9 +114,21 @@ public final class Utils {
         return Utils.SECURE_RANDOM;
     }
 
+    /**
+     * Lädt einen serialisierten {@link Key} aus einem hex String.
+     * 
+     * @param <U>
+     *            Der Schlüsseltyp.
+     * @param string
+     *            Der Hexstring.
+     * @return Gibt den Schlüssel zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Schlüssel nicht deserialisiert werden konnte.
+     */
+    @SuppressWarnings("unchecked")
     public static <U extends Key> U loadKey(final String string) throws UtilsException {
         try {
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Utils.fromHexString(string)));
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Utils.fromHexLine(string)));
 
             return (U) ois.readObject();
         } catch (Exception e) {
@@ -116,6 +136,15 @@ public final class Utils {
         }
     }
 
+    /**
+     * Serialisiert und konvertiert einen {@link Key} in einen Hexstring.
+     * 
+     * @param key
+     *            Der Schlüssel.
+     * @return Gibt den Schlüssel als Hexstring zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Schlüssel nicht konvertiert werden konnte.
+     */
     public static String saveKey(final Key key) throws UtilsException {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -123,7 +152,7 @@ public final class Utils {
 
             oos.writeObject(key);
 
-            return Utils.toHexString(bos.toByteArray());
+            return Utils.toHexLine(bos.toByteArray());
         } catch (Exception e) {
             throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
         }
@@ -136,7 +165,7 @@ public final class Utils {
      *            Das zu konvertierende Byte-Array.
      * @return Das Array als Hex-String.
      */
-    public static String toHexString(final byte[] hex) {
+    public static String toHexLine(final byte[] hex) {
         StringBuilder hexString = new StringBuilder();
 
         for (byte b : hex) {
@@ -150,8 +179,15 @@ public final class Utils {
         return hexString.toString();
     }
 
+    /**
+     * Konvertiert ein {@link Byte}-Array in einen {@link Utils#TEXT_BLOCK_WIDTH} breiten Hextext.
+     * 
+     * @param hex
+     *            Das byte-Array.
+     * @return Den Hextext.
+     */
     public static String toHexText(final byte[] hex) {
-        String line = Utils.toHexString(hex);
+        String line = Utils.toHexLine(hex);
         StringBuilder sb = new StringBuilder();
 
         while (line.length() > Utils.TEXT_BLOCK_WIDTH) {
@@ -199,7 +235,7 @@ public final class Utils {
      * @return Der Hexstring.
      */
     public static String toMD5Hex(final String text) {
-        return Utils.toHexString(Utils.toMD5(text));
+        return Utils.toHexLine(Utils.toMD5(text));
     }
 
 }
