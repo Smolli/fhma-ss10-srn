@@ -1,8 +1,5 @@
 package de.fhma.ss10.srn.tischbein.gui.forms;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-
 // CHECKSTYLE:OFF
 
 public class WorkForm extends javax.swing.JFrame {
@@ -13,17 +10,16 @@ public class WorkForm extends javax.swing.JFrame {
     protected javax.swing.JButton closeButton;
     protected javax.swing.JButton deleteButton;
     protected javax.swing.JTextArea fileView;
+    private javax.swing.JSeparator jSeparator1;
     protected javax.swing.JButton logoutButton;
-    protected javax.swing.JList myFilesList;
+    protected javax.swing.JList myFilesLlist;
     protected javax.swing.JList otherFilesList;
     protected javax.swing.JButton uploadButton;
-    protected javax.swing.JList userList;
-
+    protected javax.swing.JTable userTable;
     // End of variables declaration//GEN-END:variables
 
     /** Creates new form WorkForm */
     public WorkForm() {
-    	// TEST !!!!!
         this.initComponents();
     }
 
@@ -35,52 +31,49 @@ public class WorkForm extends javax.swing.JFrame {
     private void initComponents() {
 
         javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
-        this.logoutButton = new javax.swing.JButton();
-        this.closeButton = new javax.swing.JButton();
+        logoutButton = new javax.swing.JButton();
+        closeButton = new javax.swing.JButton();
         javax.swing.JPanel titlePanel = new javax.swing.JPanel();
         javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
         javax.swing.JPanel filesPanel = new javax.swing.JPanel();
         javax.swing.JPanel myFilesPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
-        this.myFilesList = new javax.swing.JList();
+        myFilesLlist = new javax.swing.JList();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
- 
-        this.uploadButton = new javax.swing.JButton();
-        this.deleteButton = new javax.swing.JButton();
-        
+        uploadButton = new javax.swing.JButton();
+        deleteButton = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JSeparator();
         javax.swing.JPanel otherFilesPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();     
-        this.otherFilesList = new javax.swing.JList();
-        
+        javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
+        otherFilesList = new javax.swing.JList();
         javax.swing.JSplitPane jSplitPane2 = new javax.swing.JSplitPane();
         javax.swing.JPanel viewPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane4 = new javax.swing.JScrollPane();
-        
-        this.fileView = new javax.swing.JTextArea();
+        fileView = new javax.swing.JTextArea();
         javax.swing.JPanel userPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
-        this.userList = new javax.swing.JList();
+        javax.swing.JScrollPane jScrollPane5 = new javax.swing.JScrollPane();
+        userTable = new javax.swing.JTable();
 
-        this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        this.setTitle("Tischbein v0.1");
-        this.setMinimumSize(new java.awt.Dimension(640, 480));
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Tischbein v0.2");
+        setMinimumSize(new java.awt.Dimension(640, 480));
 
         buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        this.logoutButton.setText("Logout");
-        buttonPanel.add(this.logoutButton);
+        logoutButton.setText("Logout");
+        buttonPanel.add(logoutButton);
 
-        this.closeButton.setText("Beenden");
-        buttonPanel.add(this.closeButton);
+        closeButton.setText("Beenden");
+        buttonPanel.add(closeButton);
 
-        this.getContentPane().add(buttonPanel, java.awt.BorderLayout.SOUTH);
+        getContentPane().add(buttonPanel, java.awt.BorderLayout.SOUTH);
 
-        jLabel1.setFont(new java.awt.Font("Candara", 1, 18));
-        jLabel1.setText("Tischbein v0.1");
+        jLabel1.setFont(new java.awt.Font("Candara", 1, 18)); // NOI18N
+        jLabel1.setText("Tischbein v0.2 Ultra Deluxe Gourmet Version");
         titlePanel.add(jLabel1);
 
-        this.getContentPane().add(titlePanel, java.awt.BorderLayout.NORTH);
+        getContentPane().add(titlePanel, java.awt.BorderLayout.NORTH);
 
         jSplitPane1.setContinuousLayout(true);
 
@@ -91,7 +84,7 @@ public class WorkForm extends javax.swing.JFrame {
         myFilesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Eigene Dateien"));
         myFilesPanel.setLayout(new javax.swing.BoxLayout(myFilesPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        jScrollPane2.setViewportView(this.myFilesList);
+        jScrollPane2.setViewportView(myFilesLlist);
 
         myFilesPanel.add(jScrollPane2);
 
@@ -99,18 +92,19 @@ public class WorkForm extends javax.swing.JFrame {
 
         jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
 
-        this.uploadButton.setText("Hochladen");
-        jPanel1.add(this.uploadButton);
+        uploadButton.setText("Hochladen");
+        jPanel1.add(uploadButton);
 
-        this.deleteButton.setText("Löschen");
-        jPanel1.add(this.deleteButton);
+        deleteButton.setText("Löschen");
+        jPanel1.add(deleteButton);
 
         filesPanel.add(jPanel1);
+        filesPanel.add(jSeparator1);
 
         otherFilesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Freigeschaltete Dateien"));
         otherFilesPanel.setLayout(new javax.swing.BoxLayout(otherFilesPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        jScrollPane3.setViewportView(this.otherFilesList);
+        jScrollPane3.setViewportView(otherFilesList);
 
         otherFilesPanel.add(jScrollPane3);
 
@@ -123,33 +117,41 @@ public class WorkForm extends javax.swing.JFrame {
 
         viewPanel.setLayout(new javax.swing.BoxLayout(viewPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        this.fileView.setColumns(20);
-        this.fileView.setRows(5);
-        jScrollPane4.setViewportView(this.fileView);
+        fileView.setColumns(20);
+        fileView.setRows(5);
+        jScrollPane4.setViewportView(fileView);
 
         viewPanel.add(jScrollPane4);
 
         jSplitPane2.setLeftComponent(viewPanel);
 
-        userPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory
-                .createTitledBorder("Benutzererlaubnis")));
+        userPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createTitledBorder("Benutzererlaubnis")));
         userPanel.setMinimumSize(new java.awt.Dimension(150, 63));
         userPanel.setPreferredSize(new java.awt.Dimension(150, 130));
         userPanel.setLayout(new javax.swing.BoxLayout(userPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        this.userList.setMinimumSize(new java.awt.Dimension(80, 100));
-        this.userList.setPreferredSize(new java.awt.Dimension(80, 100));
-        jScrollPane1.setViewportView(this.userList);
+        userTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane5.setViewportView(userTable);
 
-        userPanel.add(jScrollPane1);
+        userPanel.add(jScrollPane5);
 
         jSplitPane2.setRightComponent(userPanel);
 
         jSplitPane1.setRightComponent(jSplitPane2);
 
-        this.getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
+        getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
-        this.pack();
+        pack();
     }// </editor-fold>//GEN-END:initComponents
 
 }

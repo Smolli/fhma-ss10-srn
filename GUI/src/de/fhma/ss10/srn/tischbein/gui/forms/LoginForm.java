@@ -23,6 +23,7 @@ public class LoginForm extends javax.swing.JFrame {
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+
         javax.swing.JPanel southPanel = new javax.swing.JPanel();
         loginButton = new javax.swing.JButton();
         addUserButton = new javax.swing.JButton();
@@ -51,8 +52,8 @@ public class LoginForm extends javax.swing.JFrame {
 
         getContentPane().add(southPanel, java.awt.BorderLayout.SOUTH);
 
-        jLabel1.setFont(new java.awt.Font("Candara", 1, 18));
-        jLabel1.setText("Tischbein v0.1");
+        jLabel1.setFont(new java.awt.Font("Candara", 1, 18)); // NOI18N
+        jLabel1.setText("Tischbein v0.2");
         northPanel.add(jLabel1);
 
         getContentPane().add(northPanel, java.awt.BorderLayout.NORTH);

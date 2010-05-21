@@ -82,7 +82,7 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Candara" size="18" style="1"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Tischbein v0.1"/>
+            <Property name="text" type="java.lang.String" value="Tischbein v0.2"/>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
