@@ -33,7 +33,7 @@ public final class FileItem {
      * @throws IOException
      *             Wird geworfen, wenn die Datei nicht gefunden oder gelesen werden konnte.
      */
-    public static FileItem create(final String filename, final byte[] secret) throws IOException {
+    static FileItem create(final String filename, final byte[] secret) throws IOException {
         FileItem fi = new FileItem();
         File file = new File(filename);
 
@@ -88,16 +88,6 @@ public final class FileItem {
     }
 
     /**
-     * Erstellt einen CSV-String für die Datenbank.
-     * 
-     * @return Die Tabellenzeile.
-     */
-    public String compile() {
-        return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseModel.SEPARATOR, Integer.toString(this.id), this.getName(),
-                Utils.toHexString(this.hash));
-    }
-
-    /**
      * Gibt den unverschlüsselten Dateiinhalt zurück.
      * 
      * @return Der Dateiinhalt.
@@ -136,6 +126,16 @@ public final class FileItem {
     @Override
     public String toString() {
         return this.getName();
+    }
+
+    /**
+     * Erstellt einen CSV-String für die Datenbank.
+     * 
+     * @return Die Tabellenzeile.
+     */
+    String compile() {
+        return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseModel.SEPARATOR, Integer.toString(this.id), this
+                .getName(), Utils.toHexString(this.hash));
     }
 
     /**
