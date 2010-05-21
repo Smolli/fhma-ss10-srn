@@ -34,6 +34,10 @@ public final class FileListObject {
             this.file = fileObject;
         }
 
+        public String compile() {
+            return this.user.getName() + DatabaseModel.SEPARATOR + this.file.getId();
+        }
+
         /**
          * Gibt das Dateiobjekt zurück.
          * 
@@ -97,6 +101,14 @@ public final class FileListObject {
         }
 
         return false;
+    }
+
+    public void setAccess(final User user, final FileItem file, final Boolean value) throws DatabaseException {
+        if (value) {
+            Database.getInstance().grantAccess(user, file);
+        } else {
+            //            Database.getInstance().denyAccess(user, file);
+        }
     }
 
     /**
