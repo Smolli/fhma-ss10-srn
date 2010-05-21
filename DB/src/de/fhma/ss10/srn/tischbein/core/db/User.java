@@ -100,7 +100,7 @@ public final class User implements Serializable {
      * @throws UserException
      *             Wird geworfen, wenn der AES-Slgorithmus nicht zur Verfügung steht.
      */
-    public static User create(final String name, final String pass) throws UserException {
+    static User create(final String name, final String pass) throws UserException {
         try {
             User user = new User();
 
@@ -178,7 +178,7 @@ public final class User implements Serializable {
             byte[] secret = AesCrypto.generateKey();
 
             // Dateiinhalt verschlüsseln + speichern
-            FileItem fi = Database.createEncryptedFile(filename, secret);
+            FileItem fi = DatabaseStructure.createEncryptedFile(filename, secret);
 
             return fi;
         } catch (Exception e) {
