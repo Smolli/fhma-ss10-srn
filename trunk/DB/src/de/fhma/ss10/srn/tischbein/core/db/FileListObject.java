@@ -88,6 +88,17 @@ public final class FileListObject {
         return this.lendList;
     }
 
+    public boolean hasAccess(final User user, final FileItem file) {
+        for (UserFilePair ufp : this.getLendList()) {
+            if (ufp.getUser().equals(user) && ufp.getFile().equals(file)) {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
     /**
      * Setzt die Liste mit den Dateien anderer Benutzer, auf die der Benutzer zugreifen darf.
      * 
