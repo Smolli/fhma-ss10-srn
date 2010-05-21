@@ -76,12 +76,13 @@ public class DatabaseModel extends DatabaseStructure {
      *             Wird geworfen, wenn die Tabelle nicht erweitert werden kann.
      */
     protected static void updateGlobalTable(final FileItem fi) throws IOException {
-        FileWriter fw = new FileWriter(DB_FILES_TB, true);
+        FileWriter fw = new FileWriter(DatabaseStructure.DB_FILES_TB, true);
 
         fw.write(fi.compile());
 
         fw.close();
     }
+
     /**
      * Aktualisiert die Benutzertabellen.
      * 
@@ -101,11 +102,12 @@ public class DatabaseModel extends DatabaseStructure {
         w = AESWriter.createWriter(Tables.FileTable.getFilename(user), user.getCryptKey());
 
         for (FileItem item : flo.getFileList()) {
-            w.writeLine(Integer.toString(item.getId()) + Database.SEPARATOR + Utils.toHexString(item.getKey()));
+            w.writeLine(Integer.toString(item.getId()) + DatabaseModel.SEPARATOR + Utils.toHexString(item.getKey()));
         }
 
         w.close();
     }
+
     /** Enthält alle bekannten Benutzer in einer Map. Die Information ist öffentlich zugänglich. */
     protected TreeMap<String, User> users = new TreeMap<String, User>();
 
@@ -134,6 +136,137 @@ public class DatabaseModel extends DatabaseStructure {
         }
 
         return this.users.get(name.toLowerCase());
+    }
+
+    /**
+     * Gibt ein {@link FileListObject} zurück, das alle eigenen und fremden Dateien enthält, auf den der übergebene
+     * Benutzer Zugriff hat.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @return Das {@link FileListObject} mit den Dateien.
+     * @throws CryptoException
+     *             Wird geworfen, wenn eine der Tabellen nicht entschlüsselt werden konnte.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
+     */
+    protected FileListObject getFileList(final User user) throws CryptoException, DatabaseException {
+        DatabaseStructure.LOCK.lock();
+
+        try {
+            FileListObject flo = new FileListObject();
+
+            flo.setFilesTable(this.loadFilesTable(user));
+            flo.setAccessTable(this.loadAccessTable(user));
+            flo.setLendTable(this.loadLendTable(user));
+
+            return flo;
+        } finally {
+            DatabaseStructure.LOCK.unlock();
+        }
+    }
+
+    /**
+     * Gibt die nächte Datei ID zurück. Die IDs werden Datenbankweit vergeben und sind eindeutig.
+     * 
+     * @return Die ID als {@link Integer}.
+     */
+    protected int getNextFileId() {
+        return this.lastFileId + 1;
+    }
+
+    /**
+     * Lädt die Dateientabelle.
+     * 
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
+     */
+    protected void loadFiles() throws DatabaseException {
+        DatabaseStructure.LOCK.lock();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(DatabaseStructure.DB_FILES_TB));
+            TreeMap<Integer, FileItem> temp = new TreeMap<Integer, FileItem>();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                FileItem file = FileItem.parse(line);
+                int id = file.getId();
+
+                temp.put(id, file);
+
+                if (id > this.lastFileId) {
+                    this.lastFileId = id;
+                }
+            }
+
+            br.close();
+
+            this.files = temp;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Dateientabelle nicht laden!", e);
+        } finally {
+            DatabaseStructure.LOCK.unlock();
+        }
+    }
+
+    /**
+     * Lädt die Benutzertabelle. Im Fehlerfall bleiben die geladenen Benutzer unverändert.
+     * 
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht vollständig geladen werden kann.
+     */
+    protected void loadUsers() throws DatabaseException {
+        DatabaseStructure.LOCK.lock();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(DatabaseStructure.DB_USERS_TB));
+            TreeMap<String, User> temp = new TreeMap<String, User>();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                User user = User.parse(line);
+
+                temp.put(user.getName().toLowerCase(), user);
+            }
+
+            br.close();
+
+            this.users = temp;
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Benutzertabelle nicht laden!", e);
+        } finally {
+            DatabaseStructure.LOCK.unlock();
+        }
+    }
+
+    /**
+     * Speichert einen User an das Ende der Benutzertabelle.
+     * 
+     * @param user
+     *            Das Benutzerobjekt.
+     * @param pass
+     *            Das Benutzerpasswort mit dem der private Schlüssel verschlüsselt wird.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der neue Benutzer nicht zur Benutertabelle hinzugefügt werden konnte.
+     */
+    protected void saveToUsers(final User user, final String pass) throws DatabaseException {
+        DatabaseStructure.LOCK.lock();
+
+        try {
+            FileWriter fw = new FileWriter(DatabaseStructure.DB_USERS_TB, true);
+
+            fw.append(user.compile(pass));
+
+            fw.flush();
+            fw.close();
+
+            this.loadUsers();
+        } catch (Exception e) {
+            throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
+        } finally {
+            DatabaseStructure.LOCK.unlock();
+        }
     }
 
     /**
@@ -231,137 +364,6 @@ public class DatabaseModel extends DatabaseStructure {
             return list;
         } catch (Exception e) {
             throw new DatabaseException("Kann die Dateientabelle nicht laden!", e);
-        }
-    }
-
-    /**
-     * Gibt ein {@link FileListObject} zurück, das alle eigenen und fremden Dateien enthält, auf den der übergebene
-     * Benutzer Zugriff hat.
-     * 
-     * @param user
-     *            Der Benutzer.
-     * @return Das {@link FileListObject} mit den Dateien.
-     * @throws CryptoException
-     *             Wird geworfen, wenn eine der Tabellen nicht entschlüsselt werden konnte.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
-     */
-    protected FileListObject getFileList(final User user) throws CryptoException, DatabaseException {
-        Database.LOCK.lock();
-
-        try {
-            FileListObject flo = new FileListObject();
-
-            flo.setFilesTable(this.loadFilesTable(user));
-            flo.setAccessTable(this.loadAccessTable(user));
-            flo.setLendTable(this.loadLendTable(user));
-
-            return flo;
-        } finally {
-            Database.LOCK.unlock();
-        }
-    }
-
-    /**
-     * Gibt die nächte Datei ID zurück. Die IDs werden Datenbankweit vergeben und sind eindeutig.
-     * 
-     * @return Die ID als {@link Integer}.
-     */
-    protected int getNextFileId() {
-        return this.lastFileId + 1;
-    }
-
-    /**
-     * Lädt die Dateientabelle.
-     * 
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
-     */
-    protected void loadFiles() throws DatabaseException {
-        Database.LOCK.lock();
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(DB_FILES_TB));
-            TreeMap<Integer, FileItem> temp = new TreeMap<Integer, FileItem>();
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                FileItem file = FileItem.parse(line);
-                int id = file.getId();
-
-                temp.put(id, file);
-
-                if (id > this.lastFileId) {
-                    this.lastFileId = id;
-                }
-            }
-
-            br.close();
-
-            this.files = temp;
-        } catch (Exception e) {
-            throw new DatabaseException("Kann die Dateientabelle nicht laden!", e);
-        } finally {
-            Database.LOCK.unlock();
-        }
-    }
-
-    /**
-     * Lädt die Benutzertabelle. Im Fehlerfall bleiben die geladenen Benutzer unverändert.
-     * 
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Tabelle nicht vollständig geladen werden kann.
-     */
-    protected void loadUsers() throws DatabaseException {
-        Database.LOCK.lock();
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(DB_USERS_TB));
-            TreeMap<String, User> temp = new TreeMap<String, User>();
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                User user = User.parse(line);
-
-                temp.put(user.getName().toLowerCase(), user);
-            }
-
-            br.close();
-
-            this.users = temp;
-        } catch (Exception e) {
-            throw new DatabaseException("Kann die Benutzertabelle nicht laden!", e);
-        } finally {
-            Database.LOCK.unlock();
-        }
-    }
-
-    /**
-     * Speichert einen User an das Ende der Benutzertabelle.
-     * 
-     * @param user
-     *            Das Benutzerobjekt.
-     * @param pass
-     *            Das Benutzerpasswort mit dem der private Schlüssel verschlüsselt wird.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn der neue Benutzer nicht zur Benutertabelle hinzugefügt werden konnte.
-     */
-    protected void saveToUsers(final User user, final String pass) throws DatabaseException {
-        Database.LOCK.lock();
-
-        try {
-            FileWriter fw = new FileWriter(DB_USERS_TB, true);
-
-            fw.append(user.compile(pass));
-
-            fw.flush();
-            fw.close();
-
-            this.loadUsers();
-        } catch (Exception e) {
-            throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
-        } finally {
-            Database.LOCK.unlock();
         }
     }
 
