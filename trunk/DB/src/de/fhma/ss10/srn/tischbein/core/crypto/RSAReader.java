@@ -12,8 +12,24 @@ import java.util.List;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
+/**
+ * Spezialisierter {@link BufferedReader} um eine RSA-verschlüsselte Datei Zeilenweise zu lesen.
+ * 
+ * @author Smolli
+ */
 public final class RSAReader extends BufferedReader {
 
+    /**
+     * Erzeugt ein neues {@link RSAReader}-Objekt.
+     * 
+     * @param filename
+     *            Der Dateiname der verschlüsselten Datei.
+     * @param privateKey
+     *            Der private Schlüssel.
+     * @return Gibt einen Reader zurück.
+     * @throws CryptoException
+     *             Wird geworfen, wenn die Datei nicht geöffnet werden kann.
+     */
     public static RSAReader createReader(final String filename, final PrivateKey privateKey) throws CryptoException {
         // Rohdaten lesen
         List<ByteBuffer> buffers = RSAReader.readData(filename);
@@ -22,6 +38,17 @@ public final class RSAReader extends BufferedReader {
         return new RSAReader(RSAReader.decodeAndWrap(buffers, privateKey));
     }
 
+    /**
+     * Entschlüsselt die einzelnen Zeilen.
+     * 
+     * @param buffers
+     *            Die Luste der Zeilenpuffer.
+     * @param privateKey
+     *            Der private Schlüssel.
+     * @return Gibt einen {@link Reader} auf die entschlüsselten Zeilen zurück.
+     * @throws CryptoException
+     *             Wird geworfen, wenn die Puffer nicht entschlüsselt werden konnten.
+     */
     private static Reader decodeAndWrap(final List<ByteBuffer> buffers, final PrivateKey privateKey)
             throws CryptoException {
         try {
@@ -38,6 +65,15 @@ public final class RSAReader extends BufferedReader {
         }
     }
 
+    /**
+     * Ließt den Dateiinhalt und speichert jede einzelne verschlüsselte Zeile in einem separaten {@link ByteBuffer}.
+     * 
+     * @param filename
+     *            Der Dateiname.
+     * @return Gibt die einzelnen Zeilen in Puffern zurück.
+     * @throws CryptoException
+     *             Wird geworfen, wenn die Datei nicht gelesen werden kann.
+     */
     private static List<ByteBuffer> readData(final String filename) throws CryptoException {
         try {
             List<ByteBuffer> lines = new ArrayList<ByteBuffer>();
@@ -56,6 +92,12 @@ public final class RSAReader extends BufferedReader {
         }
     }
 
+    /**
+     * Versteckter Ctor.
+     * 
+     * @param reader
+     *            übernimmt ein {@link Reader}-Objekt.
+     */
     private RSAReader(final Reader reader) {
         super(reader);
     }
