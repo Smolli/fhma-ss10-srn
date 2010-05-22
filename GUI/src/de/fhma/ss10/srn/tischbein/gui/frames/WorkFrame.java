@@ -2,7 +2,6 @@ package de.fhma.ss10.srn.tischbein.gui.frames;
 
 import java.util.Vector;
 
-import javax.swing.Action;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelListener;
@@ -164,7 +163,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     private static final long serialVersionUID = -5369888389274792872L;
 
     /** Hält den eingeloggten Benutzer. */
-    private transient final User currentUser;
+    private final transient User currentUser;
     /** Hält die momentan ausgewählte Datei. */
     private transient FileItem selectedFile = null;
 
@@ -208,7 +207,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     }
 
     /**
-     * Vergibt die {@link Action}s an die GUI-Elemente.
+     * Vergibt die Actions an die GUI-Elemente.
      */
     private void setupActions() {
         this.closeButton.setAction(new CloseAction(this));
