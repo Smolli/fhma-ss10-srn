@@ -78,7 +78,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
             String filename = DatabaseTables.AccessTable.getFilename(user);
             PrivateKey privateKey = user.getPrivateKey();
             RSAReader reader = RSAReader.createReader(filename, privateKey);
-            DatabaseTableReader<FileItem> lr = new DatabaseTableReader<FileItem>(reader) {
+            return (new DatabaseTableReader<FileItem>(reader) {
 
                 @Override
                 protected FileItem process(final String line) throws Exception {
@@ -90,9 +90,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
                     return file;
                 }
 
-            };
-
-            return lr.getResult();
+            }).getResult();
         } catch (Exception e) {
             throw new DatabaseException("Kann die Access-Tabelle nicht laden!", e);
         }
