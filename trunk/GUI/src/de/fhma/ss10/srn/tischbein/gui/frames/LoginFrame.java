@@ -1,5 +1,10 @@
 package de.fhma.ss10.srn.tischbein.gui.frames;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.DefaultComboBoxModel;
+
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
@@ -8,7 +13,6 @@ import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.NewUserAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction.CloseActionListener;
-import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction.LoginActionListener;
 import de.fhma.ss10.srn.tischbein.gui.actions.NewUserAction.NewUserActionListener;
 import de.fhma.ss10.srn.tischbein.gui.forms.LoginForm;
 
@@ -17,8 +21,7 @@ import de.fhma.ss10.srn.tischbein.gui.forms.LoginForm;
  * 
  * @author Smolli
  */
-public final class LoginFrame extends LoginForm implements LoginActionListener, CloseActionListener,
-        NewUserActionListener {
+public final class LoginFrame extends LoginForm implements ActionListener, CloseActionListener, NewUserActionListener {
 
     /** Serial UID. */
     private static final long serialVersionUID = 5425989856036812026L;
@@ -31,7 +34,49 @@ public final class LoginFrame extends LoginForm implements LoginActionListener, 
         this.addUserButton.setAction(new NewUserAction(this));
         this.loginButton.setAction(new LoginAction(this));
 
+        this.usernameField.addActionListener(this);
+        this.usernameField.setModel(new DefaultComboBoxModel(Database.getInstance().getUsers()));
+        this.usernameField.setSelectedItem("");
+
         this.setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+        String command = e.getActionCommand();
+
+        if (!command.equals("comboBoxChanged")) {
+            return;
+        }
+
+        Object item = this.usernameField.getSelectedItem();
+        String username = null;
+
+        if (item instanceof String) {
+            User user;
+            try {
+                user = Database.getInstance().getUser((String) item);
+
+                username = user.getName();
+            } catch (DatabaseException e1) {
+                username = null;
+            }
+        } else if (item instanceof User) {
+            username = ((User) item).getName();
+        }
+
+        if (username != null) {
+            this.usernameField.setSelectedItem(username);
+            this.loginButton.setEnabled(true);
+            this.addUserButton.setEnabled(false);
+        } else {
+            this.loginButton.setEnabled(false);
+            if (!((String) item).isEmpty()) {
+                this.addUserButton.setEnabled(true);
+            } else {
+                this.addUserButton.setEnabled(false);
+            }
+        }
     }
 
     /**
@@ -51,7 +96,15 @@ public final class LoginFrame extends LoginForm implements LoginActionListener, 
 
     @Override
     public String getUsername() {
-        return this.usernameField.getText();
+        Object item = this.usernameField.getSelectedItem();
+
+        if (item instanceof String) {
+            return (String) item;
+        } else if (item instanceof User) {
+            ((User) item).getName();
+        }
+
+        return null;
     }
 
     @Override

@@ -10,7 +10,7 @@ public class LoginForm extends javax.swing.JFrame {
     protected javax.swing.JButton closeButton;
     protected javax.swing.JButton loginButton;
     protected javax.swing.JPasswordField passwordField;
-    protected javax.swing.JTextField usernameField;
+    protected javax.swing.JComboBox usernameField;
     // End of variables declaration//GEN-END:variables
     /** Creates new form MFrame */
     public LoginForm() {
@@ -33,7 +33,7 @@ public class LoginForm extends javax.swing.JFrame {
         javax.swing.JPanel centerPanel = new javax.swing.JPanel();
         javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
         javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
-        usernameField = new javax.swing.JTextField();
+        usernameField = new javax.swing.JComboBox();
         javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
         passwordField = new javax.swing.JPasswordField();
 
@@ -42,9 +42,11 @@ public class LoginForm extends javax.swing.JFrame {
         setLocationByPlatform(true);
 
         loginButton.setText("Login");
+        loginButton.setEnabled(false);
         southPanel.add(loginButton);
 
         addUserButton.setText("Neuer Benutzer");
+        addUserButton.setEnabled(false);
         southPanel.add(addUserButton);
 
         closeButton.setText("Beenden");
@@ -52,7 +54,7 @@ public class LoginForm extends javax.swing.JFrame {
 
         getContentPane().add(southPanel, java.awt.BorderLayout.SOUTH);
 
-        jLabel1.setFont(new java.awt.Font("Candara", 1, 18)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Candara", 1, 18));
         jLabel1.setText("Tischbein v0.2");
         northPanel.add(jLabel1);
 
@@ -63,6 +65,9 @@ public class LoginForm extends javax.swing.JFrame {
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel2.setText("Benutzername: ");
         jPanel2.add(jLabel2);
+
+        usernameField.setEditable(true);
+        usernameField.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jPanel2.add(usernameField);
 
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
