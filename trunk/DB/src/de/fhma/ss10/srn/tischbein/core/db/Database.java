@@ -101,6 +101,8 @@ public final class Database extends DatabaseModel {
             User user = User.create(name, pass);
 
             this.addUser(user, pass);
+
+            this.shutdown();
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
         } finally {
