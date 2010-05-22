@@ -164,7 +164,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     private static final long serialVersionUID = -5369888389274792872L;
 
     /** Hält den eingeloggten Benutzer. */
-    private final User currentUser;
+    private transient final User currentUser;
     /** Hält die momentan ausgewählte Datei. */
     private transient FileItem selectedFile = null;
 
