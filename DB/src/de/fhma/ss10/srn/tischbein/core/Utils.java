@@ -9,7 +9,7 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
-import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 
@@ -56,7 +56,7 @@ public final class Utils {
             throws IOException {
         FileItem fi = FileItem.create(owner, filename, secret);
 
-        AESWriter w = AESWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
+        AesWriter w = AesWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
         w.write(Utils.toHexLine(fi.getBuffer()));
         w.close();
 

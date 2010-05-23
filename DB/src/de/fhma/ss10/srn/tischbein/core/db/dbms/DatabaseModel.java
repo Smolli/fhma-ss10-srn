@@ -7,8 +7,8 @@ import java.util.Vector;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
-import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
-import de.fhma.ss10.srn.tischbein.core.crypto.RSAAppender;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
+import de.fhma.ss10.srn.tischbein.core.crypto.RsaAppender;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.FileListObject;
@@ -69,7 +69,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
      *             Wird geworfen, wenn die Tabelle nicht geschrieben werden konnte.
      */
     protected void appendToUser(final User user, final FileItem file) throws UtilsException {
-        RSAAppender.appendLine(DatabaseTables.AccessTable.getFilename(user), user.getPublicKey(), file.getId()
+        RsaAppender.appendLine(DatabaseTables.AccessTable.getFilename(user), user.getPublicKey(), file.getId()
                 + DatabaseStructure.SEPARATOR + Utils.toHexLine(file.getKey()));
     }
 
@@ -136,7 +136,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
      */
     protected void remarkToOwner(final User user, final FileItem file) throws IOException {
         User owner = file.getOwner();
-        AESWriter w = AESWriter.createWriter(DatabaseTables.LendTable.getFilename(owner), owner.getCryptKey());
+        AesWriter w = AesWriter.createWriter(DatabaseTables.LendTable.getFilename(owner), owner.getCryptKey());
 
         Vector<UserFilePair> list = owner.getFileListObject().getLendList();
 
@@ -183,7 +183,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
 
             flo.getFileList().add(fi);
 
-            new DatabaseTableWriter<FileItem>(AESWriter.createWriter(DatabaseTables.FileTable
+            new DatabaseTableWriter<FileItem>(AesWriter.createWriter(DatabaseTables.FileTable
                     .getFilename(fi.getOwner()), fi.getOwner().getCryptKey()), flo.getFileList()) {
 
                 @Override

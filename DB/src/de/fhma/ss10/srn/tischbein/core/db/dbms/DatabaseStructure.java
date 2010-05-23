@@ -8,9 +8,9 @@ import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
-import de.fhma.ss10.srn.tischbein.core.crypto.AESReader;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesReader;
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
-import de.fhma.ss10.srn.tischbein.core.crypto.RSAReader;
+import de.fhma.ss10.srn.tischbein.core.crypto.RsaReader;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
@@ -77,7 +77,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
         try {
             String filename = DatabaseTables.AccessTable.getFilename(user);
             PrivateKey privateKey = user.getPrivateKey();
-            RSAReader reader = RSAReader.createReader(filename, privateKey);
+            RsaReader reader = RsaReader.createReader(filename, privateKey);
             return (new DatabaseTableReader<FileItem>(reader) {
 
                 @Override
@@ -108,7 +108,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
      *             Wird geworfen, wenn die Tabelle nicht geladen werden kann.
      */
     protected Vector<FileItem> loadUserFilesTable(final User user) throws CryptoException, DatabaseException {
-        DatabaseTableReader<FileItem> lr = new DatabaseTableReader<FileItem>(AESReader.createReader(
+        DatabaseTableReader<FileItem> lr = new DatabaseTableReader<FileItem>(AesReader.createReader(
                 DatabaseTables.FileTable.getFilename(user), user.getCryptKey())) {
 
             @Override
@@ -141,7 +141,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
      *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
      */
     protected Vector<UserFilePair> loadUserLendTable(final User user) throws CryptoException, DatabaseException {
-        DatabaseTableReader<UserFilePair> lr = new DatabaseTableReader<UserFilePair>(AESReader.createReader(
+        DatabaseTableReader<UserFilePair> lr = new DatabaseTableReader<UserFilePair>(AesReader.createReader(
                 DatabaseTables.LendTable.getFilename(user), user.getCryptKey())) {
 
             @Override

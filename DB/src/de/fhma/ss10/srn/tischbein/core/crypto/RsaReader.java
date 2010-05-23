@@ -17,10 +17,10 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
  * 
  * @author Smolli
  */
-public final class RSAReader extends BufferedReader {
+public final class RsaReader extends BufferedReader {
 
     /**
-     * Erzeugt ein neues {@link RSAReader}-Objekt.
+     * Erzeugt ein neues {@link RsaReader}-Objekt.
      * 
      * @param filename
      *            Der Dateiname der verschlüsselten Datei.
@@ -30,12 +30,12 @@ public final class RSAReader extends BufferedReader {
      * @throws CryptoException
      *             Wird geworfen, wenn die Datei nicht geöffnet werden kann.
      */
-    public static RSAReader createReader(final String filename, final PrivateKey privateKey) throws CryptoException {
+    public static RsaReader createReader(final String filename, final PrivateKey privateKey) throws CryptoException {
         // Rohdaten lesen
-        List<ByteBuffer> buffers = RSAReader.readData(filename);
+        List<ByteBuffer> buffers = RsaReader.readData(filename);
 
         // entschlüsseln und in einen Reader wandeln
-        return new RSAReader(RSAReader.decodeAndWrap(buffers, privateKey));
+        return new RsaReader(RsaReader.decodeAndWrap(buffers, privateKey));
     }
 
     /**
@@ -98,7 +98,7 @@ public final class RSAReader extends BufferedReader {
      * @param reader
      *            übernimmt ein {@link Reader}-Objekt.
      */
-    private RSAReader(final Reader reader) {
+    private RsaReader(final Reader reader) {
         super(reader);
     }
 

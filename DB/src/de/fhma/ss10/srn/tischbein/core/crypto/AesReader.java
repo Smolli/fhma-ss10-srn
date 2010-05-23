@@ -14,7 +14,7 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
  * 
  * @author Smolli
  */
-public final class AESReader extends BufferedReader {
+public final class AesReader extends BufferedReader {
 
     /**
      * Initialisiert den Reader mit einer verschlüsselten Datei.
@@ -27,15 +27,15 @@ public final class AESReader extends BufferedReader {
      * @throws CryptoException
      *             Wird geworfen, wenn die Datei nicht entschlüsselt werden konnte.
      */
-    public static AESReader createReader(final String filename, final byte[] secret) throws CryptoException {
+    public static AesReader createReader(final String filename, final byte[] secret) throws CryptoException {
         // Schlüssel testen
-        AESReader.testKey(secret);
+        AesReader.testKey(secret);
 
         // Rohdaten lesen
-        byte[] buffer = AESReader.readData(filename);
+        byte[] buffer = AesReader.readData(filename);
 
         // entschlüsseln und in einen Reader wandeln
-        return new AESReader(AESReader.decodeAndWrap(buffer, secret));
+        return new AesReader(AesReader.decodeAndWrap(buffer, secret));
     }
 
     /**
@@ -117,7 +117,7 @@ public final class AESReader extends BufferedReader {
      * @param reader
      *            Das {@link Reader}-Objekt.
      */
-    private AESReader(final Reader reader) {
+    private AesReader(final Reader reader) {
         super(reader);
     }
 
