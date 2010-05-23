@@ -4,8 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
-import de.fhma.ss10.srn.tischbein.core.crypto.AESReader;
-import de.fhma.ss10.srn.tischbein.core.crypto.AESWriter;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesReader;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 
 /**
  * {@link AESReader}- & AESWriter-Tests.
@@ -28,7 +28,7 @@ public final class AesFileTest {
      * Testet {@link AESWriter}.
      */
     private void createFile() {
-        AESWriter w = AESWriter.createWriter("test.file", Utils.toMD5("1234"));
+        AesWriter w = AesWriter.createWriter("test.file", Utils.toMD5("1234"));
 
         try {
             w.write("0;000102030405060708090a0b0c0d0e0f;000102030405060708090a0b0c0d0e0f\n");
@@ -44,7 +44,7 @@ public final class AesFileTest {
      */
     private void readFile() {
         try {
-            AESReader r = AESReader.createReader("test.file", Utils.toMD5("1234"));
+            AesReader r = AesReader.createReader("test.file", Utils.toMD5("1234"));
 
             Assert.assertEquals("0;000102030405060708090a0b0c0d0e0f;000102030405060708090a0b0c0d0e0f", r.readLine());
 

@@ -14,7 +14,7 @@ import de.fhma.ss10.srn.tischbein.core.UtilsException;
  * 
  * @author Smolli
  */
-public class RSAAppender {
+public class RsaAppender {
 
     /**
      * Fügt eine einzelne Zeile zu einer RSA-verschlüsselten Datei hinzu.

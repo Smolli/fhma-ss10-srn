@@ -15,22 +15,22 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
  * 
  * @author Smolli
  */
-public final class AESWriter extends BufferedWriter {
+public final class AesWriter extends BufferedWriter {
 
     /**
-     * Erstellt einen neuen {@link AESWriter}, der die Daten in die Datei mit dem Namen übergebenen Dateinamen und dem
+     * Erstellt einen neuen {@link AesWriter}, der die Daten in die Datei mit dem Namen übergebenen Dateinamen und dem
      * angegebenen Schlüssel speichert.
      * 
      * @param filename
      *            Der Dateiname der Datei.
      * @param secret
      *            Der geheime Schlüssel zur Verschlüsselung.
-     * @return Gibt ein neuen {@link AESWriter}-Objekt zurück.
+     * @return Gibt ein neuen {@link AesWriter}-Objekt zurück.
      */
-    public static AESWriter createWriter(final String filename, final byte[] secret) {
+    public static AesWriter createWriter(final String filename, final byte[] secret) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        AESWriter writer = new AESWriter(new OutputStreamWriter(buffer));
+        AesWriter writer = new AesWriter(new OutputStreamWriter(buffer));
 
         writer.buffer = buffer;
         writer.filename = filename;
@@ -50,9 +50,9 @@ public final class AESWriter extends BufferedWriter {
      * Versteckter, privater Standard-Ctor.
      * 
      * @param writer
-     *            Der {@link Writer}, mit dem der {@link AESWriter} verbunden ist.
+     *            Der {@link Writer}, mit dem der {@link AesWriter} verbunden ist.
      */
-    private AESWriter(final Writer writer) {
+    private AesWriter(final Writer writer) {
         super(writer);
     }
 
