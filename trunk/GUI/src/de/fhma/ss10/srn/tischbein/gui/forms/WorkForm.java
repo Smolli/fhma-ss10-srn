@@ -7,15 +7,14 @@ public class WorkForm extends javax.swing.JFrame {
     private static final long serialVersionUID = 5702577045631188956L;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    protected javax.swing.JTable accessTable;
     protected javax.swing.JButton closeButton;
     protected javax.swing.JButton deleteButton;
     protected javax.swing.JTextArea fileView;
-    private javax.swing.JSeparator jSeparator1;
     protected javax.swing.JButton logoutButton;
-    protected javax.swing.JList myFilesLlist;
     protected javax.swing.JList otherFilesList;
     protected javax.swing.JButton uploadButton;
-    protected javax.swing.JTable userTable;
+    protected javax.swing.JList userFilesList;
     // End of variables declaration//GEN-END:variables
 
     /** Creates new form WorkForm */
@@ -34,16 +33,18 @@ public class WorkForm extends javax.swing.JFrame {
         logoutButton = new javax.swing.JButton();
         closeButton = new javax.swing.JButton();
         javax.swing.JPanel titlePanel = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel(de.fhma.ss10.srn.tischbein.gui.launcher.Launcher.PRODUCT_NAME + " - Ultra Deluxe Gourmet Version");
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
         javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
         javax.swing.JPanel filesPanel = new javax.swing.JPanel();
         javax.swing.JPanel myFilesPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
-        myFilesLlist = new javax.swing.JList();
+        userFilesList = new javax.swing.JList();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
         uploadButton = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JSeparator();
+        javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
         javax.swing.JPanel otherFilesPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
         otherFilesList = new javax.swing.JList();
@@ -53,7 +54,8 @@ public class WorkForm extends javax.swing.JFrame {
         fileView = new javax.swing.JTextArea();
         javax.swing.JPanel userPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane5 = new javax.swing.JScrollPane();
-        userTable = new javax.swing.JTable();
+        accessTable = new javax.swing.JTable();
+        javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Tischbein v0.2");
@@ -69,11 +71,17 @@ public class WorkForm extends javax.swing.JFrame {
 
         getContentPane().add(buttonPanel, java.awt.BorderLayout.SOUTH);
 
-        jLabel1.setFont(new java.awt.Font("Candara", 1, 18)); // NOI18N
-        jLabel1.setText("Tischbein v0.2 Ultra Deluxe Gourmet Version");
+        jLabel1.setFont(new java.awt.Font("Candara", 1, 18));
         titlePanel.add(jLabel1);
 
+        jLabel2.setFont(new java.awt.Font("Candara", 0, 8));
+        jLabel2.setText("(mit Porno-Hack)");
+        titlePanel.add(jLabel2);
+
         getContentPane().add(titlePanel, java.awt.BorderLayout.NORTH);
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.Y_AXIS));
 
         jSplitPane1.setContinuousLayout(true);
 
@@ -84,7 +92,7 @@ public class WorkForm extends javax.swing.JFrame {
         myFilesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Eigene Dateien"));
         myFilesPanel.setLayout(new javax.swing.BoxLayout(myFilesPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        jScrollPane2.setViewportView(myFilesLlist);
+        jScrollPane2.setViewportView(userFilesList);
 
         myFilesPanel.add(jScrollPane2);
 
@@ -130,7 +138,7 @@ public class WorkForm extends javax.swing.JFrame {
         userPanel.setPreferredSize(new java.awt.Dimension(150, 130));
         userPanel.setLayout(new javax.swing.BoxLayout(userPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        userTable.setModel(new javax.swing.table.DefaultTableModel(
+        accessTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -141,7 +149,7 @@ public class WorkForm extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane5.setViewportView(userTable);
+        jScrollPane5.setViewportView(accessTable);
 
         userPanel.add(jScrollPane5);
 
@@ -149,7 +157,12 @@ public class WorkForm extends javax.swing.JFrame {
 
         jSplitPane1.setRightComponent(jSplitPane2);
 
-        getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
+        jPanel2.add(jSplitPane1);
+
+        jSeparator2.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        jPanel2.add(jSeparator2);
+
+        getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents

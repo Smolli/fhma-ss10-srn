@@ -27,6 +27,7 @@ public class UploadForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        javax.swing.JPanel jPanel4 = new javax.swing.JPanel();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
         this.filenameField = new javax.swing.JTextField();
         this.searchButton = new javax.swing.JButton();
@@ -43,9 +44,12 @@ public class UploadForm extends javax.swing.JFrame {
         this.abbortButton = new javax.swing.JButton();
 
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        this.setTitle("Datei hochladen...");
         this.setAlwaysOnTop(true);
         this.setResizable(false);
-        this.getContentPane().setLayout(new javax.swing.BoxLayout(this.getContentPane(), javax.swing.BoxLayout.Y_AXIS));
+
+        jPanel4.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        jPanel4.setLayout(new javax.swing.BoxLayout(jPanel4, javax.swing.BoxLayout.Y_AXIS));
 
         jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
         jPanel1.add(this.filenameField);
@@ -53,8 +57,8 @@ public class UploadForm extends javax.swing.JFrame {
         this.searchButton.setText("Durchsuchen...");
         jPanel1.add(this.searchButton);
 
-        this.getContentPane().add(jPanel1);
-        this.getContentPane().add(jSeparator2);
+        jPanel4.add(jPanel1);
+        jPanel4.add(jSeparator2);
 
         jPanel2.setLayout(new java.awt.GridLayout(2, 2, 5, 5));
 
@@ -72,8 +76,8 @@ public class UploadForm extends javax.swing.JFrame {
         this.secretField.setEditable(false);
         jPanel2.add(this.secretField);
 
-        this.getContentPane().add(jPanel2);
-        this.getContentPane().add(jSeparator1);
+        jPanel4.add(jPanel2);
+        jPanel4.add(jSeparator1);
 
         jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
         jPanel3.add(this.hashingProgress);
@@ -84,7 +88,15 @@ public class UploadForm extends javax.swing.JFrame {
         this.abbortButton.setText("Abbrechen");
         jPanel3.add(this.abbortButton);
 
-        this.getContentPane().add(jPanel3);
+        jPanel4.add(jPanel3);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this.getContentPane());
+        this.getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(
+                jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE));
+        layout.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(
+                jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+                javax.swing.GroupLayout.PREFERRED_SIZE));
 
         this.pack();
     }// </editor-fold>//GEN-END:initComponents
