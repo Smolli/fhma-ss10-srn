@@ -44,6 +44,18 @@ public class RsaCrypto {
 
     /**
      * Entschlüsselt den angegebenen Geheimtext mit dem privaten Schlüssel.
+     * <p>
+     * Die RSA-Implementierung in Java erlaubt nur eine bestimmte Datenmenge, die entschlüsselt werden kann. Da die
+     * Padding-Informationen auch mit abgespeichert werden, muss zu der Länge der verschlüsselten Rohdaten r die Größe
+     * des Padding-Blocks p hinzugerechnet werden. Dataus ergibt sie eine Gesamtlänge C vom:
+     * <p>
+     * C = r + p
+     * <p>
+     * Da wir hier einen 1024Bit-Schlüssel verwenden, ist der verschlüsselte Block immer 128 Bytes lang. Abzüglich der
+     * Padding-Informationen ergibt sich daraus eine Rohdatenblockgröße r von 117 Bytes.
+     * <p>
+     * Um auch größere Nachrichten entschlüsseln zu können, werden hier beliebig viele Blöcke aneinander gereiht und
+     * entschlüsselt.
      * 
      * @param cipherText
      *            Der Geheimtext.
@@ -75,6 +87,15 @@ public class RsaCrypto {
 
     /**
      * Verschlüsselt den angegebenen Klartext mit dem öffentlichen Schlüssel.
+     * <p>
+     * Die RSA-Implementierung in Java nur eine begrenzte Blockgröße B erlaubt. Diese errechnet sich aus der
+     * Schlüssellänge k und dem Paddingblock p, der abhängig vom gewählten Padding-Mechanismus gesetzt ist:
+     * <p>
+     * B = k - p
+     * <p>
+     * Hier ist k 128 Bytes und p 11 Bytes. Daraus ergibt sich eine effektive Blocklänge von 117 Bytes. Um aber auch
+     * größere Datenmengen speichern zu können, müssen die übergebenen Daten in die Blockgröße zerlegt und einzeln
+     * verschlüsselt werden.
      * 
      * @param messageText
      *            Der Klartext.
