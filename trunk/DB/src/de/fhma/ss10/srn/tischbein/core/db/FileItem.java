@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 
+import javax.crypto.SecretKey;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
 
@@ -36,7 +38,7 @@ public final class FileItem {
      * @throws IOException
      *             Wird geworfen, wenn die Datei nicht gefunden oder gelesen werden konnte.
      */
-    public static FileItem create(final User owner, final String filename, final byte[] secret) throws IOException {
+    public static FileItem create(final User owner, final String filename, final SecretKey secret) throws IOException {
         FileItem fi = new FileItem(owner);
         File file = new File(filename);
 
@@ -82,7 +84,7 @@ public final class FileItem {
     /** Hält die MD5-Summe des Dateiinhalts. */
     private byte[] hash;
     /** Hält den Dateischlüssel. */
-    private byte[] fileKey;
+    private SecretKey fileKey;
     /** Hält den unverschlüsselten Dateiinhalt. */
     private byte[] buffer;
     /** Hält den Benistzer der Datei oder <code>null</code> wenn der Besitzer nicht bekannt ist. */
@@ -146,7 +148,7 @@ public final class FileItem {
      * 
      * @return Der Schlüssel.
      */
-    public byte[] getKey() {
+    public SecretKey getKey() {
         return this.fileKey;
     }
 
@@ -176,11 +178,11 @@ public final class FileItem {
     /**
      * Setzt den Schlüssel, mit dem der Inhalt der Datei verschlüssel ist.
      * 
-     * @param value
+     * @param secret
      *            Der Schlüssel.
      */
-    public void setKey(final byte[] value) {
-        this.fileKey = value;
+    public void setKey(final SecretKey secret) {
+        this.fileKey = secret;
     }
 
     /**

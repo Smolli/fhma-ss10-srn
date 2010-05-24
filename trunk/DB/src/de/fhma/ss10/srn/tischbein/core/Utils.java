@@ -9,6 +9,8 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
+import javax.crypto.SecretKey;
+
 import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
@@ -52,7 +54,7 @@ public final class Utils {
      * @throws IOException
      *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
      */
-    public static FileItem createEncryptedFile(final User owner, final String filename, final byte[] secret)
+    public static FileItem createEncryptedFile(final User owner, final String filename, final SecretKey secret)
             throws IOException {
         FileItem fi = FileItem.create(owner, filename, secret);
 
@@ -61,6 +63,38 @@ public final class Utils {
         w.close();
 
         return fi;
+    }
+
+    /**
+     * Lädt einen serialisierten {@link Key} aus einem Byte-Array.
+     * 
+     * @param stream
+     *            Der Schlüssel als Array.
+     * @return Gibt den Schlüssel zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Schlüssel nicht deserialisiert werden konnte.
+     */
+    public static Key deserializeKey(final byte[] stream) throws UtilsException {
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(stream));
+
+            return (Key) ois.readObject();
+        } catch (Exception e) {
+            throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
+        }
+    }
+
+    /**
+     * Lädt einen serialisierten {@link Key} aus einem hex String.
+     * 
+     * @param line
+     *            Der Hexstring.
+     * @return Gibt den Schlüssel zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Schlüssel nicht deserialisiert werden konnte.
+     */
+    public static Key deserializeKeyHex(final String line) throws UtilsException {
+        return Utils.deserializeKey(Utils.fromHexLine(line));
     }
 
     /**
@@ -115,22 +149,24 @@ public final class Utils {
     }
 
     /**
-     * Lädt einen serialisierten {@link Key} aus einem hex String.
+     * Serialisiert und konvertiert einen {@link Key} in ein {@link Byte}-Array.
      * 
-     * @param <U>
-     *            Der Schlüsseltyp.
-     * @param string
-     *            Der Hexstring.
-     * @return Gibt den Schlüssel zurück.
+     * @param key
+     *            Der Schlüssel.
+     * @return Gibt den Schlüssel als Array zurück.
      * @throws UtilsException
-     *             Wird geworfen, wenn der Schlüssel nicht deserialisiert werden konnte.
+     *             Wird geworfen, wenn der Schlüssel nicht konvertiert werden konnte.
      */
-    @SuppressWarnings("unchecked")
-    public static <U extends Key> U loadKey(final String string) throws UtilsException {
+    public static byte[] serializeKey(final Key key) throws UtilsException {
         try {
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Utils.fromHexLine(string)));
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
 
-            return (U) ois.readObject();
+            oos.writeObject(key);
+
+            oos.flush();
+
+            return bos.toByteArray();
         } catch (Exception e) {
             throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
         }
@@ -145,17 +181,8 @@ public final class Utils {
      * @throws UtilsException
      *             Wird geworfen, wenn der Schlüssel nicht konvertiert werden konnte.
      */
-    public static String saveKey(final Key key) throws UtilsException {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-
-            oos.writeObject(key);
-
-            return Utils.toHexLine(bos.toByteArray());
-        } catch (Exception e) {
-            throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
-        }
+    public static String serializeKeyHex(final Key key) throws UtilsException {
+        return Utils.toHexLine(Utils.serializeKey(key));
     }
 
     /**
@@ -225,6 +252,17 @@ public final class Utils {
      */
     public static byte[] toMD5(final String text) {
         return Utils.toMD5(text.getBytes());
+    }
+
+    /**
+     * Erzeugt eine MD5-Summe und gibt sie Als Hexstring zurück.
+     * 
+     * @param text
+     *            Das Array, aus dem die Summe gebildet werden soll.
+     * @return Die MD5-Summe als Hexstring.
+     */
+    public static String toMD5Hex(final byte[] text) {
+        return Utils.toHexLine(Utils.toMD5(text));
     }
 
     /**

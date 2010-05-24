@@ -5,6 +5,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.text.MessageFormat;
 
+import javax.crypto.SecretKey;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
@@ -47,9 +49,9 @@ public final class User {
 
         user.setName(cols[User.COLUMN_NAME]);
         user.setPassHash(cols[User.COLUMN_PW_HASH]);
-        user.setCryptKey(Utils.fromHexLine(cols[User.COLUMN_CRYPT_KEY]));
-        user.setKeyPair(new KeyPair((PublicKey) Utils.loadKey(cols[User.COLUMN_PUBLIC_KEY]), (PrivateKey) Utils
-                .loadKey(cols[User.COLUMN_PRIVATE_KEY])));
+        user.setCryptKeyCipher(Utils.fromHexLine(cols[User.COLUMN_CRYPT_KEY]));
+        user.setPublicKey((PublicKey) Utils.deserializeKeyHex(cols[User.COLUMN_PUBLIC_KEY]));
+        user.setPrivateKeyCipher(Utils.fromHexLine(cols[User.COLUMN_PRIVATE_KEY]));
 
         return user;
     }
@@ -70,12 +72,12 @@ public final class User {
             User user = new User();
 
             KeyPair generatedKeyPair = RsaCrypto.generateRSAKeyPair();
-            byte[] cryptoKey = AesCrypto.generateKey();
+            SecretKey cryptoKey = AesCrypto.generateKey();
 
             user.setName(name);
             user.setPass(pass);
             user.setKeyPair(generatedKeyPair);
-            user.cryptKeyDecrypted = cryptoKey;
+            user.cryptKey = cryptoKey;
 
             return user;
         } catch (Exception e) {
@@ -83,16 +85,20 @@ public final class User {
         }
     }
 
-    /** Hält das RSA-Schlüsselpaar. */
-    private KeyPair keyPair;
+    /** Hält das öffentlichen Schlüssel. */
+    private PublicKey publicKey;
+    /** Hält den privaten Schlüssel. */
+    private PrivateKey privateKey;
+    /** Hält den verschlüsselten privaten Schlüssel. */
+    private byte[] privateKeyCipher;
     /** Hält den Benutzernamen. */
     private String username;
     /** Hält den Hash-Wert des Benutzerpassworts. */
     private String passHash;
-    /** Hält den verschlüsselten CryptKey für die AES-Verschlüsselung. */
-    private byte[] cryptKeyEncrypted;
-    /** Hält den entschlüsselten CryptKey für die AES-Verschlüsselung. */
-    private byte[] cryptKeyDecrypted;
+    /** Hält den Schlüssel für die AES-Verschlüsselung. */
+    private SecretKey cryptKey;
+    /** Hält den verschlüsselten Schlüssel für die AES-Verschlüsselung. */
+    private byte[] cryptKeyCipher;
     /** Hält die Dateidaten für den Benutzer. */
     private transient FileListObject flo;
 
@@ -109,7 +115,7 @@ public final class User {
     public FileItem addFile(final String filename) throws DatabaseException {
         try {
             // Filekey erstellen
-            byte[] secret = AesCrypto.generateKey();
+            SecretKey secret = AesCrypto.generateKey();
 
             // Dateiinhalt verschlüsseln + speichern
             FileItem fi = Utils.createEncryptedFile(this, filename, secret);
@@ -135,20 +141,24 @@ public final class User {
      *             Wird geworfen, wenn die Benutzerinformation nicht erstellt werden kann.
      */
     public String compile(final String pass) throws UtilsException {
-        byte[] secret = Utils.toMD5(pass);
+        try {
+            SecretKey secret = AesCrypto.generateKey(pass);
 
-        String pri = Utils.saveKey(this.keyPair.getPrivate());
-        String pub = Utils.saveKey(this.keyPair.getPublic());
-        String crypt = Utils.toHexLine(AesCrypto.encrypt(this.getCryptKey(), secret));
+            String pri = AesCrypto.encryptHex(Utils.serializeKey(this.getPrivateKey()), this.cryptKey);
+            String pub = Utils.serializeKeyHex(this.getPublicKey());
+            String crypt = AesCrypto.encryptHex(Utils.serializeKey(this.getCryptKey()), secret);
 
-        return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}\n", // Formatzeile
-                DatabaseStructure.SEPARATOR, // 0 - Separator
-                this.getName(), // 1 - Benutzername
-                this.getPassHash(), // 2 - Hashwert des Benutzerpassworts
-                crypt, // 3 - CryptKey
-                pub, // 4 - öffentlicher Schlüssel
-                pri // 5 - private Schlüssel (verschlüsselt)
-                );
+            return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}\n", // Formatzeile
+                    DatabaseStructure.SEPARATOR, // 0 - Separator
+                    this.getName(), // 1 - Benutzername
+                    this.getPassHash(), // 2 - Hashwert des Benutzerpassworts
+                    crypt, // 3 - CryptKey
+                    pub, // 4 - öffentlicher Schlüssel
+                    pri // 5 - private Schlüssel (verschlüsselt)
+                    );
+        } catch (Exception e) {
+            throw new UtilsException("Kann den Benutzer nicht kompilieren!", e);
+        }
     }
 
     @Override
@@ -168,8 +178,8 @@ public final class User {
      * 
      * @return Der CryptKey.
      */
-    public byte[] getCryptKey() {
-        return this.cryptKeyDecrypted;
+    public SecretKey getCryptKey() {
+        return this.cryptKey;
     }
 
     /**
@@ -205,7 +215,7 @@ public final class User {
      * @return Der {@link PrivateKey} des Benutzers.
      */
     public PrivateKey getPrivateKey() {
-        return this.keyPair.getPrivate();
+        return this.privateKey;
     }
 
     /**
@@ -214,7 +224,7 @@ public final class User {
      * @return Der {@link PublicKey} des Benutzers.
      */
     public PublicKey getPublicKey() {
-        return this.keyPair.getPublic();
+        return this.publicKey;
     }
 
     @Override
@@ -227,8 +237,8 @@ public final class User {
      */
     public void lock() {
         //        this.privateKeyEncrypted = null;
-        this.keyPair = null;
-        this.cryptKeyEncrypted = null;
+        this.privateKey = null;
+        this.cryptKey = null;
     }
 
     @Override
@@ -242,42 +252,56 @@ public final class User {
      * 
      * @param pass
      *            Das Passwort des Benutzers.
-     * @return Gibt <code>true</code> zurück, wenn der Benutzer authentifiziert werden konnte, ansonsten
-     *         <code>false</code>.
      * @throws UserException
-     *             Wird geworfen, wenn der private Schlüssel nicht entschlüsselt werden konnte.
+     *             Wird geworfen, wenn der Benutzer nicht authentifiziert werden konnte.
      */
-    public boolean unlock(final String pass) throws UserException {
+    public void unlock(final String pass) throws UserException {
         try {
-            byte[] secret = Utils.toMD5(pass);
+            SecretKey secret = this.authenticate(pass);
 
-            String hash = Utils.toHexLine(secret);
-
-            if (!hash.equals(this.passHash)) {
-                return false;
-            }
-
-            //            this.privateKeyDecrypted = AesCrypto.decrypt(this.privateKeyEncrypted, secret);
-            this.cryptKeyDecrypted = AesCrypto.decrypt(this.cryptKeyEncrypted, secret);
+            this.cryptKey = (SecretKey) Utils.deserializeKey(AesCrypto.decrypt(this.cryptKeyCipher, secret));
+            this.privateKey = (PrivateKey) Utils
+                    .deserializeKey(AesCrypto.decrypt(this.privateKeyCipher, this.cryptKey));
 
             this.flo = Database.getInstance().getFileListObject(this);
 
-            return true;
+            System.out.println("Benutzer " + this.getName() + " authetifiziert.");
         } catch (Exception e) {
             throw new UserException("Kann den Benutzer nicht authentifizieren!", e);
         }
     }
 
     /**
+     * Versucht den Benutzer anhand des übergebenen Passworts zu authentifizieren.
+     * 
+     * @param pass
+     *            Das Passwort.
+     * @return Gibt den geheimen Schlüssel zurück, mit dem der Benutzer freigeschalten werden kann.
+     * @throws CryptoException
+     *             Wird geworfen, wenn das Passwort nicht in einen Schlüssel gewandelt werden konnte.
+     * @throws UserException
+     *             Wird geworfen, wenn das Passwort falsch ist.
+     */
+    private SecretKey authenticate(final String pass) throws CryptoException, UserException {
+        SecretKey secret = AesCrypto.generateKey(pass);
+
+        String hash = Utils.toHexLine(secret.getEncoded());
+
+        if (!hash.equals(this.passHash)) {
+            throw new UserException("Das Passwort stimmt nicht!");
+        }
+
+        return secret;
+    }
+
+    /**
      * Setzt den verschlüsselten CryptKey für die AES-Verschlüsselung.
      * 
-     * @param key
+     * @param keyCipher
      *            Der verschlüsselte CryptKey. Er kann nur mit dem richtigen Passwort wieder entschlüsselt werden.
-     * @throws CryptoException
-     *             Wird geworfen, wenn die Schlüssellänge nicht {@value AesCrypto#AES_KEY_SIZE} entspricht.
      */
-    private void setCryptKey(final byte[] key) throws CryptoException {
-        this.cryptKeyEncrypted = key;
+    private void setCryptKeyCipher(final byte[] keyCipher) {
+        this.cryptKeyCipher = keyCipher;
     }
 
     /**
@@ -287,7 +311,8 @@ public final class User {
      *            Das Schlüsselpaar.
      */
     private void setKeyPair(final KeyPair pair) {
-        this.keyPair = pair;
+        this.privateKey = pair.getPrivate();
+        this.publicKey = pair.getPublic();
     }
 
     /**
@@ -319,6 +344,26 @@ public final class User {
      */
     private void setPassHash(final String hash) {
         this.passHash = hash;
+    }
+
+    /**
+     * Setzt den verschlüsselten privaten Schlüssel.
+     * 
+     * @param keyCipher
+     *            Der Schlüssel.
+     */
+    private void setPrivateKeyCipher(final byte[] keyCipher) {
+        this.privateKeyCipher = keyCipher;
+    }
+
+    /**
+     * Setzt den öffentlichen Schlüssel.
+     * 
+     * @param key
+     *            Der Schlüssel.
+     */
+    private void setPublicKey(final PublicKey key) {
+        this.publicKey = key;
     }
 
 }

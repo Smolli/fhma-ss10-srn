@@ -28,7 +28,6 @@ public abstract class DatabaseStructure extends DatabaseFiles {
 
     /** CSV-Separator. */
     public static final String SEPARATOR = ";";
-
     /** Das Reentrantlock. */
     protected static final ReentrantLock LOCK = new ReentrantLock();
 
@@ -87,7 +86,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
                     String[] cols = line.split(DatabaseStructure.SEPARATOR);
                     FileItem file = Database.getInstance().getFile(Integer.parseInt(cols[0]));
 
-                    file.setKey(Utils.fromHexLine(cols[1]));
+                    file.setKey((SecretKey) Utils.deserializeKeyHex(cols[1]));
 
                     return file;
                 }
@@ -120,7 +119,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
                 int id = Integer.parseInt(cols[0]);
                 FileItem file = Database.getInstance().getFile(id);
 
-                file.setKey(Utils.fromHexLine(cols[1]));
+                file.setKey((SecretKey) Utils.deserializeKeyHex(cols[1]));
                 file.setOwner(user);
 
                 return file;

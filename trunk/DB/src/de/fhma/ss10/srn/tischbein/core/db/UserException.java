@@ -11,6 +11,16 @@ public class UserException extends Exception {
     private static final long serialVersionUID = 1132743947923286759L;
 
     /**
+     * Standard-Ctor.
+     * 
+     * @param message
+     *            Die Nachricht.
+     */
+    public UserException(final String message) {
+        super(message);
+    }
+
+    /**
      * Standard-Ctor mit Exception.
      * 
      * @param message
@@ -21,5 +31,4 @@ public class UserException extends Exception {
     public UserException(final String message, final Exception e) {
         super(message, e);
     }
-
 }

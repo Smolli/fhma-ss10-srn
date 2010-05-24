@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
+import javax.crypto.SecretKey;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
 /**
@@ -27,7 +29,7 @@ public final class AesWriter extends BufferedWriter {
      *            Der geheime Schlüssel zur Verschlüsselung.
      * @return Gibt ein neuen {@link AesWriter}-Objekt zurück.
      */
-    public static AesWriter createWriter(final String filename, final byte[] secret) {
+    public static AesWriter createWriter(final String filename, final SecretKey secret) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
         AesWriter writer = new AesWriter(new OutputStreamWriter(buffer));
@@ -44,7 +46,7 @@ public final class AesWriter extends BufferedWriter {
     /** Hält den Ausgabedateinamen. */
     private String filename;
     /** Hält den geheimen Schlüssel. */
-    private byte[] secret;
+    private SecretKey secret;
 
     /**
      * Versteckter, privater Standard-Ctor.
