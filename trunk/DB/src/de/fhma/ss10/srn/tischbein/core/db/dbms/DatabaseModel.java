@@ -11,9 +11,9 @@ import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaAppender;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
-import de.fhma.ss10.srn.tischbein.core.db.FileListObject;
+import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor;
 import de.fhma.ss10.srn.tischbein.core.db.User;
-import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
+import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePair;
 
 /**
  * Stellt das Datenbank-Modell dar und spezialisiert somit die Datenbankstruktur.
@@ -179,7 +179,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
      */
     protected void updateUserTables(final FileItem fi) throws DatabaseException {
         try {
-            FileListObject flo = fi.getOwner().getFileListObject();
+            UserDescriptor flo = fi.getOwner().getFileListObject();
 
             flo.getFileList().add(fi);
 

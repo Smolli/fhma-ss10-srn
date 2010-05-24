@@ -17,7 +17,7 @@ import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
-import de.fhma.ss10.srn.tischbein.core.db.FileListObject.UserFilePair;
+import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePair;
 
 /**
  * Enthält die Datenbankstruktur.

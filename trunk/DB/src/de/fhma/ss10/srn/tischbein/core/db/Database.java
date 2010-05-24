@@ -147,28 +147,28 @@ public final class Database extends DatabaseModel {
     }
 
     /**
-     * Gibt ein {@link FileListObject} zurück, das alle eigenen und fremden Dateien enthält, auf den der übergebene
+     * Gibt ein {@link UserDescriptor} zurück, das alle eigenen und fremden Dateien enthält, auf den der übergebene
      * Benutzer Zugriff hat.
      * 
      * @param user
      *            Der Benutzer.
-     * @return Das {@link FileListObject} mit den Dateien.
+     * @return Das {@link UserDescriptor} mit den Dateien.
      * @throws CryptoException
      *             Wird geworfen, wenn eine der Tabellen nicht entschlüsselt werden konnte.
      * @throws DatabaseException
      *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
      */
-    public FileListObject getFileListObject(final User user) throws CryptoException, DatabaseException {
+    public UserDescriptor getUserDescriptor(final User user) throws CryptoException, DatabaseException {
         DatabaseStructure.LOCK.lock();
 
         try {
-            FileListObject flo = new FileListObject();
+            UserDescriptor descriptor = new UserDescriptor();
 
-            flo.setFilesTable(this.loadUserFilesTable(user));
-            flo.setAccessTable(this.loadUserAccessTable(user));
-            flo.setLendTable(this.loadUserLendTable(user));
+            descriptor.setFilesTable(this.loadUserFilesTable(user));
+            descriptor.setAccessTable(this.loadUserAccessTable(user));
+            descriptor.setLendTable(this.loadUserLendTable(user));
 
-            return flo;
+            return descriptor;
         } finally {
             DatabaseStructure.LOCK.unlock();
         }
