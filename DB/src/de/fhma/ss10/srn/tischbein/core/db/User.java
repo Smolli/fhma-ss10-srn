@@ -100,7 +100,7 @@ public final class User {
     /** Hält den verschlüsselten Schlüssel für die AES-Verschlüsselung. */
     private byte[] cryptKeyCipher;
     /** Hält die Dateidaten für den Benutzer. */
-    private transient FileListObject flo;
+    private transient UserDescriptor flo;
 
     /**
      * Fügt zu einem Benutzer eine Datei hinzu. Die Datei wird verschlüsselt und alle Änderungen an der Datenbank werden
@@ -183,11 +183,11 @@ public final class User {
     }
 
     /**
-     * Gibt das {@link FileListObject} zurück, dass dem User angehört.
+     * Gibt das {@link UserDescriptor} zurück, dass dem User angehört.
      * 
-     * @return Das {@link FileListObject} des Benutzers.
+     * @return Das {@link UserDescriptor} des Benutzers.
      */
-    public FileListObject getFileListObject() {
+    public UserDescriptor getFileListObject() {
         return this.flo;
     }
 
@@ -263,7 +263,7 @@ public final class User {
             this.privateKey = (PrivateKey) Utils
                     .deserializeKey(AesCrypto.decrypt(this.privateKeyCipher, this.cryptKey));
 
-            this.flo = Database.getInstance().getFileListObject(this);
+            this.flo = Database.getInstance().getUserDescriptor(this);
 
             System.out.println("Benutzer " + this.getName() + " authetifiziert.");
         } catch (Exception e) {

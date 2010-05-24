@@ -9,7 +9,7 @@ import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
  * 
  * @author Smolli
  */
-public final class FileListObject {
+public final class UserDescriptor {
 
     /**
      * Tupelklasse zum Halten der User-Datei-Relation.
