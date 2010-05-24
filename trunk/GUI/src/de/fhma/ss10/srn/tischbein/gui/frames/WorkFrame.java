@@ -39,8 +39,6 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         @Override
         public void addTableModelListener(final TableModelListener l) {
-            // TODO Auto-generated method stub
-
         }
 
         @Override
@@ -66,7 +64,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         public String getColumnName(final int columnIndex) {
             switch (columnIndex) {
                 case 0:
-                    return "";
+                    return "Erlaubnis";
 
                 case 1:
                     return "Benutzername";
@@ -152,7 +150,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         public void setSelectionInterval(final int first, final int last) {
             super.setSelectionInterval(first, last);
 
-            WorkFrame.this.selectedFile = WorkFrame.this.currentUser.getFileListObject().getFileList().get(last);
+            WorkFrame.this.selectFile(WorkFrame.this.currentUser.getFileListObject().getFileList().get(last));
 
             WorkFrame.this.accessTable.repaint();
 
@@ -205,6 +203,18 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         new LoginFrame();
 
         this.close();
+    }
+
+    public void selectFile(final FileItem file) {
+        try {
+            this.selectedFile = file;
+
+            byte[] content = file.getContent();
+
+            this.fileView.setText(new String(content));
+        } catch (Exception e) {
+            GuiUtils.displayError("Datei kann nicht angezeigt werden!", e);
+        }
     }
 
     /**
