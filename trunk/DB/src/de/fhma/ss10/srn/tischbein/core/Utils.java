@@ -2,18 +2,11 @@ package de.fhma.ss10.srn.tischbein.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
-
-import javax.crypto.SecretKey;
-
-import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
-import de.fhma.ss10.srn.tischbein.core.db.FileItem;
-import de.fhma.ss10.srn.tischbein.core.db.User;
 
 /**
  * Werkzeugklasse. Enthält viele Methoden zum Konvertieren von Daten und zum Erzeugen von MD5-Summen.
@@ -39,30 +32,6 @@ public final class Utils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Erstellt den verschlüsselten Dateiinhalt.
-     * 
-     * @param owner
-     *            Der Beitzer der Datei.
-     * @param filename
-     *            Der Dateiname.
-     * @param secret
-     *            Der Schlüssel, mit dem der Inhalt verschlüsselt werden soll.
-     * @return Das erzugte {@link FileItem} mit den Dateidaten.
-     * @throws IOException
-     *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
-     */
-    public static FileItem createEncryptedFile(final User owner, final String filename, final SecretKey secret)
-            throws IOException {
-        FileItem fi = FileItem.create(owner, filename, secret);
-
-        AesWriter w = AesWriter.createWriter("db/files/" + Utils.toMD5Hex(fi.getName()), secret);
-        w.write(Utils.toHexLine(fi.getBuffer()));
-        w.close();
-
-        return fi;
     }
 
     /**

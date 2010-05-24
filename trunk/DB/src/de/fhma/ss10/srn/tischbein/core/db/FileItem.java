@@ -9,6 +9,8 @@ import java.text.MessageFormat;
 import javax.crypto.SecretKey;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
 
 /**
@@ -42,17 +44,43 @@ public final class FileItem {
         FileItem fi = new FileItem(owner);
         File file = new File(filename);
 
-        fi.buffer = new byte[(int) file.length()];
+        fi.content = new byte[(int) file.length()];
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
 
-        bis.read(fi.buffer);
+        bis.read(fi.content);
 
         bis.close();
 
-        fi.setHash(Utils.toMD5(fi.buffer));
+        fi.setHash(Utils.toMD5(fi.content));
         fi.setName(file.getName());
         fi.setId(Database.getInstance().getNextFileId());
         fi.setKey(secret);
+
+        return fi;
+    }
+
+    /**
+     * Erstellt den verschlüsselten Dateiinhalt.
+     * 
+     * @param owner
+     *            Der Beitzer der Datei.
+     * @param filename
+     *            Der Dateiname.
+     * @param secret
+     *            Der Schlüssel, mit dem der Inhalt verschlüsselt werden soll.
+     * @return Das erzugte {@link FileItem} mit den Dateidaten.
+     * @throws IOException
+     *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
+     * @throws FileItemException
+     *             Wird geworfen, wenn der Inhalt der Datei nicht ermittelt werden konnte.
+     */
+    public static FileItem createEncryptedFile(final User owner, final String filename, final SecretKey secret)
+            throws IOException, FileItemException {
+        FileItem fi = FileItem.create(owner, filename, secret);
+
+        AesWriter w = AesWriter.createWriter(FileItem.generateDatabaseName(fi), secret);
+        w.write(Utils.toHexLine(fi.getContent()));
+        w.close();
 
         return fi;
     }
@@ -77,6 +105,17 @@ public final class FileItem {
         return file;
     }
 
+    /**
+     * Erzeugt den Namen für die Datenbankdatei.
+     * 
+     * @param fi
+     *            Das {@link FileItem}.
+     * @return Gibt den eindeutigen Dateinamen innerhalb der Datenbank zurück.
+     */
+    private static String generateDatabaseName(final FileItem fi) {
+        return "db/files/" + Utils.toMD5Hex(fi.getName());
+    }
+
     /** Hält die ID der Datei. */
     private int id;
     /** Hält den Dateinamen, wie er angezeigt werden soll. */
@@ -86,7 +125,7 @@ public final class FileItem {
     /** Hält den Dateischlüssel. */
     private SecretKey fileKey;
     /** Hält den unverschlüsselten Dateiinhalt. */
-    private byte[] buffer;
+    private byte[] content;
     /** Hält den Benistzer der Datei oder <code>null</code> wenn der Besitzer nicht bekannt ist. */
     private User owner;
 
@@ -129,9 +168,27 @@ public final class FileItem {
      * Gibt den unverschlüsselten Dateiinhalt zurück.
      * 
      * @return Der Dateiinhalt.
+     * @throws FileItemException
+     *             Wird geworfen, wenn der Dateiinhalt nicht gelesen werden konnte.
      */
-    public byte[] getBuffer() {
-        return this.buffer;
+    public byte[] getContent() throws FileItemException {
+        try {
+            if (this.content == null) {
+                String filename = FileItem.generateDatabaseName(this);
+                File file = new File(filename);
+                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+                byte[] buffer = new byte[(int) file.length()];
+
+                bis.read(buffer);
+
+                this.content = Utils.fromHexLine(new String(AesCrypto.decrypt(Utils.fromHexText(new String(buffer)),
+                        this.fileKey)));
+            }
+
+            return this.content;
+        } catch (Exception e) {
+            throw new FileItemException("Datei kann nicht gelesen werden!", e);
+        }
     }
 
     /**
