@@ -118,7 +118,7 @@ public final class User {
             SecretKey secret = AesCrypto.generateKey();
 
             // Dateiinhalt verschlüsseln + speichern
-            FileItem fi = Utils.createEncryptedFile(this, filename, secret);
+            FileItem fi = FileItem.createEncryptedFile(this, filename, secret);
 
             Database.getInstance().addFileItem(fi);
 
