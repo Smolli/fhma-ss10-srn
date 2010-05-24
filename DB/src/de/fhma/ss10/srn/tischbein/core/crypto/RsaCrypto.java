@@ -1,5 +1,7 @@
 package de.fhma.ss10.srn.tischbein.core.crypto;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +24,10 @@ public class RsaCrypto {
     private static final String RSA_ALGO_NAME = "RSA";
     /** Hält die Schlüssellänge für den RSA-Alogrithmus in Bytes. */
     public static final int RSA_KEY_SIZE = 128;
+    /** Hält die Größe des Padding-Blocks. */
+    private static final int RSA_PADDING_OVERHEAD = 11;
+    /** Hält die maximale Blockgröße für die Verschlüsselung. */
+    private static final int RSA_BLOCK_SIZE = RsaCrypto.RSA_KEY_SIZE - RsaCrypto.RSA_PADDING_OVERHEAD;
     /** Hält die Schlüssellänge für den RSA-Alogrithmus in Bits. */
     public static final int RSA_KEY_SIZE_BITS = RsaCrypto.RSA_KEY_SIZE * 8;
 
@@ -50,10 +56,18 @@ public class RsaCrypto {
     public static byte[] decode(final byte[] cipherText, final PrivateKey privateKey) throws UtilsException {
         try {
             RsaCrypto.cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            ByteArrayInputStream in = new ByteArrayInputStream(cipherText);
+            byte[] res = new byte[RsaCrypto.RSA_KEY_SIZE];
+            int size = cipherText.length;
 
-            byte[] res = RsaCrypto.cipher.doFinal(cipherText);
+            while (size > 0) {
+                size -= in.read(res);
 
-            return res;
+                buffer.write(RsaCrypto.cipher.doFinal(res));
+            }
+
+            return buffer.toByteArray();
         } catch (Exception e) {
             throw new UtilsException("Kann den Text nicht entschlüsseln!", e);
         }
@@ -73,10 +87,18 @@ public class RsaCrypto {
     public static byte[] encode(final String messageText, final PublicKey publicKey) throws UtilsException {
         try {
             RsaCrypto.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            ByteArrayInputStream in = new ByteArrayInputStream(messageText.getBytes());
+            int size = messageText.length();
+            byte[] res = new byte[RsaCrypto.RSA_BLOCK_SIZE];
 
-            byte[] res = RsaCrypto.cipher.doFinal(messageText.getBytes());
+            while (size > 0) {
+                size -= in.read(res);
 
-            return res;
+                buffer.write(RsaCrypto.cipher.doFinal(res));
+            }
+
+            return buffer.toByteArray();
         } catch (Exception e) {
             throw new UtilsException("Kann den Klartext nicht verschlüsseln!", e);
         }
