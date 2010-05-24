@@ -7,6 +7,8 @@ import java.security.PrivateKey;
 import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.crypto.SecretKey;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesReader;
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
@@ -203,7 +205,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
             fw.flush();
             fw.close();
 
-            this.loadUsersTable();
+            Database.getInstance().shutdown();
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
         } finally {
