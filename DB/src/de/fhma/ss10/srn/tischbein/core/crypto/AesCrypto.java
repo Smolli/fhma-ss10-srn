@@ -2,7 +2,7 @@ package de.fhma.ss10.srn.tischbein.core.crypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
@@ -14,15 +14,54 @@ import de.fhma.ss10.srn.tischbein.core.UtilsException;
  */
 public class AesCrypto {
 
+    /**
+     * Kleine Helferklasse um Passwörter in einen AES-Schlüssel zu verwandeln.
+     * 
+     * @author Smolli
+     */
+    private static class AesSecretKey implements SecretKey {
+
+        /** Serial UID. */
+        private static final long serialVersionUID = -5533240395956948224L;
+        /** Hält die Schlüsseldaten. */
+        private final byte[] secret;
+
+        /**
+         * Ctor.
+         * 
+         * @param pass
+         *            Das Passwort.
+         */
+        public AesSecretKey(final String pass) {
+            this.secret = Utils.toMD5(pass);
+        }
+
+        @Override
+        public String getAlgorithm() {
+            return AesCrypto.AES_ALGO_NAME;
+        }
+
+        @Override
+        public byte[] getEncoded() {
+            return this.secret;
+        }
+
+        @Override
+        public String getFormat() {
+            return "RAW";
+        }
+
+    }
+
     /** Der Java-interne Name für den AES-Algorithmus. */
     public static final String AES_ALGO_NAME = "AES";
     /** Die Standard-Schlüssellänge für den AES-Algorithmus in Bytes. */
     public static final int AES_KEY_SIZE = 16;
     /** Die Standard-Schlüssellänge für den AES-Algorithmus in Bits. */
     public static final int AES_KEY_SIZE_BITS = AesCrypto.AES_KEY_SIZE * 8;
-
     /** Enthält den AES-Algorithmus. */
     private static Cipher cipher = null;
+
     static {
         try {
             AesCrypto.cipher = Cipher.getInstance(AesCrypto.AES_ALGO_NAME);
@@ -42,13 +81,9 @@ public class AesCrypto {
      * @throws UtilsException
      *             Wird geworfen, wenn der Geheimtext nicht entschlüsselt werden konnte.
      */
-    public static byte[] decrypt(final byte[] cipherText, final byte[] secret) throws UtilsException {
+    public static byte[] decrypt(final byte[] cipherText, final SecretKey secret) throws UtilsException {
         try {
-            if (secret.length != AesCrypto.AES_KEY_SIZE) {
-                throw new IllegalArgumentException("Schlüssel muss 128 Bit lang sein!");
-            }
-
-            AesCrypto.cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secret, AesCrypto.AES_ALGO_NAME));
+            AesCrypto.cipher.init(Cipher.DECRYPT_MODE, secret);
 
             byte[] res = AesCrypto.cipher.doFinal(cipherText);
 
@@ -61,7 +96,7 @@ public class AesCrypto {
     /**
      * Verschlüsselt einen Klartext mit dem Übergebenen Schlüssel mit dem AES-Algorithmus.
      * 
-     * @param plainText
+     * @param message
      *            Der Klartext.
      * @param secret
      *            Der geheime Schlüssel.
@@ -69,20 +104,32 @@ public class AesCrypto {
      * @throws UtilsException
      *             Wird geworfen, wenn der Klartext nicht verschlüsselt werden konnte.
      */
-    public static byte[] encrypt(final byte[] plainText, final byte[] secret) throws UtilsException {
+    public static byte[] encrypt(final byte[] message, final SecretKey secret) throws UtilsException {
         try {
-            if (secret.length != AesCrypto.AES_KEY_SIZE) {
-                throw new IllegalArgumentException("Schlüssel muss 128 Bit lang sein!");
-            }
+            AesCrypto.cipher.init(Cipher.ENCRYPT_MODE, secret);
 
-            AesCrypto.cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(secret, AesCrypto.AES_ALGO_NAME));
-
-            byte[] res = AesCrypto.cipher.doFinal(plainText);
+            byte[] res = AesCrypto.cipher.doFinal(message);
 
             return res;
         } catch (Exception e) {
             throw new UtilsException("Kann den Klartext nicht verschlüsseln!", e);
         }
+    }
+
+    /**
+     * Verschlüsselt einen Klartext mit dem Übergebenen Schlüssel mit dem AES-Algorithmus und gibt ihn als Hexstring
+     * zurück.
+     * 
+     * @param message
+     *            Der Klartext.
+     * @param secret
+     *            Der geheime Schlüssel.
+     * @return Gibt den Geheimtext zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Klartext nicht verschlüsselt werden konnte.
+     */
+    public static String encryptHex(final byte[] message, final SecretKey secret) throws UtilsException {
+        return Utils.toHexLine(AesCrypto.encrypt(message, secret));
     }
 
     /**
@@ -92,13 +139,30 @@ public class AesCrypto {
      * @throws CryptoException
      *             Wird geworfen, wenn der Schlüssel nicht generiert werden konnte.
      */
-    public static byte[] generateKey() throws CryptoException {
+    public static SecretKey generateKey() throws CryptoException {
         try {
-            KeyGenerator kg = KeyGenerator.getInstance("AES");
+            KeyGenerator kg = KeyGenerator.getInstance(AesCrypto.AES_ALGO_NAME);
 
             kg.init(AesCrypto.AES_KEY_SIZE_BITS, Utils.getRandom());
 
-            return kg.generateKey().getEncoded();
+            return kg.generateKey();
+        } catch (Exception e) {
+            throw new CryptoException("Kann den AES-Schlüssel nicht generieren!", e);
+        }
+    }
+
+    /**
+     * Erzeugt einen symmetrischen AES-Schlüssel anhand des übergebenen Passworts.
+     * 
+     * @param pass
+     *            Das Passwort.
+     * @return Gibt einen {@link SecretKey} zurück.
+     * @throws CryptoException
+     *             Wird geworfen, wenn der Schlüssel nicht erzeugt werden konnte.
+     */
+    public static SecretKey generateKey(final String pass) throws CryptoException {
+        try {
+            return new AesSecretKey(pass);
         } catch (Exception e) {
             throw new CryptoException("Kann den AES-Schlüssel nicht generieren!", e);
         }

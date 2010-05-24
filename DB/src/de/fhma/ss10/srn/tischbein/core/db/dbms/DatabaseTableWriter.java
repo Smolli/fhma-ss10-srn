@@ -43,7 +43,9 @@ abstract class DatabaseTableWriter<T> {
      * @param item
      *            Das Objekt.
      * @return Die resultierende Zeile, die gespeichert werden soll.
+     * @throws Exception
+     *             Wird geworfen, wenn das Objekt nicht verarbeitet werden konnte.
      */
-    protected abstract String process(T item);
+    protected abstract String process(T item) throws Exception;
 
 }

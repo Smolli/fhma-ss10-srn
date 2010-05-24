@@ -48,7 +48,11 @@ public final class Database extends DatabaseModel {
      * Setzt die Datenbankinstanz auf <code>null</code>.
      */
     private static void killInstance() {
+        DatabaseStructure.LOCK.lock();
+
         Database.instance = null;
+
+        DatabaseStructure.LOCK.unlock();
     }
 
     /**
@@ -101,6 +105,8 @@ public final class Database extends DatabaseModel {
             User user = User.create(name, pass);
 
             this.addUser(user, pass);
+
+            System.out.println("Benutzer " + name + " angelegt.");
 
             this.shutdown();
         } catch (Exception e) {

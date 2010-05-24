@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+import javax.crypto.SecretKey;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 
 /**
@@ -27,10 +29,7 @@ public final class AesReader extends BufferedReader {
      * @throws CryptoException
      *             Wird geworfen, wenn die Datei nicht entschlüsselt werden konnte.
      */
-    public static AesReader createReader(final String filename, final byte[] secret) throws CryptoException {
-        // Schlüssel testen
-        AesReader.testKey(secret);
-
+    public static AesReader createReader(final String filename, final SecretKey secret) throws CryptoException {
         // Rohdaten lesen
         byte[] buffer = AesReader.readData(filename);
 
@@ -49,7 +48,7 @@ public final class AesReader extends BufferedReader {
      * @throws CryptoException
      *             Wird geworfen, wenn der Puffer nicht entschlüsselt werden konnte.
      */
-    private static Reader decodeAndWrap(final byte[] encoded, final byte[] secret) throws CryptoException {
+    private static Reader decodeAndWrap(final byte[] encoded, final SecretKey secret) throws CryptoException {
         try {
             byte[] decoded;
 
@@ -97,18 +96,6 @@ public final class AesReader extends BufferedReader {
         }
 
         return Utils.fromHexText(new String(buffer));
-    }
-
-    /**
-     * Testet den übergebenen Schlüssel auf Konsistenz.
-     * 
-     * @param mySecret
-     *            Der Schlüssel.
-     */
-    private static void testKey(final byte[] mySecret) {
-        if (mySecret.length != AesCrypto.AES_KEY_SIZE) {
-            throw new IllegalArgumentException("Der Geheimschlüssel muss 128 Bit lang sein!");
-        }
     }
 
     /**
