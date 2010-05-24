@@ -27,7 +27,7 @@ public class CreateDummyDb {
             user.unlock("1234");
 
             FileItem file = user.addFile("Testdatei.txt");
-            user.addFile("Noch eine Datei.txt");
+            user.addFile("Big File.txt");
             user.addFile("letzte Datei.txt");
 
             user.getFileListObject().setAccess(Database.getInstance().getUser("franz"), file, true);
