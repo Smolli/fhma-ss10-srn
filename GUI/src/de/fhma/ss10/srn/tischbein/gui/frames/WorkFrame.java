@@ -18,6 +18,7 @@ import de.fhma.ss10.srn.tischbein.gui.actions.UploadAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction.CloseActionListener;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction.LogoutActionListener;
 import de.fhma.ss10.srn.tischbein.gui.forms.WorkForm;
+import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
 
 /**
  * Arbeitsfenster.
@@ -153,7 +154,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
             WorkFrame.this.selectedFile = WorkFrame.this.currentUser.getFileListObject().getFileList().get(last);
 
-            WorkFrame.this.userTable.repaint();
+            WorkFrame.this.accessTable.repaint();
 
             System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
         }
@@ -178,14 +179,14 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         this.setupActions();
 
-        this.myFilesLlist.setSelectionModel(new FilesSelectionModel());
-        this.myFilesLlist.setListData(this.currentUser.getFileListObject().getFileList());
+        this.userFilesList.setSelectionModel(new FilesSelectionModel());
+        this.userFilesList.setListData(this.currentUser.getFileListObject().getFileList());
 
-        this.userTable.setModel(new AccessTableModel());
+        this.accessTable.setModel(new AccessTableModel());
 
         this.otherFilesList.setListData(this.currentUser.getFileListObject().getAccessList());
 
-        this.setTitle("Tischbein v0.2 - " + user.getName());
+        this.setTitle(Launcher.PRODUCT_NAME + " - " + user.getName());
 
         this.setVisible(true);
     }
