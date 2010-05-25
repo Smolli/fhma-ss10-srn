@@ -57,7 +57,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
             fw.flush();
             fw.close();
 
-            Database.getInstance().shutdown();
+            //            Database.getInstance().shutdown();
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
         } finally {

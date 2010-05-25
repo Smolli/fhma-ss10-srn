@@ -19,7 +19,7 @@ import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
  * 
  * @author Smolli
  */
-public final class User {
+public final class User implements DatabaseChangeListener {
 
     /** Benutzer-Tabelle Privater Schlüssel. */
     private static final int COLUMN_PRIVATE_KEY = 4;
@@ -87,6 +87,7 @@ public final class User {
 
     /** Hält das öffentlichen Schlüssel. */
     private PublicKey publicKey;
+
     /** Hält den privaten Schlüssel. */
     private PrivateKey privateKey;
     /** Hält den verschlüsselten privaten Schlüssel. */
@@ -101,6 +102,7 @@ public final class User {
     private byte[] cryptKeyCipher;
     /** Hält die Dateidaten für den Benutzer. */
     private transient UserDescriptor descriptor;
+    private boolean locked = true;
 
     /**
      * Compiliert das User-Objekt und gibt es als Zeichenkette zurück. Die einzelnen Felder sind duch den
@@ -130,6 +132,23 @@ public final class User {
                     );
         } catch (Exception e) {
             throw new UtilsException("Kann den Benutzer nicht kompilieren!", e);
+        }
+    }
+
+    @Override
+    public void databaseChanged() {
+        if (this.locked) {
+            return;
+        }
+
+        try {
+            this.descriptor = Database.getInstance().getUserDescriptor(this);
+        } catch (CryptoException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (DatabaseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
@@ -211,6 +230,7 @@ public final class User {
         //        this.privateKeyEncrypted = null;
         this.privateKey = null;
         this.cryptKey = null;
+        this.locked = true;
     }
 
     @Override
@@ -231,16 +251,29 @@ public final class User {
         try {
             SecretKey secret = this.authenticate(pass);
 
-            this.cryptKey = (SecretKey) Utils.deserializeKey(AesCrypto.decrypt(this.cryptKeyCipher, secret));
-            this.privateKey = (PrivateKey) Utils
-                    .deserializeKey(AesCrypto.decrypt(this.privateKeyCipher, this.cryptKey));
+            if (this.cryptKey == null) {
+                this.cryptKey = (SecretKey) Utils.deserializeKey(AesCrypto.decrypt(this.cryptKeyCipher, secret));
+            }
+            if (this.privateKey == null) {
+                this.privateKey = (PrivateKey) Utils.deserializeKey(AesCrypto.decrypt(this.privateKeyCipher,
+                        this.cryptKey));
+            }
 
             this.descriptor = Database.getInstance().getUserDescriptor(this);
+
+            this.locked = false;
 
             System.out.println("Benutzer " + this.getName() + " authetifiziert.");
         } catch (Exception e) {
             throw new UserException("Kann den Benutzer nicht authentifizieren!", e);
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        Database.removeChangeListener(this);
+
+        super.finalize();
     }
 
     /**
