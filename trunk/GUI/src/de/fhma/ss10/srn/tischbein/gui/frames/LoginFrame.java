@@ -42,40 +42,11 @@ public final class LoginFrame extends LoginForm implements ActionListener, Close
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
-        String command = e.getActionCommand();
+    public void actionPerformed(final ActionEvent event) {
+        String command = event.getActionCommand();
 
-        if (!command.equals("comboBoxChanged")) {
-            return;
-        }
-
-        Object item = this.usernameField.getSelectedItem();
-        String username = null;
-
-        if (item instanceof String) {
-            User user;
-            try {
-                user = Database.getInstance().getUser((String) item);
-
-                username = user.getName();
-            } catch (DatabaseException e1) {
-                username = null;
-            }
-        } else if (item instanceof User) {
-            username = ((User) item).getName();
-        }
-
-        if (username != null) {
-            this.usernameField.setSelectedItem(username);
-            this.loginButton.setEnabled(true);
-            this.addUserButton.setEnabled(false);
-        } else {
-            this.loginButton.setEnabled(false);
-            if (!((String) item).isEmpty()) {
-                this.addUserButton.setEnabled(true);
-            } else {
-                this.addUserButton.setEnabled(false);
-            }
+        if (command.equals("comboBoxChanged")) {
+            this.comboboxChanged();
         }
     }
 
@@ -112,6 +83,52 @@ public final class LoginFrame extends LoginForm implements ActionListener, Close
         new WorkFrame(newUser);
 
         this.close();
+    }
+
+    /**
+     * Wird aufgerufen, wenn sich der Inhalt der ComboBox geändert hat.
+     */
+    private void comboboxChanged() {
+        Object item = this.usernameField.getSelectedItem();
+        String username = null;
+
+        if (item instanceof String) {
+            User user;
+            try {
+                user = Database.getInstance().getUser((String) item);
+
+                username = user.getName();
+            } catch (DatabaseException e) {
+                username = null;
+            }
+        } else if (item instanceof User) {
+            username = ((User) item).getName();
+        }
+
+        this.setFields(item, username);
+    }
+
+    /**
+     * Setzt die einzelnen Felder anhand der übergebenen Parameter.
+     * 
+     * @param item
+     *            Das gewählte Element der ComboBox.
+     * @param username
+     *            Der ermittelte Benutzername.
+     */
+    private void setFields(final Object item, final String username) {
+        if (username != null) {
+            this.usernameField.setSelectedItem(username);
+            this.loginButton.setEnabled(true);
+            this.addUserButton.setEnabled(false);
+        } else {
+            this.loginButton.setEnabled(false);
+            if (!((String) item).isEmpty()) {
+                this.addUserButton.setEnabled(true);
+            } else {
+                this.addUserButton.setEnabled(false);
+            }
+        }
     }
 
 }

@@ -5,11 +5,13 @@ import java.util.Vector;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
+import de.fhma.ss10.srn.tischbein.core.db.FileItemException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
@@ -144,19 +146,25 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         /** Serial UID. */
         private static final long serialVersionUID = 9031173846551914083L;
+        /** Hält die verknüpfte JList. */
         private final JList list;
 
-        {
-            this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        }
-
+        /**
+         * Standard-Ctor. Verknüpft das Model mit einer {@link JList}.
+         * 
+         * @param guiList
+         *            Die {@link JList}, mit dem das Model verknüft ist.
+         */
         public FilesSelectionModel(final JList guiList) {
             this.list = guiList;
+            this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         }
 
         @Override
         public void setSelectionInterval(final int first, final int last) {
             super.setSelectionInterval(first, last);
+
+            System.out.println("" + first + ", " + last);
 
             WorkFrame.this.selectFile((FileItem) this.list.getModel().getElementAt(last));
         }
@@ -164,7 +172,6 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
     /** Serial UID. */
     private static final long serialVersionUID = -5369888389274792872L;
-
     /** Hält den eingeloggten Benutzer. */
     private final transient User currentUser;
     /** Hält die momentan ausgewählte Datei. */
@@ -178,6 +185,8 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      */
     public WorkFrame(final User user) {
         this.currentUser = user;
+
+        //        Database.getInstance().addChangeListener(this);
 
         this.setupActions();
 
@@ -194,6 +203,11 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         this.dispose();
     }
+
+    //    @Override
+    //    public void dispose() {
+    //        Database.getInstance().removeChangeListener(this);
+    //    }
 
     @Override
     public User getCurrentUser() {
@@ -222,6 +236,9 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         this.fileView.setText("");
     }
 
+    /**
+     * Initialisiert die drei GUI-Listen.
+     */
     private void initLists() {
         this.userFilesList.setSelectionModel(new FilesSelectionModel(this.userFilesList));
         this.userFilesList.setListData(this.currentUser.getDescriptor().getFileList());
@@ -233,20 +250,20 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         this.otherFilesList.setListData(this.currentUser.getDescriptor().getAccessList());
     }
 
+    /**
+     * Wird aufgerufen, wenn der Benutzer entweder in die {@link WorkForm#userFilesList} oder
+     * {@link WorkForm#otherFilesList} geklickt hat.
+     * 
+     * @param file
+     *            Die Datei, die der Benutzer ausgewählt hat.
+     */
     private void selectFile(final FileItem file) {
         try {
             this.selectedFile = file;
 
-            byte[] content = file.getContent();
+            this.setFileView(file);
 
-            this.fileView.setText(new String(content));
-
-            if (file.getOwner() == this.currentUser) {
-                this.accessTable.setVisible(true);
-                this.accessTable.repaint();
-            } else {
-                this.accessTable.setVisible(false);
-            }
+            this.setAccessTable(file);
 
             System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
         } catch (Exception e) {
@@ -255,13 +272,52 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     }
 
     /**
+     * Setzt die Access-Table-Ansicht.
+     * 
+     * @param file
+     *            Die Datei.
+     */
+    private void setAccessTable(final FileItem file) {
+        if ((file != null) && (file.getOwner() == this.currentUser)) {
+            this.accessTable.setVisible(true);
+            this.accessTable.repaint();
+        } else {
+            this.accessTable.setVisible(false);
+        }
+    }
+
+    /**
+     * Setzt die FileView entsprechende der übergebenen Datei.
+     * 
+     * @param file
+     *            Die Datei.
+     * @throws FileItemException
+     *             Wird geworfen, wenn die Datei nicht geladen werden kann.
+     */
+    private void setFileView(final FileItem file) throws FileItemException {
+        if (file != null) {
+            byte[] content = file.getContent();
+
+            this.fileView.setText(new String(content));
+            this.fileView.setCaretPosition(0);
+
+            ((TitledBorder) this.viewPanel.getBorder()).setTitle(file.getName());
+        } else {
+            ((TitledBorder) this.viewPanel.getBorder()).setTitle("");
+        }
+
+        this.viewPanel.doLayout();
+        this.viewPanel.repaint();
+    }
+
+    /**
      * Vergibt die Actions an die GUI-Elemente.
      */
     private void setupActions() {
         this.closeButton.setAction(new CloseAction(this));
         this.logoutButton.setAction(new LogoutAction(this));
-        this.uploadButton.setAction(new UploadAction(this, this.currentUser));
+        this.uploadButton.setAction(new UploadAction(this));
         this.deleteButton.setAction(new DeleteAction(this));
+        //        this.newsessionButton.setAction(new NewSessionAction(this));
     }
-
 }

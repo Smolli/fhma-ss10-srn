@@ -84,7 +84,6 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Candara" size="18" style="1"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Tischbein v0.2"/>
           </Properties>
           <AuxValues>
             <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JLabel(de.fhma.ss10.srn.tischbein.gui.launcher.Launcher.PRODUCT_NAME);"/>
