@@ -123,10 +123,26 @@ public final class Database extends DatabaseModel {
      *            Der Benutzer.
      * @param file
      *            Die Datei.
+     * @throws DatabaseException
      */
-    public void denyAccess(final User user, final FileItem file) {
-        // TODO Auto-generated method stub
+    public void denyAccess(final User user, final FileItem file) throws DatabaseException {
+        if ((file == null) || (user == null)) {
+            return;
+        }
 
+        if (!file.getOwner().getDescriptor().getLendList().containsFile(file, user)) {
+            throw new DatabaseException("Der Benutzer ist nicht im Besitz der Zugriffserlaubnis!");
+        }
+
+        try {
+            this.denyAccessToUser(user, file);
+
+            this.removeRemarkFromOwner(user, file);
+        } catch (Exception e) {
+            throw new DatabaseException("Kann das Recht nicht speichern!", e);
+        } finally {
+            this.shutdown();
+        }
     }
 
     /**
@@ -144,6 +160,32 @@ public final class Database extends DatabaseModel {
         }
 
         return this.getFileMap().get(id);
+    }
+
+    /**
+     * Gibt die nächte Datei ID zurück. Die IDs werden Datenbankweit vergeben und sind eindeutig.
+     * 
+     * @return Die ID als {@link Integer}.
+     */
+    public int getNextFileId() {
+        return this.getLastFileId() + 1;
+    }
+
+    /**
+     * Gibt das {@link User}-Objekt mit dem angegebenen Benutzernamen zurück.
+     * 
+     * @param name
+     *            Der Benutzername.
+     * @return Gibt den Benutzer zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der Benutzer dem System nicht bekannt ist.
+     */
+    public User getUser(final String name) throws DatabaseException {
+        if (!this.getUserMap().containsKey(name.toLowerCase())) {
+            throw new DatabaseException("Benutzer ist nicht bekannt!");
+        }
+
+        return this.getUserMap().get(name.toLowerCase());
     }
 
     /**
@@ -172,32 +214,6 @@ public final class Database extends DatabaseModel {
         } finally {
             DatabaseStructure.LOCK.unlock();
         }
-    }
-
-    /**
-     * Gibt die nächte Datei ID zurück. Die IDs werden Datenbankweit vergeben und sind eindeutig.
-     * 
-     * @return Die ID als {@link Integer}.
-     */
-    public int getNextFileId() {
-        return this.getLastFileId() + 1;
-    }
-
-    /**
-     * Gibt das {@link User}-Objekt mit dem angegebenen Benutzernamen zurück.
-     * 
-     * @param name
-     *            Der Benutzername.
-     * @return Gibt den Benutzer zurück.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn der Benutzer dem System nicht bekannt ist.
-     */
-    public User getUser(final String name) throws DatabaseException {
-        if (!this.getUserMap().containsKey(name.toLowerCase())) {
-            throw new DatabaseException("Benutzer ist nicht bekannt!");
-        }
-
-        return this.getUserMap().get(name.toLowerCase());
     }
 
     /**
@@ -239,10 +255,14 @@ public final class Database extends DatabaseModel {
             return;
         }
 
-        try {
-            this.appendToUser(user, file);
+        if (file.getOwner().getDescriptor().getLendList().containsFile(file, user)) {
+            throw new DatabaseException("Die Datei wurde schon dem Benutzer zugewiesen!");
+        }
 
-            this.remarkToOwner(user, file);
+        try {
+            this.grantAccessToUser(user, file);
+
+            this.addRemarkToOwner(user, file);
         } catch (Exception e) {
             throw new DatabaseException("Kann Recht nicht speichern!", e);
         } finally {

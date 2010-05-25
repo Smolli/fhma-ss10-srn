@@ -19,6 +19,7 @@ import de.fhma.ss10.srn.tischbein.gui.actions.UploadAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction.CloseActionListener;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction.LogoutActionListener;
 import de.fhma.ss10.srn.tischbein.gui.forms.WorkForm;
+import de.fhma.ss10.srn.tischbein.gui.frames.UploadFrame.UploadFrameListener;
 import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
 
 /**
@@ -26,7 +27,7 @@ import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
  * 
  * @author Smolli
  */
-public final class WorkFrame extends WorkForm implements CloseActionListener, LogoutActionListener {
+public final class WorkFrame extends WorkForm implements CloseActionListener, LogoutActionListener, UploadFrameListener {
 
     /**
      * Spezialisiertes {@link TableModel} für die Rechtevergabe der Dateien.
@@ -86,7 +87,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
             switch (columnIndex) {
                 case 0:
-                    return WorkFrame.this.currentUser.getFileListObject().hasAccess(selectedUser,
+                    return WorkFrame.this.currentUser.getDescriptor().hasAccess(selectedUser,
                             WorkFrame.this.selectedFile);
 
                 case 1:
@@ -113,8 +114,6 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         @Override
         public void removeTableModelListener(final TableModelListener l) {
-            // TODO Auto-generated method stub
-
         }
 
         @Override
@@ -124,8 +123,9 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
             }
 
             User selectedUser = this.users.get(rowIndex);
+
             try {
-                WorkFrame.this.currentUser.getFileListObject().setAccess(selectedUser, WorkFrame.this.selectedFile,
+                WorkFrame.this.currentUser.getDescriptor().setAccess(selectedUser, WorkFrame.this.selectedFile,
                         (Boolean) value);
             } catch (Exception e) {
                 GuiUtils.displayError("Konnte Recht nicht speichern!", e);
@@ -148,7 +148,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
             this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         }
 
-        public FilesSelectionModel(JList guiList) {
+        public FilesSelectionModel(final JList guiList) {
             this.list = guiList;
         }
 
@@ -179,13 +179,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         this.setupActions();
 
-        this.userFilesList.setSelectionModel(new FilesSelectionModel(this.userFilesList));
-        this.userFilesList.setListData(this.currentUser.getFileListObject().getFileList());
-
-        this.accessTable.setModel(new AccessTableModel());
-
-        this.otherFilesList.setSelectionModel(new FilesSelectionModel(this.otherFilesList));
-        this.otherFilesList.setListData(this.currentUser.getFileListObject().getAccessList());
+        this.initLists();
 
         this.setTitle(Launcher.PRODUCT_NAME + " - " + user.getName());
 
@@ -208,7 +202,26 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         this.close();
     }
 
-    public void selectFile(final FileItem file) {
+    @Override
+    public void notifyChange() {
+        this.initLists();
+
+        this.userFilesList.repaint();
+        this.fileView.setText("");
+    }
+
+    private void initLists() {
+        this.userFilesList.setSelectionModel(new FilesSelectionModel(this.userFilesList));
+        this.userFilesList.setListData(this.currentUser.getDescriptor().getFileList());
+
+        this.accessTable.setModel(new AccessTableModel());
+        this.accessTable.setVisible(false);
+
+        this.otherFilesList.setSelectionModel(new FilesSelectionModel(this.otherFilesList));
+        this.otherFilesList.setListData(this.currentUser.getDescriptor().getAccessList());
+    }
+
+    private void selectFile(final FileItem file) {
         try {
             this.selectedFile = file;
 
@@ -216,7 +229,12 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
             this.fileView.setText(new String(content));
 
-            WorkFrame.this.accessTable.repaint();
+            if (file.getOwner() == this.currentUser) {
+                this.accessTable.setVisible(true);
+                this.accessTable.repaint();
+            } else {
+                this.accessTable.setVisible(false);
+            }
 
             System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
         } catch (Exception e) {
@@ -230,7 +248,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     private void setupActions() {
         this.closeButton.setAction(new CloseAction(this));
         this.logoutButton.setAction(new LogoutAction(this));
-        this.uploadButton.setAction(new UploadAction(this.currentUser));
+        this.uploadButton.setAction(new UploadAction(this, this.currentUser));
         this.deleteButton.setAction(new DeleteAction());
     }
 

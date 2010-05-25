@@ -18,6 +18,7 @@ import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePair;
+import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePairVector;
 
 /**
  * Enthält die Datenbankstruktur.
@@ -141,7 +142,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
      * @throws DatabaseException
      *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
      */
-    protected Vector<UserFilePair> loadUserLendTable(final User user) throws CryptoException, DatabaseException {
+    protected UserFilePairVector loadUserLendTable(final User user) throws CryptoException, DatabaseException {
         DatabaseTableReader<UserFilePair> lr = new DatabaseTableReader<UserFilePair>(AesReader.createReader(
                 DatabaseTables.LendTable.getFilename(user), user.getCryptKey())) {
 
@@ -152,7 +153,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
 
         };
 
-        return lr.getResult();
+        return new UserFilePairVector(lr.getResult());
     }
 
     /**

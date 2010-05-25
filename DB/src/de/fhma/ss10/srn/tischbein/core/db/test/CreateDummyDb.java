@@ -2,7 +2,6 @@ package de.fhma.ss10.srn.tischbein.core.db.test;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
-import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
 
 /**
@@ -26,11 +25,11 @@ public class CreateDummyDb {
 
             user.unlock("1234");
 
-            FileItem file = user.addFile("Testdatei.txt");
-            user.addFile("Big File.txt");
-            user.addFile("letzte Datei.txt");
+            //            FileItem file = user.addFile("Testdatei.txt");
+            //            user.addFile("Big File.txt");
+            //            user.addFile("letzte Datei.txt");
 
-            user.getFileListObject().setAccess(Database.getInstance().getUser("franz"), file, true);
+            //            user.getDescriptor().setAccess(Database.getInstance().getUser("franz"), file, true);
         } catch (Exception e) {
             e.printStackTrace();
         }

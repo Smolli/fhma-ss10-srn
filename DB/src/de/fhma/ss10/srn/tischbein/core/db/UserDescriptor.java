@@ -67,6 +67,17 @@ public final class UserDescriptor {
             return this.user.getName() + DatabaseStructure.SEPARATOR + this.file.getId();
         }
 
+        @Override
+        public synchronized boolean equals(final Object o) {
+            if (!(o instanceof UserFilePair)) {
+                return false;
+            }
+
+            UserFilePair other = (UserFilePair) o;
+
+            return (other.file == this.file) && (other.user == this.user);
+        }
+
         /**
          * Gibt das Dateiobjekt zurück.
          * 
@@ -85,6 +96,40 @@ public final class UserDescriptor {
             return this.user;
         }
 
+        @Override
+        public int hashCode() {
+            return (this.user.getName() + "." + this.file.getName()).hashCode();
+        }
+
+    }
+
+    public static final class UserFilePairVector extends Vector<UserFilePair> {
+
+        /** Serial UID. */
+        private static final long serialVersionUID = -7635068670563344170L;
+
+        public UserFilePairVector(final Vector<UserFilePair> copy) {
+            super(copy);
+        }
+
+        public boolean containsFile(final FileItem file, final User userContext) {
+            if (this.get(userContext, file) != null) {
+                return true;
+            }
+
+            return false;
+        }
+
+        public UserFilePair get(final User userContext, final FileItem file) {
+            for (UserFilePair ufp : this) {
+                if (ufp.file.equals(file) && ufp.user.equals(userContext)) {
+                    return ufp;
+                }
+            }
+
+            return null;
+        }
+
     }
 
     /** Hält die Tabelle der Dateien anderer Benutzer, auf die der User zugriff hat. */
@@ -92,7 +137,7 @@ public final class UserDescriptor {
     /** Hält die Tabelle der Dateien, die dem Benutzer gehören. */
     private Vector<FileItem> filesList;
     /** Hält die Tabelle der Benutzer, denen die Dateien ausgeliehen wurden. */
-    private Vector<UserFilePair> lendList;
+    private UserFilePairVector lendList;
 
     /**
      * Gibt die Zugriffstabelle zurück.
@@ -117,7 +162,7 @@ public final class UserDescriptor {
      * 
      * @return Die Relation als {@link Vector}.
      */
-    public Vector<UserFilePair> getLendList() {
+    public UserFilePairVector getLendList() {
         return this.lendList;
     }
 
@@ -189,7 +234,7 @@ public final class UserDescriptor {
      * @param list
      *            Die Liste.
      */
-    public void setLendTable(final Vector<UserFilePair> list) {
+    public void setLendTable(final UserFilePairVector list) {
         this.lendList = list;
     }
 
