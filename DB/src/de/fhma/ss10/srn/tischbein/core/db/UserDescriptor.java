@@ -1,6 +1,5 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-import java.util.List;
 import java.util.Vector;
 
 import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
@@ -104,15 +103,35 @@ public final class UserDescriptor {
 
     }
 
+    /**
+     * Spezialisierte {@link Vector}-Klasse zur Datenhaltung der {@link UserFilePair}s.
+     * 
+     * @author Smolli
+     */
     public static final class UserFilePairVector extends Vector<UserFilePair> {
 
         /** Serial UID. */
         private static final long serialVersionUID = -7635068670563344170L;
 
+        /**
+         * Copy-Ctor.
+         * 
+         * @param copy
+         *            Der zu kopierende {@link Vector}.
+         */
         public UserFilePairVector(final Vector<UserFilePair> copy) {
             super(copy);
         }
 
+        /**
+         * Ermittelt, ob die angegebene Datei im gewählten Benutzer-Kontext existiert.
+         * 
+         * @param file
+         *            Die Datei.
+         * @param userContext
+         *            Der {@link User}-Kontext.
+         * @return Gibt <code>true</code> zurück, wenn die Datei im Kontext existiert, andernfalls <code>false</code>.
+         */
         public boolean containsFile(final FileItem file, final User userContext) {
             if (this.get(userContext, file) != null) {
                 return true;
@@ -121,6 +140,16 @@ public final class UserDescriptor {
             return false;
         }
 
+        /**
+         * Gibt das {@link UserFilePair}-Tupel zurück, das mit die Datei mit dem Benutzer-Kontext verbindet.
+         * 
+         * @param userContext
+         *            Der {@link User}-Kontext.
+         * @param file
+         *            Die Datei.
+         * @return Gibt ein {@link UserFilePair}-Tupel zurück, wenn die Verbindung existert, andernfalls
+         *         <code>null</code>.
+         */
         public UserFilePair get(final User userContext, final FileItem file) {
             for (UserFilePair ufp : this) {
                 if (ufp.file.equals(file) && ufp.user.equals(userContext)) {
@@ -131,8 +160,15 @@ public final class UserDescriptor {
             return null;
         }
 
-        public List<User> getDeptors(final FileItem item) {
-            List<User> users = new Vector<User>();
+        /**
+         * Gibt alle Benutzer zurück, denen Zugriff zum {@link FileItem} gegeben wurde.
+         * 
+         * @param item
+         *            Das {@link FileItem}.
+         * @return Ein {@link Vector} mit allen {@link User}-Objekten, die Zugriff auf die Datei haben.
+         */
+        public Vector<User> getDeptors(final FileItem item) {
+            Vector<User> users = new Vector<User>();
 
             for (UserFilePair ufp : this) {
                 if (ufp.file.equals(item)) {
@@ -173,7 +209,7 @@ public final class UserDescriptor {
     /**
      * Die Relation der Dateien und Benutzer, die auf die Dateien des Benutzers zugreifen können.
      * 
-     * @return Die Relation als {@link Vector}.
+     * @return Die Relation als {@link UserFilePairVector}.
      */
     public UserFilePairVector getLendList() {
         return this.lendList;
@@ -234,11 +270,11 @@ public final class UserDescriptor {
     /**
      * Setzt die Liste der Dateien, die dem Bentuzer gehören.
      * 
-     * @param filesTable
+     * @param collection
      *            Die List der Dateien.
      */
-    public void setFilesTable(final Vector<FileItem> filesTable) {
-        this.filesList = filesTable;
+    public void setFilesTable(final Vector<FileItem> collection) {
+        this.filesList = collection;
     }
 
     /**

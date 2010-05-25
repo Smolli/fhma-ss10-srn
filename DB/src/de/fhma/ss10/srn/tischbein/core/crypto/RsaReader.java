@@ -7,8 +7,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.security.PrivateKey;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Vector;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
@@ -33,8 +32,8 @@ public final class RsaReader extends BufferedReader {
      */
     public static RsaReader createReader(final String filename, final PrivateKey privateKey) throws CryptoException {
         // Rohdaten lesen
-        List<ByteBuffer> encrypts = new ArrayList<ByteBuffer>();
-        List<String> raws = new ArrayList<String>();
+        Vector<ByteBuffer> encrypts = new Vector<ByteBuffer>();
+        Vector<String> raws = new Vector<String>();
 
         RsaReader.readData(filename, raws, encrypts);
 
@@ -45,15 +44,17 @@ public final class RsaReader extends BufferedReader {
     /**
      * Entschlüsselt die einzelnen Zeilen.
      * 
-     * @param buffers
-     *            Die Luste der Zeilenpuffer.
+     * @param raws
+     *            Die Liste der unverschlüsselten Zeilenelemente.
+     * @param encrypts
+     *            Die List der verschlüsselten Zeilenelemente.
      * @param privateKey
      *            Der private Schlüssel.
      * @return Gibt einen {@link Reader} auf die entschlüsselten Zeilen zurück.
      * @throws CryptoException
      *             Wird geworfen, wenn die Puffer nicht entschlüsselt werden konnten.
      */
-    private static Reader decodeAndWrap(final List<String> raws, final List<ByteBuffer> encrypts,
+    private static Reader decodeAndWrap(final Vector<String> raws, final Vector<ByteBuffer> encrypts,
             final PrivateKey privateKey) throws CryptoException {
         try {
             StringBuilder sb = new StringBuilder();
@@ -76,13 +77,14 @@ public final class RsaReader extends BufferedReader {
      * 
      * @param filename
      *            Der Dateiname.
-     * @param raws2
-     * @param encrypts2
-     * @return Gibt die einzelnen Zeilen in Puffern zurück.
+     * @param raws
+     *            Die Liste, in die die unverschlüsselten Zeilenelemente gespeichert werden sollen.
+     * @param encrypts
+     *            Die Liste, in die die verschlüsselten Zeilenelemente gespeichert werden sollen.
      * @throws CryptoException
      *             Wird geworfen, wenn die Datei nicht gelesen werden kann.
      */
-    private static void readData(final String filename, List<String> raws, List<ByteBuffer> encrypts)
+    private static void readData(final String filename, final Vector<String> raws, final Vector<ByteBuffer> encrypts)
             throws CryptoException {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(new File(filename)));

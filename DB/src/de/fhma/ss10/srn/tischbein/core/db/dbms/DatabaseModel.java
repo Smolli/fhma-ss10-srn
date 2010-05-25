@@ -1,13 +1,6 @@
 package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -47,66 +40,6 @@ public abstract class DatabaseModel extends DatabaseStructure {
     }
 
     /**
-     * Ermittelt die Dateien.
-     * 
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Dateien nicht ermittelt werden können.
-     */
-    private void fetchFiles() throws DatabaseException {
-        for (FileItem file : this.loadFilesTable()) {
-            int id = file.getId();
-
-            if (id > this.lastFileId) {
-                this.lastFileId = id;
-            }
-
-            this.files.put(file.getId(), file);
-        }
-    }
-
-    /**
-     * Ermittelt die Benutzer.
-     * 
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Benutzer nicht ermittelt werden können.
-     */
-    private void fetchUsers() throws DatabaseException {
-        for (User user : this.loadUsersTable()) {
-            this.users.put(user.getName().toLowerCase(), user);
-        }
-    }
-
-    private List<String> readAccessTable(final FileItem file, final String filename) throws FileNotFoundException,
-            IOException {
-        BufferedReader br = new BufferedReader(new FileReader(filename));
-        List<String> lines = new ArrayList<String>();
-        String line;
-
-        while ((line = br.readLine()) != null) {
-            String[] cols = line.split(DatabaseStructure.SEPARATOR);
-
-            if (Integer.parseInt(cols[0]) != file.getId()) {
-                lines.add(line);
-            }
-        }
-
-        br.close();
-
-        return lines;
-    }
-
-    private void writeAccessTable(final String filename, final List<String> lines) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
-
-        for (String line : lines) {
-            bw.write(line);
-        }
-
-        bw.flush();
-        bw.close();
-    }
-
-    /**
      * Aktualisiert die globale Dateien-Tabelle.
      * 
      * @param fi
@@ -118,7 +51,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
         try {
             this.files.put(fi.getId(), fi);
 
-            this.writeFilesTable(this.files.values());
+            this.writeFilesTable(new Vector<FileItem>(this.files.values()));
         } catch (Exception e) {
             throw new DatabaseException("Kann die Tabelle nicht ändern!", e);
         }
@@ -184,7 +117,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
         try {
             this.createUserFiles(user);
 
-            this.saveToUsers(user, pass);
+            this.appendUserToUsersTable(user, pass);
         } catch (Exception e) {
             throw new DatabaseException("Kann den Benutzer nicht hinzufügen!", e);
         } finally {
@@ -192,12 +125,24 @@ public abstract class DatabaseModel extends DatabaseStructure {
         }
     }
 
+    /**
+     * Entzieht dem angegebenen Benutzer das Recht für die angegebene Datei.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param file
+     *            Die Datei.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn das Recht nicht entzogen werden konnte.
+     */
     protected void denyAccessToUser(final User user, final FileItem file) throws DatabaseException {
         try {
-            String filename = DatabaseTables.AccessTable.getFilename(user);
-            List<String> lines = this.readAccessTable(file, filename);
+            //            String filename = DatabaseTables.AccessTable.getFilename(user);
+            Vector<String> lines = this.rawReadAccessTable(user);
 
-            this.writeAccessTable(filename, lines);
+            lines = this.removeAccess(file, lines);
+
+            this.writeAccessTable(user, lines);
 
         } catch (Exception e) {
             throw new DatabaseException("Kann die Access-Tabelle nicht bearbeiten!", e);
@@ -257,7 +202,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
      *             geladen werden konnte.
      */
     protected void open() throws DatabaseException {
-        DatabaseStructure.LOCK.lock();
+        DatabaseFiles.LOCK.lock();
 
         try {
             this.testBaseStructure();
@@ -268,38 +213,162 @@ public abstract class DatabaseModel extends DatabaseStructure {
         } catch (Exception e) {
             throw new DatabaseException("Kann die Datenbankstruktur nicht laden!", e);
         } finally {
-            DatabaseStructure.LOCK.unlock();
+            DatabaseFiles.LOCK.unlock();
         }
     }
 
+    /**
+     * Entfernt das Zugriffsrecht für alle Benutzer, denen das Recht zugewiesen wurde, aus der Datenbank.
+     * 
+     * @param item
+     *            Die Datei.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn das Recht nicht allen beteiligten Benutzern entzogen werden konnte.
+     */
+    protected void removeFileFromAccessTables(final FileItem item) throws DatabaseException {
+        User owner = item.getOwner();
+        Vector<User> deptors = owner.getDescriptor().getLendList().getDeptors(item);
+
+        for (User user : deptors) {
+            Database.getInstance().denyAccess(user, item);
+        }
+    }
+
+    /**
+     * Entfernt den Dateieintrag aus der globalen Dateientabelle.
+     * 
+     * @param item
+     *            Die Datei.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Datei nicht entfernt werden konnte.
+     */
     protected void removeFileFromGlobalTable(final FileItem item) throws DatabaseException {
         this.files.remove(item.getId());
 
-        this.writeFilesTable(this.files.values());
+        this.writeFilesTable(new Vector<FileItem>(this.files.values()));
     }
 
+    /**
+     * Entfernt die Datei aus der Datei-Tabelle des Besitzers.
+     * 
+     * @param item
+     *            Die Datei
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Datei nicht entfernt werden konnte.
+     */
     protected void removeFileFromOwnerTable(final FileItem item) throws DatabaseException {
         User owner = item.getOwner();
 
         owner.getDescriptor().getFileList().remove(item);
 
-        //        String filename = DatabaseTables.FileTable.getFilename(owner);
         this.writeUserFilesTable(owner);
     }
 
-    protected void removeRemarkFromOwner(final User user, final FileItem file) throws IOException {
-        User owner = file.getOwner();
-        AesWriter w = AesWriter.createWriter(DatabaseTables.LendTable.getFilename(owner), owner.getCryptKey());
+    /**
+     * Entfernt den Leihverweis aus der Lend-Tabelle des Benutzers.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param file
+     *            Die Datei.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Datei nicht entfernt werden konnte.
+     */
+    protected void removeRemarkFromOwner(final User user, final FileItem file) throws DatabaseException {
+        try {
+            User owner = file.getOwner();
+            AesWriter w = AesWriter.createWriter(DatabaseTables.LendTable.getFilename(owner), owner.getCryptKey());
 
-        UserFilePairVector list = owner.getDescriptor().getLendList();
+            UserFilePairVector list = owner.getDescriptor().getLendList();
 
-        list.remove(new UserFilePair(user, file));
+            list.remove(new UserFilePair(user, file));
 
-        for (UserFilePair ufp : list) {
-            w.writeLine(ufp.compile());
+            for (UserFilePair ufp : list) {
+                w.writeLine(ufp.compile());
+            }
+
+            w.close();
+        } catch (Exception e) {
+            throw new DatabaseException("Kann Datei nicht entfernen!", e);
+        }
+    }
+
+    /**
+     * Ermittelt die Dateien.
+     * 
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Dateien nicht ermittelt werden können.
+     */
+    private void fetchFiles() throws DatabaseException {
+        for (FileItem file : this.loadFilesTable()) {
+            int id = file.getId();
+
+            if (id > this.lastFileId) {
+                this.lastFileId = id;
+            }
+
+            this.files.put(file.getId(), file);
+        }
+    }
+
+    /**
+     * Ermittelt die Benutzer.
+     * 
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Benutzer nicht ermittelt werden können.
+     */
+    private void fetchUsers() throws DatabaseException {
+        for (User user : this.loadUsersTable()) {
+            this.users.put(user.getName().toLowerCase(), user);
+        }
+    }
+
+    /**
+     * Ließt die Access-Tabelle im Rohformat aus.
+     * 
+     * @param user
+     *            Der Dateiname der Access-Tabelle.
+     * @return Gibt die Tabelle im Rohformat zurück.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabellen nicht gelesen werden konnte.
+     */
+    private Vector<String> rawReadAccessTable(final User user) throws DatabaseException {
+        try {
+            return (new DatabaseTableReader<String>(Utils.createBufferedReader(DatabaseTables.AccessTable
+                    .getFilename(user))) {
+
+                @Override
+                protected String process(final String line) throws Exception {
+                    return line;
+                }
+
+            }).getResult();
+        } catch (Exception e) {
+            throw new DatabaseException("Kann Access-Tabelle nicht lesen!", e);
+        }
+    }
+
+    /**
+     * Entfernt die Zugriffsberechtigung aus den Rohdaten der Access-Tabelle.
+     * 
+     * @param file
+     *            Die Datei, deren Zugriffsberechtigung entfernt werden soll.
+     * @param lines
+     *            Die Rohdaten der Tabelle.
+     * @return Gibt die bereinigten Rohdaten zurück.
+     */
+    private Vector<String> removeAccess(final FileItem file, final Vector<String> lines) {
+        Vector<String> temp = new Vector<String>();
+
+        for (String line : lines) {
+            String[] cols = line.split(DatabaseStructure.SEPARATOR);
+
+            if (Integer.parseInt(cols[0]) != file.getId()) {
+                temp.add(line);
+            }
         }
 
-        w.close();
+        return temp;
     }
 
 }

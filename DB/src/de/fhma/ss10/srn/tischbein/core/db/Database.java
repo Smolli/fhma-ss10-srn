@@ -1,11 +1,10 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-import java.util.List;
 import java.util.Vector;
 
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseFiles;
 import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseModel;
-import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
 
 /**
  * Datanbankklasse. Kapselt die gesamte Datenbankstruktur.
@@ -24,7 +23,7 @@ public final class Database extends DatabaseModel {
      * @return Gibt die Instanz der Datenbank zurück.
      */
     public static synchronized Database getInstance() {
-        DatabaseStructure.LOCK.lock();
+        DatabaseFiles.LOCK.lock();
 
         try {
             if (Database.instance == null) {
@@ -41,7 +40,7 @@ public final class Database extends DatabaseModel {
 
             return Database.instance;
         } finally {
-            DatabaseStructure.LOCK.unlock();
+            DatabaseFiles.LOCK.unlock();
         }
     }
 
@@ -49,11 +48,11 @@ public final class Database extends DatabaseModel {
      * Setzt die Datenbankinstanz auf <code>null</code>.
      */
     private static void killInstance() {
-        DatabaseStructure.LOCK.lock();
+        DatabaseFiles.LOCK.lock();
 
         Database.instance = null;
 
-        DatabaseStructure.LOCK.unlock();
+        DatabaseFiles.LOCK.unlock();
     }
 
     /**
@@ -96,7 +95,7 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn der Benutzer nicht angelegt werden konnte.
      */
     public void createUser(final String name, final String pass) throws DatabaseException {
-        DatabaseStructure.LOCK.lock();
+        DatabaseFiles.LOCK.lock();
 
         try {
             if (this.getUserMap().containsKey(name.toLowerCase())) {
@@ -111,10 +110,18 @@ public final class Database extends DatabaseModel {
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
         } finally {
-            DatabaseStructure.LOCK.unlock();
+            DatabaseFiles.LOCK.unlock();
         }
     }
 
+    /**
+     * Löscht das angegebene {@link FileItem} vollständig aus der Datenbank.
+     * 
+     * @param item
+     *            Das FileItem, das gelöscht werden soll.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn das FileItem nicht gelöscht werden kann.
+     */
     public void deleteFileItem(final FileItem item) throws DatabaseException {
         // aus globaler Files-Tabelle löschen
         this.removeFileFromGlobalTable(item);
@@ -125,6 +132,8 @@ public final class Database extends DatabaseModel {
         // aus den Access-Tabllen aller anderen User löschen
         // aus Lend-Tabelle des Owner löschen
         this.removeFileFromAccessTables(item);
+
+        // TODO: physiaklisches Löschen der Datei
     }
 
     /**
@@ -135,6 +144,7 @@ public final class Database extends DatabaseModel {
      * @param file
      *            Die Datei.
      * @throws DatabaseException
+     *             Wird geworfen, wenn die Berechtigung nicht entzogen werden kann.
      */
     public void denyAccess(final User user, final FileItem file) throws DatabaseException {
         if ((file == null) || (user == null)) {
@@ -212,7 +222,7 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
      */
     public UserDescriptor getUserDescriptor(final User user) throws CryptoException, DatabaseException {
-        DatabaseStructure.LOCK.lock();
+        DatabaseFiles.LOCK.lock();
 
         try {
             UserDescriptor descriptor = new UserDescriptor();
@@ -223,7 +233,7 @@ public final class Database extends DatabaseModel {
 
             return descriptor;
         } finally {
-            DatabaseStructure.LOCK.unlock();
+            DatabaseFiles.LOCK.unlock();
         }
     }
 
@@ -296,21 +306,12 @@ public final class Database extends DatabaseModel {
      * Fährt die Datenbank runter und speichert noch ausstehende Daten ab.
      */
     public void shutdown() {
-        DatabaseStructure.LOCK.lock();
+        DatabaseFiles.LOCK.lock();
 
         try {
             Database.killInstance();
         } finally {
-            DatabaseStructure.LOCK.unlock();
-        }
-    }
-
-    private void removeFileFromAccessTables(final FileItem item) throws DatabaseException {
-        User owner = item.getOwner();
-        List<User> deptors = owner.getDescriptor().getLendList().getDeptors(item);
-
-        for (User user : deptors) {
-            Database.getInstance().denyAccess(user, item);
+            DatabaseFiles.LOCK.unlock();
         }
     }
 

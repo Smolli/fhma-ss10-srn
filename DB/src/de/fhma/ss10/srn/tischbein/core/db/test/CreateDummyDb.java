@@ -25,6 +25,7 @@ public class CreateDummyDb {
 
             user.unlock("1234");
 
+            // TODO: auf neuen Aufruf umstellen
             //            FileItem file = user.addFile("Testdatei.txt");
             //            user.addFile("Big File.txt");
             //            user.addFile("letzte Datei.txt");
