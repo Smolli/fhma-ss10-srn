@@ -20,7 +20,13 @@ public final class GuiUtils {
     public static void displayError(final String title, final Exception ex) {
         ex.printStackTrace();
 
-        StringBuilder sb = new StringBuilder(ex.getMessage());
+        String message = ex.getMessage();
+
+        if (message == null) {
+            message = "-- Unbekannt --";
+        }
+
+        StringBuilder sb = new StringBuilder(message);
         Throwable t = ex.getCause();
 
         while (t != null) {
