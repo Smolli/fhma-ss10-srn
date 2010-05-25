@@ -1,5 +1,6 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
+import java.util.List;
 import java.util.Vector;
 
 import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
@@ -128,6 +129,18 @@ public final class UserDescriptor {
             }
 
             return null;
+        }
+
+        public List<User> getDeptors(final FileItem item) {
+            List<User> users = new Vector<User>();
+
+            for (UserFilePair ufp : this) {
+                if (ufp.file.equals(item)) {
+                    users.add(ufp.user);
+                }
+            }
+
+            return users;
         }
 
     }

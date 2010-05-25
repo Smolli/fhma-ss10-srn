@@ -15,6 +15,7 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaAppender;
+import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
@@ -106,6 +107,45 @@ public abstract class DatabaseModel extends DatabaseStructure {
     }
 
     /**
+     * Aktualisiert die globale Dateien-Tabelle.
+     * 
+     * @param fi
+     *            Das {@link FileItem}, mit dem die Tabelle ergänzt werden soll.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht erweitert werden kann.
+     */
+    protected void addFileToGlobalTable(final FileItem fi) throws DatabaseException {
+        try {
+            this.files.put(fi.getId(), fi);
+
+            this.writeFilesTable(this.files.values());
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Tabelle nicht ändern!", e);
+        }
+    }
+
+    /**
+     * Aktualisiert die Benutzertabellen.
+     * 
+     * @param fi
+     *            Das {@link FileItem}, das hinzugefügt werden soll.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabellen nicht erweitert werden konnten.
+     */
+    protected void addFileToUserTable(final FileItem fi) throws DatabaseException {
+        try {
+            User owner = fi.getOwner();
+            UserDescriptor flo = owner.getDescriptor();
+
+            flo.getFileList().add(fi);
+
+            this.writeUserFilesTable(owner);
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Tabelle nicht updaten!", e);
+        }
+    }
+
+    /**
      * Merkt sich beim Besitzer der Datei, wohin er die Datei ausgeliehen hat.
      * 
      * @param user
@@ -147,6 +187,8 @@ public abstract class DatabaseModel extends DatabaseStructure {
             this.saveToUsers(user, pass);
         } catch (Exception e) {
             throw new DatabaseException("Kann den Benutzer nicht hinzufügen!", e);
+        } finally {
+            Database.getInstance().shutdown();
         }
     }
 
@@ -230,6 +272,21 @@ public abstract class DatabaseModel extends DatabaseStructure {
         }
     }
 
+    protected void removeFileFromGlobalTable(final FileItem item) throws DatabaseException {
+        this.files.remove(item.getId());
+
+        this.writeFilesTable(this.files.values());
+    }
+
+    protected void removeFileFromOwnerTable(final FileItem item) throws DatabaseException {
+        User owner = item.getOwner();
+
+        owner.getDescriptor().getFileList().remove(item);
+
+        //        String filename = DatabaseTables.FileTable.getFilename(owner);
+        this.writeUserFilesTable(owner);
+    }
+
     protected void removeRemarkFromOwner(final User user, final FileItem file) throws IOException {
         User owner = file.getOwner();
         AesWriter w = AesWriter.createWriter(DatabaseTables.LendTable.getFilename(owner), owner.getCryptKey());
@@ -243,55 +300,6 @@ public abstract class DatabaseModel extends DatabaseStructure {
         }
 
         w.close();
-    }
-
-    /**
-     * Aktualisiert die globale Dateien-Tabelle.
-     * 
-     * @param fi
-     *            Das {@link FileItem}, mit dem die Tabelle ergänzt werden soll.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Tabelle nicht erweitert werden kann.
-     */
-    protected void updateGlobalTable(final FileItem fi) throws DatabaseException {
-        try {
-            FileWriter fw = new FileWriter(DatabaseFiles.DB_FILES_TB, true);
-
-            fw.write(fi.compile());
-
-            fw.close();
-        } catch (Exception e) {
-            throw new DatabaseException("Kann die Tabelle nicht ändern!", e);
-        }
-    }
-
-    /**
-     * Aktualisiert die Benutzertabellen.
-     * 
-     * @param fi
-     *            Das {@link FileItem}, das hinzugefügt werden soll.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Tabellen nicht erweitert werden konnten.
-     */
-    protected void updateUserTables(final FileItem fi) throws DatabaseException {
-        try {
-            UserDescriptor flo = fi.getOwner().getDescriptor();
-
-            flo.getFileList().add(fi);
-
-            new DatabaseTableWriter<FileItem>(AesWriter.createWriter(DatabaseTables.FileTable
-                    .getFilename(fi.getOwner()), fi.getOwner().getCryptKey()), flo.getFileList()) {
-
-                @Override
-                protected String process(final FileItem item) throws Exception {
-                    return Integer.toString(item.getId()) + DatabaseStructure.SEPARATOR
-                            + Utils.serializeKeyHex(item.getKey());
-                }
-
-            };
-        } catch (Exception e) {
-            throw new DatabaseException("Kann die Tabelle nicht updaten!", e);
-        }
     }
 
 }

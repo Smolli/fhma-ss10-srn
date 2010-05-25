@@ -17,6 +17,7 @@ import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.UploadAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction.CloseActionListener;
+import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction.DeleteActionListener;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction.LogoutActionListener;
 import de.fhma.ss10.srn.tischbein.gui.forms.WorkForm;
 import de.fhma.ss10.srn.tischbein.gui.frames.UploadFrame.UploadFrameListener;
@@ -27,7 +28,8 @@ import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
  * 
  * @author Smolli
  */
-public final class WorkFrame extends WorkForm implements CloseActionListener, LogoutActionListener, UploadFrameListener {
+public final class WorkFrame extends WorkForm implements CloseActionListener, LogoutActionListener,
+        UploadFrameListener, DeleteActionListener {
 
     /**
      * Spezialisiertes {@link TableModel} für die Rechtevergabe der Dateien.
@@ -194,6 +196,16 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     }
 
     @Override
+    public User getCurrentUser() {
+        return this.currentUser;
+    }
+
+    @Override
+    public FileItem getSelectedFile() {
+        return this.selectedFile;
+    }
+
+    @Override
     public void logout() {
         this.currentUser.lock();
 
@@ -249,7 +261,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         this.closeButton.setAction(new CloseAction(this));
         this.logoutButton.setAction(new LogoutAction(this));
         this.uploadButton.setAction(new UploadAction(this, this.currentUser));
-        this.deleteButton.setAction(new DeleteAction());
+        this.deleteButton.setAction(new DeleteAction(this));
     }
 
 }
