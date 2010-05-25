@@ -2,6 +2,7 @@ package de.fhma.ss10.srn.tischbein.gui.frames;
 
 import java.util.Vector;
 
+import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
@@ -10,6 +11,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 import de.fhma.ss10.srn.tischbein.core.db.Database;
+import de.fhma.ss10.srn.tischbein.core.db.DatabaseChangeListener;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.FileItemException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
@@ -17,6 +19,7 @@ import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LogoutAction;
+import de.fhma.ss10.srn.tischbein.gui.actions.NewSessionAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.UploadAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction.CloseActionListener;
 import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction.DeleteActionListener;
@@ -31,7 +34,7 @@ import de.fhma.ss10.srn.tischbein.gui.launcher.Launcher;
  * @author Smolli
  */
 public final class WorkFrame extends WorkForm implements CloseActionListener, LogoutActionListener,
-        UploadFrameListener, DeleteActionListener {
+        UploadFrameListener, DeleteActionListener, DatabaseChangeListener {
 
     /**
      * Spezialisiertes {@link TableModel} für die Rechtevergabe der Dateien.
@@ -166,7 +169,7 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
             System.out.println("" + first + ", " + last);
 
-            WorkFrame.this.selectFile((FileItem) this.list.getModel().getElementAt(last));
+            WorkFrame.this.selectFile((FileItem) this.list.getModel().getElementAt(last), this.list, last);
         }
     }
 
@@ -176,6 +179,8 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     private final transient User currentUser;
     /** Hält die momentan ausgewählte Datei. */
     private transient FileItem selectedFile = null;
+    private JList lastList;
+    private int lastIndex;
 
     /**
      * Erstellt ein neues Arbeitsfenster mit dem übergebenen Benutzer.
@@ -186,10 +191,14 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     public WorkFrame(final User user) {
         this.currentUser = user;
 
-        //        Database.getInstance().addChangeListener(this);
+        Database.getInstance();
+        Database.addChangeListener(this);
 
         this.setupActions();
 
+        this.userFilesList.setSelectionModel(new FilesSelectionModel(this.userFilesList));
+        this.otherFilesList.setSelectionModel(new FilesSelectionModel(this.otherFilesList));
+        this.accessTable.setModel(new AccessTableModel());
         this.initLists();
 
         this.setTitle(Launcher.PRODUCT_NAME + " - " + user.getName());
@@ -199,15 +208,27 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
     @Override
     public void close() {
-        Database.getInstance().shutdown();
+        //        Database.getInstance().shutdown();
 
         this.dispose();
     }
 
-    //    @Override
-    //    public void dispose() {
-    //        Database.getInstance().removeChangeListener(this);
-    //    }
+    @Override
+    public void databaseChanged() {
+        this.updateLists();
+
+        if (this.lastList != null) {
+            this.lastList.setSelectedIndex(this.lastIndex);
+        }
+    }
+
+    @Override
+    public void dispose() {
+        Database.getInstance();
+        Database.removeChangeListener(this);
+
+        super.dispose();
+    }
 
     @Override
     public User getCurrentUser() {
@@ -240,14 +261,17 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      * Initialisiert die drei GUI-Listen.
      */
     private void initLists() {
-        this.userFilesList.setSelectionModel(new FilesSelectionModel(this.userFilesList));
-        this.userFilesList.setListData(this.currentUser.getDescriptor().getFileList());
+        //        this.userFilesList.setListData(this.currentUser.getDescriptor().getFileList());
+        this.userFilesList.setModel(new DefaultListModel());
+        this.userFilesList.repaint();
 
-        this.accessTable.setModel(new AccessTableModel());
         this.accessTable.setVisible(false);
 
-        this.otherFilesList.setSelectionModel(new FilesSelectionModel(this.otherFilesList));
-        this.otherFilesList.setListData(this.currentUser.getDescriptor().getAccessList());
+        //        this.otherFilesList.setListData(this.currentUser.getDescriptor().getAccessList());
+        this.otherFilesList.setModel(new DefaultListModel());
+        this.otherFilesList.repaint();
+
+        this.updateLists();
     }
 
     /**
@@ -257,13 +281,18 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      * @param file
      *            Die Datei, die der Benutzer ausgewählt hat.
      */
-    private void selectFile(final FileItem file) {
+    private void selectFile(final FileItem file, final JList sender, final int index) {
         try {
             this.selectedFile = file;
 
             this.setFileView(file);
 
+            this.setLists(file);
+
             this.setAccessTable(file);
+
+            this.lastList = sender;
+            this.lastIndex = index;
 
             System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
         } catch (Exception e) {
@@ -310,6 +339,14 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         this.viewPanel.repaint();
     }
 
+    private void setLists(final FileItem file) {
+        if (file.getOwner() == this.currentUser) {
+            this.otherFilesList.clearSelection();
+        } else {
+            this.userFilesList.clearSelection();
+        }
+    }
+
     /**
      * Vergibt die Actions an die GUI-Elemente.
      */
@@ -318,6 +355,31 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
         this.logoutButton.setAction(new LogoutAction(this));
         this.uploadButton.setAction(new UploadAction(this));
         this.deleteButton.setAction(new DeleteAction(this));
-        //        this.newsessionButton.setAction(new NewSessionAction(this));
+        this.newsessionButton.setAction(new NewSessionAction());
+    }
+
+    /**
+     * Initialisiert die drei GUI-Listen.
+     */
+    private void updateLists() {
+        DefaultListModel model = (DefaultListModel) this.userFilesList.getModel();
+
+        model.clear();
+        for (FileItem file : this.currentUser.getDescriptor().getFileList()) {
+            model.addElement(file);
+        }
+
+        //        .setListData(this.currentUser.getDescriptor().getFileList());
+        this.userFilesList.repaint();
+
+        this.accessTable.setVisible(false);
+
+        //        this.otherFilesList.setListData(this.currentUser.getDescriptor().getAccessList());
+        model = (DefaultListModel) this.otherFilesList.getModel();
+        model.clear();
+        for (FileItem file : this.currentUser.getDescriptor().getAccessList()) {
+            model.addElement(file);
+        }
+        this.otherFilesList.repaint();
     }
 }
