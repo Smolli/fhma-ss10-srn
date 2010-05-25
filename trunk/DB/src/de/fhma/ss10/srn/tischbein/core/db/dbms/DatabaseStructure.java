@@ -1,9 +1,11 @@
 package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.security.PrivateKey;
+import java.util.Collection;
 import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -11,6 +13,7 @@ import javax.crypto.SecretKey;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesReader;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaReader;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
@@ -201,6 +204,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
             FileWriter fw = new FileWriter(DatabaseFiles.DB_USERS_TB, true);
 
             fw.append(user.compile(pass));
+            fw.append("\n");
 
             fw.flush();
             fw.close();
@@ -211,6 +215,33 @@ public abstract class DatabaseStructure extends DatabaseFiles {
         } finally {
             DatabaseStructure.LOCK.unlock();
         }
+    }
+
+    protected void writeFilesTable(final Collection<FileItem> files) throws DatabaseException {
+        try {
+            new DatabaseTableWriter<FileItem>(new BufferedWriter(new FileWriter(DatabaseFiles.DB_FILES_TB)), files) {
+
+                @Override
+                protected String process(final FileItem item) throws Exception {
+                    return item.compile();
+                }
+            };
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Files-Tabelle nicht schreiben.", e);
+        }
+    }
+
+    protected void writeUserFilesTable(final User owner) throws DatabaseException {
+        new DatabaseTableWriter<FileItem>(AesWriter.createWriter(DatabaseTables.FileTable.getFilename(owner), owner
+                .getCryptKey()), owner.getDescriptor().getFileList()) {
+
+            @Override
+            protected String process(final FileItem item) throws Exception {
+                return Integer.toString(item.getId()) + DatabaseStructure.SEPARATOR
+                        + Utils.serializeKeyHex(item.getKey());
+            }
+
+        };
     }
 
 }

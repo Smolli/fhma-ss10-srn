@@ -18,7 +18,7 @@ import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
  * 
  * @author Smolli
  */
-public final class FileItem {
+public final class FileItem implements Comparable<Integer> {
 
     /** Datei-Tabelle Hash. */
     private static final int COLUMN_HASH = 2;
@@ -118,7 +118,7 @@ public final class FileItem {
     }
 
     /** Hält die ID der Datei. */
-    private int id;
+    private Integer id;
 
     /** Hält den Dateinamen, wie er angezeigt werden soll. */
     private String fileName;
@@ -141,13 +141,18 @@ public final class FileItem {
         this.owner = ownerObject;
     }
 
+    @Override
+    public int compareTo(final Integer other) {
+        return this.id.compareTo(other);
+    }
+
     /**
      * Erstellt einen CSV-String für die Datenbank.
      * 
      * @return Die Tabellenzeile.
      */
     public String compile() {
-        return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseStructure.SEPARATOR, Integer.toString(this.id), this
+        return MessageFormat.format("{1}{0}{2}{0}{3}", DatabaseStructure.SEPARATOR, Integer.toString(this.id), this
                 .getName(), Utils.toHexLine(this.hash));
     }
 

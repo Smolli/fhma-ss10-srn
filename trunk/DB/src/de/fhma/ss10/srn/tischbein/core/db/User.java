@@ -148,7 +148,7 @@ public final class User {
             String pub = Utils.serializeKeyHex(this.getPublicKey());
             String crypt = AesCrypto.encryptHex(Utils.serializeKey(this.getCryptKey()), secret);
 
-            return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}\n", // Formatzeile
+            return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}", // Formatzeile
                     DatabaseStructure.SEPARATOR, // 0 - Separator
                     this.getName(), // 1 - Benutzername
                     this.getPassHash(), // 2 - Hashwert des Benutzerpassworts

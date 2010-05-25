@@ -1,5 +1,6 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
+import java.util.List;
 import java.util.Vector;
 
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
@@ -72,10 +73,10 @@ public final class Database extends DatabaseModel {
     public void addFileItem(final FileItem item) throws DatabaseException {
         try {
             // in Dateitabelle des Benutzers Eintrag schreiben
-            this.updateUserTables(item);
+            this.addFileToUserTable(item);
 
             // in globale Dateitablle Eintrag schreiben
-            this.updateGlobalTable(item);
+            this.addFileToGlobalTable(item);
 
             this.shutdown();
         } catch (Exception e) {
@@ -107,13 +108,23 @@ public final class Database extends DatabaseModel {
             this.addUser(user, pass);
 
             System.out.println("Benutzer " + name + " angelegt.");
-
-            this.shutdown();
         } catch (Exception e) {
             throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
         } finally {
             DatabaseStructure.LOCK.unlock();
         }
+    }
+
+    public void deleteFileItem(final FileItem item) throws DatabaseException {
+        // aus globaler Files-Tabelle löschen
+        this.removeFileFromGlobalTable(item);
+
+        // aus Files-Tabelle des Owner löschen
+        this.removeFileFromOwnerTable(item);
+
+        // aus den Access-Tabllen aller anderen User löschen
+        // aus Lend-Tabelle des Owner löschen
+        this.removeFileFromAccessTables(item);
     }
 
     /**
@@ -291,6 +302,15 @@ public final class Database extends DatabaseModel {
             Database.killInstance();
         } finally {
             DatabaseStructure.LOCK.unlock();
+        }
+    }
+
+    private void removeFileFromAccessTables(final FileItem item) throws DatabaseException {
+        User owner = item.getOwner();
+        List<User> deptors = owner.getDescriptor().getLendList().getDeptors(item);
+
+        for (User user : deptors) {
+            Database.getInstance().denyAccess(user, item);
         }
     }
 
