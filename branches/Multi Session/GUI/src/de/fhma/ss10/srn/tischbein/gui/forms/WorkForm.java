@@ -12,7 +12,7 @@ public class WorkForm extends javax.swing.JFrame {
     protected javax.swing.JButton deleteButton;
     protected javax.swing.JTextArea fileView;
     protected javax.swing.JButton logoutButton;
-    //    protected javax.swing.JButton newsessionButton;
+    protected javax.swing.JButton newsessionButton;
     protected javax.swing.JList otherFilesList;
     protected javax.swing.JButton uploadButton;
     protected javax.swing.JList userFilesList;
@@ -35,7 +35,7 @@ public class WorkForm extends javax.swing.JFrame {
         javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
         this.logoutButton = new javax.swing.JButton();
         this.closeButton = new javax.swing.JButton();
-        //        newsessionButton = new javax.swing.JButton();
+        this.newsessionButton = new javax.swing.JButton();
         javax.swing.JPanel titlePanel = new javax.swing.JPanel();
         javax.swing.JLabel jLabel1 = new javax.swing.JLabel(
                 de.fhma.ss10.srn.tischbein.gui.launcher.Launcher.PRODUCT_NAME + " - Ultra Deluxe Gourmet Version");
@@ -74,8 +74,8 @@ public class WorkForm extends javax.swing.JFrame {
         this.closeButton.setText("Beenden");
         buttonPanel.add(this.closeButton);
 
-        //        newsessionButton.setText("Neue Session");
-        //        buttonPanel.add(newsessionButton);
+        this.newsessionButton.setText("Neue Session");
+        buttonPanel.add(this.newsessionButton);
 
         this.getContentPane().add(buttonPanel, java.awt.BorderLayout.SOUTH);
 
