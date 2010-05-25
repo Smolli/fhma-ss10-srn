@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
 
 /**
  * Spezialisierter {@link BufferedReader} um eine RSA-verschlüsselte Datei Zeilenweise zu lesen.
@@ -32,10 +33,13 @@ public final class RsaReader extends BufferedReader {
      */
     public static RsaReader createReader(final String filename, final PrivateKey privateKey) throws CryptoException {
         // Rohdaten lesen
-        List<ByteBuffer> buffers = RsaReader.readData(filename);
+        List<ByteBuffer> encrypts = new ArrayList<ByteBuffer>();
+        List<String> raws = new ArrayList<String>();
+
+        RsaReader.readData(filename, raws, encrypts);
 
         // entschlüsseln und in einen Reader wandeln
-        return new RsaReader(RsaReader.decodeAndWrap(buffers, privateKey));
+        return new RsaReader(RsaReader.decodeAndWrap(raws, encrypts, privateKey));
     }
 
     /**
@@ -49,13 +53,15 @@ public final class RsaReader extends BufferedReader {
      * @throws CryptoException
      *             Wird geworfen, wenn die Puffer nicht entschlüsselt werden konnten.
      */
-    private static Reader decodeAndWrap(final List<ByteBuffer> buffers, final PrivateKey privateKey)
-            throws CryptoException {
+    private static Reader decodeAndWrap(final List<String> raws, final List<ByteBuffer> encrypts,
+            final PrivateKey privateKey) throws CryptoException {
         try {
             StringBuilder sb = new StringBuilder();
 
-            for (ByteBuffer byteBuffer : buffers) {
-                sb.append(new String(RsaCrypto.decode(byteBuffer.array(), privateKey)));
+            for (int i = 0; i < raws.size(); i++) {
+                sb.append(raws.get(i));
+                sb.append(DatabaseStructure.SEPARATOR);
+                sb.append(new String(RsaCrypto.decode(encrypts.get(i).array(), privateKey)));
                 sb.append("\n");
             }
 
@@ -70,23 +76,26 @@ public final class RsaReader extends BufferedReader {
      * 
      * @param filename
      *            Der Dateiname.
+     * @param raws2
+     * @param encrypts2
      * @return Gibt die einzelnen Zeilen in Puffern zurück.
      * @throws CryptoException
      *             Wird geworfen, wenn die Datei nicht gelesen werden kann.
      */
-    private static List<ByteBuffer> readData(final String filename) throws CryptoException {
+    private static void readData(final String filename, List<String> raws, List<ByteBuffer> encrypts)
+            throws CryptoException {
         try {
-            List<ByteBuffer> lines = new ArrayList<ByteBuffer>();
             BufferedReader reader = new BufferedReader(new FileReader(new File(filename)));
             String line;
 
             while ((line = reader.readLine()) != null) {
-                lines.add(ByteBuffer.wrap(Utils.fromHexLine(line)));
+                String[] cols = line.split(DatabaseStructure.SEPARATOR);
+
+                raws.add(cols[0]);
+                encrypts.add(ByteBuffer.wrap(Utils.fromHexLine(cols[1])));
             }
 
             reader.close();
-
-            return lines;
         } catch (Exception e) {
             throw new CryptoException("Kann die Datei nicht lesen!", e);
         }

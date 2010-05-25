@@ -59,31 +59,32 @@ public final class FileItem {
         return fi;
     }
 
-    /**
-     * Erstellt den verschlüsselten Dateiinhalt.
-     * 
-     * @param owner
-     *            Der Beitzer der Datei.
-     * @param filename
-     *            Der Dateiname.
-     * @param secret
-     *            Der Schlüssel, mit dem der Inhalt verschlüsselt werden soll.
-     * @return Das erzugte {@link FileItem} mit den Dateidaten.
-     * @throws IOException
-     *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
-     * @throws FileItemException
-     *             Wird geworfen, wenn der Inhalt der Datei nicht ermittelt werden konnte.
-     */
-    public static FileItem createEncryptedFile(final User owner, final String filename, final SecretKey secret)
-            throws IOException, FileItemException {
-        FileItem fi = FileItem.create(owner, filename, secret);
-
-        AesWriter w = AesWriter.createWriter(FileItem.generateDatabaseName(fi), secret);
-        w.write(Utils.toHexLine(fi.getContent()));
-        w.close();
-
-        return fi;
-    }
+    //    /**
+    //     * Erstellt den verschlüsselten Dateiinhalt.
+    //     * 
+    //     * @param owner
+    //     *            Der Beitzer der Datei.
+    //     * @param filename
+    //     *            Der Dateiname.
+    //     * @param secret
+    //     *            Der Schlüssel, mit dem der Inhalt verschlüsselt werden soll.
+    //     * @return Das erzugte {@link FileItem} mit den Dateidaten.
+    //     * @throws IOException
+    //     *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
+    //     * @throws FileItemException
+    //     *             Wird geworfen, wenn der Inhalt der Datei nicht ermittelt werden konnte.
+    //     */
+    //    public static FileItem createEncryptedFile(final User owner, final String filename, final SecretKey secret)
+    //            throws IOException, FileItemException {
+    //        FileItem fi = FileItem.create(owner, filename, secret);
+    //
+    ////        AesWriter w = AesWriter.createWriter(FileItem.generateDatabaseName(fi), secret);
+    ////        w.write(Utils.toHexLine(fi.getContent()));
+    ////        w.close();
+    //        fi.encrypt();
+    //
+    //        return fi;
+    //    }
 
     /**
      * Parst die angegebene Zeile und gibt sie als {@link FileItem}-Objekt zurück.
@@ -118,6 +119,7 @@ public final class FileItem {
 
     /** Hält die ID der Datei. */
     private int id;
+
     /** Hält den Dateinamen, wie er angezeigt werden soll. */
     private String fileName;
     /** Hält die MD5-Summe des Dateiinhalts. */
@@ -147,6 +149,16 @@ public final class FileItem {
     public String compile() {
         return MessageFormat.format("{1}{0}{2}{0}{3}\n", DatabaseStructure.SEPARATOR, Integer.toString(this.id), this
                 .getName(), Utils.toHexLine(this.hash));
+    }
+
+    public void encrypt() throws FileItemException {
+        try {
+            AesWriter w = AesWriter.createWriter(FileItem.generateDatabaseName(this), this.fileKey);
+            w.write(Utils.toHexLine(this.getContent()));
+            w.close();
+        } catch (Exception e) {
+            throw new FileItemException("Kann die Datei nicht verschlüsseln!", e);
+        }
     }
 
     @Override
@@ -189,6 +201,10 @@ public final class FileItem {
         } catch (Exception e) {
             throw new FileItemException("Datei kann nicht gelesen werden!", e);
         }
+    }
+
+    public byte[] getHash() {
+        return this.hash;
     }
 
     /**

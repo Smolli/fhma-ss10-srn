@@ -100,35 +100,35 @@ public final class User {
     /** Hält den verschlüsselten Schlüssel für die AES-Verschlüsselung. */
     private byte[] cryptKeyCipher;
     /** Hält die Dateidaten für den Benutzer. */
-    private transient UserDescriptor flo;
+    private transient UserDescriptor descriptor;
 
-    /**
-     * Fügt zu einem Benutzer eine Datei hinzu. Die Datei wird verschlüsselt und alle Änderungen an der Datenbank werden
-     * vorgenommen.
-     * 
-     * @param filename
-     *            Der Dateiname mit vollständigem Pfad.
-     * @return Gibt das hinzugefügte {@link FileItem} zurück.
-     * @throws DatabaseException
-     *             Wird geworfen, wenn keine Änderungen an den Tabellen vorgenommen werden konnte.
-     */
-    public FileItem addFile(final String filename) throws DatabaseException {
-        try {
-            // Filekey erstellen
-            SecretKey secret = AesCrypto.generateKey();
-
-            // Dateiinhalt verschlüsseln + speichern
-            FileItem fi = FileItem.createEncryptedFile(this, filename, secret);
-
-            Database.getInstance().addFileItem(fi);
-
-            System.out.println("Datei " + filename + " hinzugefügt.");
-
-            return fi;
-        } catch (Exception e) {
-            throw new DatabaseException("Kann Datei nicht hinzufügen!", e);
-        }
-    }
+    //    /**
+    //     * Fügt zu einem Benutzer eine Datei hinzu. Die Datei wird verschlüsselt und alle Änderungen an der Datenbank werden
+    //     * vorgenommen.
+    //     * 
+    //     * @param filename
+    //     *            Der Dateiname mit vollständigem Pfad.
+    //     * @return Gibt das hinzugefügte {@link FileItem} zurück.
+    //     * @throws DatabaseException
+    //     *             Wird geworfen, wenn keine Änderungen an den Tabellen vorgenommen werden konnte.
+    //     */
+    //    public FileItem addFile(final String filename) throws DatabaseException {
+    //        try {
+    //            // Filekey erstellen
+    //            SecretKey secret = AesCrypto.generateKey();
+    //
+    //            // Dateiinhalt verschlüsseln + speichern
+    //            FileItem fi = FileItem.createEncryptedFile(this, filename, secret);
+    //
+    //            Database.getInstance().addFileItem(fi);
+    //
+    //            System.out.println("Datei " + filename + " hinzugefügt.");
+    //
+    //            return fi;
+    //        } catch (Exception e) {
+    //            throw new DatabaseException("Kann Datei nicht hinzufügen!", e);
+    //        }
+    //    }
 
     /**
      * Compiliert das User-Objekt und gibt es als Zeichenkette zurück. Die einzelnen Felder sind duch den
@@ -187,8 +187,8 @@ public final class User {
      * 
      * @return Das {@link UserDescriptor} des Benutzers.
      */
-    public UserDescriptor getFileListObject() {
-        return this.flo;
+    public UserDescriptor getDescriptor() {
+        return this.descriptor;
     }
 
     /**
@@ -263,7 +263,7 @@ public final class User {
             this.privateKey = (PrivateKey) Utils
                     .deserializeKey(AesCrypto.decrypt(this.privateKeyCipher, this.cryptKey));
 
-            this.flo = Database.getInstance().getUserDescriptor(this);
+            this.descriptor = Database.getInstance().getUserDescriptor(this);
 
             System.out.println("Benutzer " + this.getName() + " authetifiziert.");
         } catch (Exception e) {

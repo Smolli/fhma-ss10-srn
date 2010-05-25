@@ -1,7 +1,13 @@
 package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -11,9 +17,10 @@ import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaAppender;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
-import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor;
 import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor;
 import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePair;
+import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePairVector;
 
 /**
  * Stellt das Datenbank-Modell dar und spezialisiert somit die Datenbankstruktur.
@@ -39,6 +46,91 @@ public abstract class DatabaseModel extends DatabaseStructure {
     }
 
     /**
+     * Ermittelt die Dateien.
+     * 
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Dateien nicht ermittelt werden können.
+     */
+    private void fetchFiles() throws DatabaseException {
+        for (FileItem file : this.loadFilesTable()) {
+            int id = file.getId();
+
+            if (id > this.lastFileId) {
+                this.lastFileId = id;
+            }
+
+            this.files.put(file.getId(), file);
+        }
+    }
+
+    /**
+     * Ermittelt die Benutzer.
+     * 
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Benutzer nicht ermittelt werden können.
+     */
+    private void fetchUsers() throws DatabaseException {
+        for (User user : this.loadUsersTable()) {
+            this.users.put(user.getName().toLowerCase(), user);
+        }
+    }
+
+    private List<String> readAccessTable(final FileItem file, final String filename) throws FileNotFoundException,
+            IOException {
+        BufferedReader br = new BufferedReader(new FileReader(filename));
+        List<String> lines = new ArrayList<String>();
+        String line;
+
+        while ((line = br.readLine()) != null) {
+            String[] cols = line.split(DatabaseStructure.SEPARATOR);
+
+            if (Integer.parseInt(cols[0]) != file.getId()) {
+                lines.add(line);
+            }
+        }
+
+        br.close();
+
+        return lines;
+    }
+
+    private void writeAccessTable(final String filename, final List<String> lines) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
+
+        for (String line : lines) {
+            bw.write(line);
+        }
+
+        bw.flush();
+        bw.close();
+    }
+
+    /**
+     * Merkt sich beim Besitzer der Datei, wohin er die Datei ausgeliehen hat.
+     * 
+     * @param user
+     *            Der Besitzer der Datei.
+     * @param file
+     *            Die Datei.
+     * @throws IOException
+     *             Wird geworfen, wenn die Tabelle nicht gespeichert werden konnte.
+     */
+    protected void addRemarkToOwner(final User user, final FileItem file) throws IOException {
+        User owner = file.getOwner();
+        AesWriter w = AesWriter.createWriter(DatabaseTables.LendTable.getFilename(owner), owner.getCryptKey());
+
+        Vector<UserFilePair> list = owner.getDescriptor().getLendList();
+
+        list.add(new UserFilePair(user, file));
+
+        for (UserFilePair ufp : list) {
+            w.writeLine(ufp.compile());
+        }
+
+        w.close();
+    }
+
+    /**
      * Fügt einen neuen Benutzer zum Modell hinzu.
      * 
      * @param user
@@ -58,19 +150,16 @@ public abstract class DatabaseModel extends DatabaseStructure {
         }
     }
 
-    /**
-     * Fügt das Nutzungsrecht in der Access-Tabelle des {@link User} hinzu.
-     * 
-     * @param user
-     *            Der Benutzer.
-     * @param file
-     *            Die Datei.
-     * @throws UtilsException
-     *             Wird geworfen, wenn die Tabelle nicht geschrieben werden konnte.
-     */
-    protected void appendToUser(final User user, final FileItem file) throws UtilsException {
-        RsaAppender.appendLine(DatabaseTables.AccessTable.getFilename(user), user.getPublicKey(), file.getId()
-                + DatabaseStructure.SEPARATOR + Utils.serializeKeyHex(file.getKey()));
+    protected void denyAccessToUser(final User user, final FileItem file) throws DatabaseException {
+        try {
+            String filename = DatabaseTables.AccessTable.getFilename(user);
+            List<String> lines = this.readAccessTable(file, filename);
+
+            this.writeAccessTable(filename, lines);
+
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die Access-Tabelle nicht bearbeiten!", e);
+        }
     }
 
     /**
@@ -101,6 +190,23 @@ public abstract class DatabaseModel extends DatabaseStructure {
     }
 
     /**
+     * Fügt das Nutzungsrecht in der Access-Tabelle des {@link User} hinzu.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param file
+     *            Die Datei.
+     * @throws UtilsException
+     *             Wird geworfen, wenn die Tabelle nicht geschrieben werden konnte.
+     */
+    protected void grantAccessToUser(final User user, final FileItem file) throws UtilsException {
+        String filename = DatabaseTables.AccessTable.getFilename(user);
+        String messge = Utils.serializeKeyHex(file.getKey());
+
+        RsaAppender.appendLine(filename, user.getPublicKey(), messge, Integer.toString(file.getId()));
+    }
+
+    /**
      * Öffnet ein bestehendes Datenbankschema.
      * 
      * @param db
@@ -124,23 +230,13 @@ public abstract class DatabaseModel extends DatabaseStructure {
         }
     }
 
-    /**
-     * Merkt sich beim Besitzer der Datei, wohin er die Datei ausgeliehen hat.
-     * 
-     * @param user
-     *            Der Besitzer der Datei.
-     * @param file
-     *            Die Datei.
-     * @throws IOException
-     *             Wird geworfen, wenn die Tabelle nicht gespeichert werden konnte.
-     */
-    protected void remarkToOwner(final User user, final FileItem file) throws IOException {
+    protected void removeRemarkFromOwner(final User user, final FileItem file) throws IOException {
         User owner = file.getOwner();
         AesWriter w = AesWriter.createWriter(DatabaseTables.LendTable.getFilename(owner), owner.getCryptKey());
 
-        Vector<UserFilePair> list = owner.getFileListObject().getLendList();
+        UserFilePairVector list = owner.getDescriptor().getLendList();
 
-        list.add(new UserFilePair(user, file));
+        list.remove(new UserFilePair(user, file));
 
         for (UserFilePair ufp : list) {
             w.writeLine(ufp.compile());
@@ -179,7 +275,7 @@ public abstract class DatabaseModel extends DatabaseStructure {
      */
     protected void updateUserTables(final FileItem fi) throws DatabaseException {
         try {
-            UserDescriptor flo = fi.getOwner().getFileListObject();
+            UserDescriptor flo = fi.getOwner().getDescriptor();
 
             flo.getFileList().add(fi);
 
@@ -195,36 +291,6 @@ public abstract class DatabaseModel extends DatabaseStructure {
             };
         } catch (Exception e) {
             throw new DatabaseException("Kann die Tabelle nicht updaten!", e);
-        }
-    }
-
-    /**
-     * Ermittelt die Dateien.
-     * 
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Dateien nicht ermittelt werden können.
-     */
-    private void fetchFiles() throws DatabaseException {
-        for (FileItem file : this.loadFilesTable()) {
-            int id = file.getId();
-
-            if (id > this.lastFileId) {
-                this.lastFileId = id;
-            }
-
-            this.files.put(file.getId(), file);
-        }
-    }
-
-    /**
-     * Ermittelt die Benutzer.
-     * 
-     * @throws DatabaseException
-     *             Wird geworfen, wenn die Benutzer nicht ermittelt werden können.
-     */
-    private void fetchUsers() throws DatabaseException {
-        for (User user : this.loadUsersTable()) {
-            this.users.put(user.getName().toLowerCase(), user);
         }
     }
 

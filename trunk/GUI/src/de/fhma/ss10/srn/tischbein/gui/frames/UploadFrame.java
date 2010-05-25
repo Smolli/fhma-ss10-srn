@@ -4,74 +4,113 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.crypto.SecretKey;
 import javax.swing.JFileChooser;
 
+import de.fhma.ss10.srn.tischbein.core.Utils;
+import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
+import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
+import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.forms.UploadForm;
 
 public class UploadFrame extends UploadForm implements ActionListener {
 
-	// User Objekt ist nötig zum Speichern der Dateien in der DB
-	User user;
+    public interface UploadFrameListener {
 
-	public UploadFrame(User user) {
-		this.user = user;
-		this.searchButton.addActionListener(this);
-		this.abbortButton.addActionListener(this);
-		this.saveButton.addActionListener(this);
-	}
+        void notifyChange();
 
-	@Override
-	public void actionPerformed(ActionEvent button) {
-		/*
-		 * Beim Klicken auf den searchbutton öffnet sich ein neues Filechooser
-		 * fenster in dem die Datei ausgewählt werden kann (nur Textdateien)
-		 */
-		if (button.getSource() == searchButton) {
-			// Create a file chooser
-			final JFileChooser fc = new JFileChooser();
+    }
 
-			// In response to a button click:
-			fc.showOpenDialog(searchButton);
+    // User Objekt ist nï¿½tig zum Speichern der Dateien in der DB
+    User user;
+    private SecretKey key;
+    private FileItem item;
+    private final UploadFrameListener listener;
 
-			// Datei Objekt "laden"
-			File file = fc.getSelectedFile();
+    public UploadFrame(final UploadFrameListener listener, final User user) {
+        this.user = user;
 
-			// Namensfeld auf Pfad der Datei setzen
-			this.filenameField.setText(file.getPath());
+        this.searchButton.addActionListener(this);
+        this.abbortButton.addActionListener(this);
+        this.saveButton.addActionListener(this);
 
-		} else if (button.getSource() == saveButton) {
-			// Läd den Pfad aus dem filenameField
-			File file = new File(this.filenameField.getText());
+        this.listener = listener;
 
-			// 1. Wir schnappen uns den aktuell eingeloggten user
-			// 2. Danach hängen wir die zuvor ausgewählte Datei dem User an
-			try {
-				System.out.print("User: " + user.getName() + " --> ");
-				System.out.print("File: " + file.getPath());
-				Database.getInstance().getUser(this.user.getName()).addFile(
-						file.getPath());
-			
-				
-				
-				
-				// Hier müssen wir auf die Dateien zugreifen !!!
-//				System.out.println(Database.getInstance().getUser(user.getName()).getFileListObject());
-			
-			
-			
-			} catch (DatabaseException e) {
-				e.printStackTrace();
-			}
+        try {
+            this.key = AesCrypto.generateKey();
 
-		} else if (button.getSource() == abbortButton) {
-			// dispose = löscht alle Elemente der UploadForm
-			// und gibt den belegten Speicher wieder frei.
-			// Fenster baut sich wieder ab.
-			this.dispose();
-		}
-	}
+            this.secretField.setText(Utils.toHexLine(this.key.getEncoded()));
+        } catch (CryptoException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent button) {
+        /*
+         * Beim Klicken auf den searchbutton ï¿½ffnet sich ein neues Filechooser fenster in dem die Datei ausgewï¿½hlt
+         * werden kann (nur Textdateien)
+         */
+        if (button.getSource() == this.searchButton) {
+            // Create a file chooser
+            final JFileChooser fc = new JFileChooser();
+
+            // In response to a button click:
+            fc.showOpenDialog(this.searchButton);
+
+            // Datei Objekt "laden"
+            File file = fc.getSelectedFile();
+
+            // Namensfeld auf Pfad der Datei setzen
+            String filename = file.getPath();
+
+            try {
+                this.filenameField.setText(filename);
+
+                this.item = FileItem.create(this.user, filename, this.key);
+
+                this.hashField.setText(Utils.toHexLine(this.item.getHash()));
+            } catch (Exception e) {
+                GuiUtils.displayError("Kann Datei nicht auswÃ¤hlen!", e);
+
+                this.filenameField.setText("");
+                this.hashField.setText("");
+            }
+
+        } else if (button.getSource() == this.saveButton) {
+            // Lï¿½d den Pfad aus dem filenameField
+            File file = new File(this.filenameField.getText());
+
+            // 1. Wir schnappen uns den aktuell eingeloggten user
+            // 2. Danach hï¿½ngen wir die zuvor ausgewï¿½hlte Datei dem User an
+            try {
+                System.out.print("User: " + this.user.getName() + " --> ");
+                System.out.print("File: " + file.getPath());
+                //                Database.getInstance().getUser(this.user.getName()).addFile(file.getPath());
+
+                this.item.encrypt();
+
+                Database.getInstance().addFileItem(this.item);
+
+                // Hier mï¿½ssen wir auf die Dateien zugreifen !!!
+                //				System.out.println(Database.getInstance().getUser(user.getName()).getFileListObject());
+
+                this.listener.notifyChange();
+
+                this.dispose();
+            } catch (Exception e) {
+                GuiUtils.displayError("Kann Datei nicht hochladen!", e);
+            }
+
+        } else if (button.getSource() == this.abbortButton) {
+            // dispose = lï¿½scht alle Elemente der UploadForm
+            // und gibt den belegten Speicher wieder frei.
+            // Fenster baut sich wieder ab.
+            this.dispose();
+        }
+    }
 
 }
