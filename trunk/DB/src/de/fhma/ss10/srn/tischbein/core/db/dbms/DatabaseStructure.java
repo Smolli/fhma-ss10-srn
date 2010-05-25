@@ -2,19 +2,14 @@ package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.security.PrivateKey;
-import java.util.Collection;
 import java.util.Vector;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.crypto.SecretKey;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesReader;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
-import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaReader;
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
@@ -32,14 +27,42 @@ public abstract class DatabaseStructure extends DatabaseFiles {
 
     /** CSV-Separator. */
     public static final String SEPARATOR = ";";
-    /** Das Reentrantlock. */
-    protected static final ReentrantLock LOCK = new ReentrantLock();
 
     /**
      * Geschützter Ctor.
      */
     protected DatabaseStructure() {
         super();
+    }
+
+    /**
+     * Speichert einen User an das Ende der Benutzertabelle.
+     * 
+     * @param user
+     *            Das Benutzerobjekt.
+     * @param pass
+     *            Das Benutzerpasswort mit dem der private Schlüssel verschlüsselt wird.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der neue Benutzer nicht zur Benutertabelle hinzugefügt werden konnte.
+     */
+    protected void appendUserToUsersTable(final User user, final String pass) throws DatabaseException {
+        DatabaseFiles.LOCK.lock();
+
+        try {
+            BufferedWriter fw = Utils.createBufferedWriter(DatabaseFiles.DB_USERS_TB, true);
+
+            fw.append(user.compile(pass));
+            fw.append("\n");
+
+            fw.flush();
+            fw.close();
+
+            Database.getInstance().shutdown();
+        } catch (Exception e) {
+            throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
+        } finally {
+            DatabaseFiles.LOCK.unlock();
+        }
     }
 
     /**
@@ -51,8 +74,9 @@ public abstract class DatabaseStructure extends DatabaseFiles {
      */
     protected Vector<FileItem> loadFilesTable() throws DatabaseException {
         try {
-            DatabaseTableReader<FileItem> lr = new DatabaseTableReader<FileItem>(new BufferedReader(new FileReader(
-                    DatabaseFiles.DB_FILES_TB))) {
+            BufferedReader reader = Utils.createBufferedReader(DatabaseFiles.DB_FILES_TB);
+
+            DatabaseTableReader<FileItem> lr = new DatabaseTableReader<FileItem>(reader) {
 
                 @Override
                 protected FileItem process(final String line) throws Exception {
@@ -83,6 +107,7 @@ public abstract class DatabaseStructure extends DatabaseFiles {
             String filename = DatabaseTables.AccessTable.getFilename(user);
             PrivateKey privateKey = user.getPrivateKey();
             RsaReader reader = RsaReader.createReader(filename, privateKey);
+
             return (new DatabaseTableReader<FileItem>(reader) {
 
                 @Override
@@ -107,31 +132,32 @@ public abstract class DatabaseStructure extends DatabaseFiles {
      * @param user
      *            Der Benutzerkontext.
      * @return Eine {@link Vector} mit allen IDs.
-     * @throws CryptoException
-     *             Wird geworfen, wenn die Tabelle nicht entschlüsselt werden kann.
      * @throws DatabaseException
      *             Wird geworfen, wenn die Tabelle nicht geladen werden kann.
      */
-    protected Vector<FileItem> loadUserFilesTable(final User user) throws CryptoException, DatabaseException {
-        DatabaseTableReader<FileItem> lr = new DatabaseTableReader<FileItem>(AesReader.createReader(
-                DatabaseTables.FileTable.getFilename(user), user.getCryptKey())) {
+    protected Vector<FileItem> loadUserFilesTable(final User user) throws DatabaseException {
+        try {
+            AesReader reader = AesReader.createReader(DatabaseTables.FileTable.getFilename(user), user.getCryptKey());
 
-            @Override
-            protected FileItem process(final String line) throws Exception {
-                String[] cols = line.split(";");
+            return (new DatabaseTableReader<FileItem>(reader) {
 
-                int id = Integer.parseInt(cols[0]);
-                FileItem file = Database.getInstance().getFile(id);
+                @Override
+                protected FileItem process(final String line) throws Exception {
+                    String[] cols = line.split(";");
 
-                file.setKey((SecretKey) Utils.deserializeKeyHex(cols[1]));
-                file.setOwner(user);
+                    int id = Integer.parseInt(cols[0]);
+                    FileItem file = Database.getInstance().getFile(id);
 
-                return file;
-            }
+                    file.setKey((SecretKey) Utils.deserializeKeyHex(cols[1]));
+                    file.setOwner(user);
 
-        };
+                    return file;
+                }
 
-        return lr.getResult();
+            }).getResult();
+        } catch (Exception e) {
+            throw new DatabaseException("Kann die User-Tabelle nicht laden!", e);
+        }
     }
 
     /**
@@ -139,24 +165,27 @@ public abstract class DatabaseStructure extends DatabaseFiles {
      * 
      * @param user
      *            Der Benutzerkontext.
-     * @return Eine {@link Vector} mit allen Tupeln.
-     * @throws CryptoException
-     *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
+     * @return Eine {@link UserFilePairVector} mit allen Tupeln.
      * @throws DatabaseException
      *             Wird geworfen, wenn die Tabelle nicht geladen werden konnte.
      */
-    protected UserFilePairVector loadUserLendTable(final User user) throws CryptoException, DatabaseException {
-        DatabaseTableReader<UserFilePair> lr = new DatabaseTableReader<UserFilePair>(AesReader.createReader(
-                DatabaseTables.LendTable.getFilename(user), user.getCryptKey())) {
+    protected UserFilePairVector loadUserLendTable(final User user) throws DatabaseException {
+        try {
+            AesReader reader = AesReader.createReader(DatabaseTables.LendTable.getFilename(user), user.getCryptKey());
 
-            @Override
-            protected UserFilePair process(final String line) throws Exception {
-                return UserFilePair.parse(line);
-            }
+            DatabaseTableReader<UserFilePair> lr = new DatabaseTableReader<UserFilePair>(reader) {
 
-        };
+                @Override
+                protected UserFilePair process(final String line) throws Exception {
+                    return UserFilePair.parse(line);
+                }
 
-        return new UserFilePairVector(lr.getResult());
+            };
+
+            return new UserFilePairVector(lr.getResult());
+        } catch (Exception e) {
+            throw new DatabaseException("Kann nicht die Lend-Tabelle laden!", e);
+        }
     }
 
     /**
@@ -167,73 +196,89 @@ public abstract class DatabaseStructure extends DatabaseFiles {
      *             Wird geworfen, wenn die Tabelle nicht vollständig geladen werden kann.
      */
     protected Vector<User> loadUsersTable() throws DatabaseException {
-        DatabaseStructure.LOCK.lock();
+        DatabaseFiles.LOCK.lock();
 
         try {
-            DatabaseTableReader<User> r = new DatabaseTableReader<User>(new BufferedReader(new FileReader(
-                    DatabaseFiles.DB_USERS_TB))) {
+            BufferedReader reader = Utils.createBufferedReader(DatabaseFiles.DB_USERS_TB);
+
+            return (new DatabaseTableReader<User>(reader) {
 
                 @Override
                 protected User process(final String line) throws Exception {
                     return User.parse(line);
                 }
-            };
-
-            return r.getResult();
+            }).getResult();
         } catch (Exception e) {
             throw new DatabaseException("Kann die Benutzertabelle nicht laden!", e);
         } finally {
-            DatabaseStructure.LOCK.unlock();
+            DatabaseFiles.LOCK.unlock();
         }
     }
 
     /**
-     * Speichert einen User an das Ende der Benutzertabelle.
+     * Schreibt die Access-Tabelle des Benutzers.
      * 
      * @param user
-     *            Das Benutzerobjekt.
-     * @param pass
-     *            Das Benutzerpasswort mit dem der private Schlüssel verschlüsselt wird.
+     *            Der Benutzer-Kontext.
+     * @param rawData
+     *            Die Rohdaten der Tabelle.
      * @throws DatabaseException
-     *             Wird geworfen, wenn der neue Benutzer nicht zur Benutertabelle hinzugefügt werden konnte.
+     *             Wird geworfen, wenn die Tabelle nicht geschrieben werden kann.
      */
-    protected void saveToUsers(final User user, final String pass) throws DatabaseException {
-        DatabaseStructure.LOCK.lock();
-
+    protected void writeAccessTable(final User user, final Vector<String> rawData) throws DatabaseException {
         try {
-            FileWriter fw = new FileWriter(DatabaseFiles.DB_USERS_TB, true);
+            BufferedWriter writer = Utils.createBufferedWriter(DatabaseTables.AccessTable.getFilename(user), false);
 
-            fw.append(user.compile(pass));
-            fw.append("\n");
+            new DatabaseTableWriter<String>(writer, rawData) {
 
-            fw.flush();
-            fw.close();
+                @Override
+                protected String process(final String item) throws Exception {
+                    return item;
+                }
 
-            Database.getInstance().shutdown();
+            };
         } catch (Exception e) {
-            throw new DatabaseException("Fehler beim Schreiben in die Users-Tabelle!", e);
-        } finally {
-            DatabaseStructure.LOCK.unlock();
+            throw new DatabaseException("Kann die Access-Tabelle nicht schreiben!", e);
         }
     }
 
-    protected void writeFilesTable(final Collection<FileItem> files) throws DatabaseException {
+    /**
+     * Schreibt die globale Files-Tabelle.
+     * 
+     * @param collection
+     *            Die Elemente der Tabelle.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht geschrieben werden kann.
+     */
+    protected void writeFilesTable(final Vector<FileItem> collection) throws DatabaseException {
         try {
-            new DatabaseTableWriter<FileItem>(new BufferedWriter(new FileWriter(DatabaseFiles.DB_FILES_TB)), files) {
+            BufferedWriter writer = Utils.createBufferedWriter(DatabaseFiles.DB_FILES_TB, false);
+
+            new DatabaseTableWriter<FileItem>(writer, collection) {
 
                 @Override
                 protected String process(final FileItem item) throws Exception {
                     return item.compile();
                 }
+
             };
         } catch (Exception e) {
             throw new DatabaseException("Kann die Files-Tabelle nicht schreiben.", e);
         }
     }
 
-    protected void writeUserFilesTable(final User owner) throws DatabaseException {
-        new DatabaseTableWriter<FileItem>(AesWriter.createWriter(DatabaseTables.FileTable.getFilename(owner), owner
-                .getCryptKey()), owner.getDescriptor().getFileList()) {
+    /**
+     * Schreibt die Files-Tabelle des Benutzers.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn die Tabelle nicht geschrieben werden kann.
+     */
+    protected void writeUserFilesTable(final User user) throws DatabaseException {
+        AesWriter writer = AesWriter.createWriter(DatabaseTables.FileTable.getFilename(user), user.getCryptKey());
+
+        new DatabaseTableWriter<FileItem>(writer, user.getDescriptor().getFileList()) {
 
             @Override
             protected String process(final FileItem item) throws Exception {

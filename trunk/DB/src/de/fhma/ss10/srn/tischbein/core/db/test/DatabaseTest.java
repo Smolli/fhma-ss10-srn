@@ -129,6 +129,7 @@ public class DatabaseTest {
      */
     @Test
     public void test06AddFile() {
+        // TODO: auf neuen Aufruf umstellen
         //        try {
         //                        this.user.addFile(DatabaseTest.TESTFILE);
         //        } catch (DatabaseException e) {

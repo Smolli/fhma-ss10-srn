@@ -102,34 +102,6 @@ public final class User {
     /** Hält die Dateidaten für den Benutzer. */
     private transient UserDescriptor descriptor;
 
-    //    /**
-    //     * Fügt zu einem Benutzer eine Datei hinzu. Die Datei wird verschlüsselt und alle Änderungen an der Datenbank werden
-    //     * vorgenommen.
-    //     * 
-    //     * @param filename
-    //     *            Der Dateiname mit vollständigem Pfad.
-    //     * @return Gibt das hinzugefügte {@link FileItem} zurück.
-    //     * @throws DatabaseException
-    //     *             Wird geworfen, wenn keine Änderungen an den Tabellen vorgenommen werden konnte.
-    //     */
-    //    public FileItem addFile(final String filename) throws DatabaseException {
-    //        try {
-    //            // Filekey erstellen
-    //            SecretKey secret = AesCrypto.generateKey();
-    //
-    //            // Dateiinhalt verschlüsseln + speichern
-    //            FileItem fi = FileItem.createEncryptedFile(this, filename, secret);
-    //
-    //            Database.getInstance().addFileItem(fi);
-    //
-    //            System.out.println("Datei " + filename + " hinzugefügt.");
-    //
-    //            return fi;
-    //        } catch (Exception e) {
-    //            throw new DatabaseException("Kann Datei nicht hinzufügen!", e);
-    //        }
-    //    }
-
     /**
      * Compiliert das User-Objekt und gibt es als Zeichenkette zurück. Die einzelnen Felder sind duch den
      * {@link Database#SEPARATOR} getrennt.

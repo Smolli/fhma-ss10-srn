@@ -1,7 +1,13 @@
 package de.fhma.ss10.srn.tischbein.core;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.Key;
@@ -31,6 +37,45 @@ public final class Utils {
             Utils.md5 = MessageDigest.getInstance("MD5");
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Erstellt einen {@link BufferedReader} anhand des Dateinamens.
+     * 
+     * @param filename
+     *            Der Dateiname.
+     * @return Gibt einen {@link BufferedReader} zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn der Reader nicht erstellt werden konnte.
+     */
+    public static BufferedReader createBufferedReader(final String filename) throws UtilsException {
+        try {
+            return new BufferedReader(new FileReader(filename));
+        } catch (FileNotFoundException e) {
+            throw new UtilsException("Kann den Reader nicht erzeugen!", e);
+        }
+    }
+
+    /**
+     * Erstellt einen {@link BufferedWriter} anhand des Dateinamen.
+     * 
+     * @param filename
+     *            Der Dateiname.
+     * @param append
+     *            Wenn <code>append</code> auf <code>true</code> gesetzt ist, wird der Writer im anhänge-Modus geöffnet
+     *            und alle Daten, die hineingeschrieben werden, werden an das Ende der Datei angehängt. Wenn er auf
+     *            <code>false</code> gesetzt ist, wird eine bestehende Datei überschrieben.
+     * @return Gibt den {@link BufferedWriter} zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn die Datei nicht zum Schreiben geöffnet werden konnte.
+     */
+    public static BufferedWriter createBufferedWriter(final String filename, final boolean append)
+            throws UtilsException {
+        try {
+            return new BufferedWriter(new FileWriter(filename, append));
+        } catch (IOException e) {
+            throw new UtilsException("Kann den Writer nicht erzeugen!", e);
         }
     }
 

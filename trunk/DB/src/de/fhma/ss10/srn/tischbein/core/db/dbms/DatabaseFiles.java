@@ -2,6 +2,7 @@ package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.locks.ReentrantLock;
 
 import de.fhma.ss10.srn.tischbein.core.db.User;
 
@@ -16,6 +17,8 @@ public abstract class DatabaseFiles {
     protected static final String DB_USERS_TB = "db/users.tb";
     /** Standard-Datei für die Datei-Tabelle. */
     protected static final String DB_FILES_TB = "db/files.tb";
+    /** Das Reentrantlock. */
+    protected static final ReentrantLock LOCK = new ReentrantLock();
 
     /**
      * Erstellt die Tabellen-Dateien für die Datenbank.

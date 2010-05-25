@@ -156,10 +156,19 @@ public final class FileItem implements Comparable<Integer> {
                 .getName(), Utils.toHexLine(this.hash));
     }
 
+    /**
+     * Verschlüsselt eine Datei und speichert die Dateidaten in der Datenbank ab. Es wird nichts in die Tabellen
+     * geschrieben.
+     * 
+     * @throws FileItemException
+     *             Wird geworfen, wenn der Dateiinhalt nicht ermittelt werden kann.
+     */
     public void encrypt() throws FileItemException {
         try {
             AesWriter w = AesWriter.createWriter(FileItem.generateDatabaseName(this), this.fileKey);
+
             w.write(Utils.toHexLine(this.getContent()));
+
             w.close();
         } catch (Exception e) {
             throw new FileItemException("Kann die Datei nicht verschlüsseln!", e);
@@ -174,7 +183,7 @@ public final class FileItem implements Comparable<Integer> {
 
         FileItem item = (FileItem) obj;
 
-        if (this.id == item.id) {
+        if (this.id.equals(item.id)) {
             return true;
         }
 
@@ -191,15 +200,7 @@ public final class FileItem implements Comparable<Integer> {
     public byte[] getContent() throws FileItemException {
         try {
             if (this.content == null) {
-                String filename = FileItem.generateDatabaseName(this);
-                File file = new File(filename);
-                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-                byte[] buffer = new byte[(int) file.length()];
-
-                bis.read(buffer);
-
-                this.content = Utils.fromHexLine(new String(AesCrypto.decrypt(Utils.fromHexText(new String(buffer)),
-                        this.fileKey)));
+                this.readContent();
             }
 
             return this.content;
@@ -208,6 +209,11 @@ public final class FileItem implements Comparable<Integer> {
         }
     }
 
+    /**
+     * Gibt den Hash der Datei zurück.
+     * 
+     * @return Den Hash als {@link Byte}-Array.
+     */
     public byte[] getHash() {
         return this.hash;
     }
@@ -276,6 +282,36 @@ public final class FileItem implements Comparable<Integer> {
     @Override
     public String toString() {
         return this.getName();
+    }
+
+    /**
+     * Liest den Dateiinhalt ein und entschlüsselt ihn.
+     * 
+     * @throws FileItemException
+     *             Wird geworfen, wenn der Dateiinhalt nicht geladen oder entschlüsselt werden kann.
+     */
+    private void readContent() throws FileItemException {
+        try {
+            BufferedInputStream bis = null;
+
+            try {
+                String filename = FileItem.generateDatabaseName(this);
+                File file = new File(filename);
+                bis = new BufferedInputStream(new FileInputStream(file));
+                byte[] buffer = new byte[(int) file.length()];
+
+                bis.read(buffer);
+
+                this.content = Utils.fromHexLine(new String(AesCrypto.decrypt(Utils.fromHexText(new String(buffer)),
+                        this.fileKey)));
+            } finally {
+                if (bis != null) {
+                    bis.close();
+                }
+            }
+        } catch (Exception e) {
+            throw new FileItemException("Kann den Inhalt der Datei nicht laden oder entschlüsseln!", e);
+        }
     }
 
     /**
