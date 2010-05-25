@@ -118,10 +118,12 @@ public abstract class DatabaseModel extends DatabaseStructure {
             this.createUserFiles(user);
 
             this.appendUserToUsersTable(user, pass);
+
+            this.users.put(user.getName().toLowerCase(), user);
         } catch (Exception e) {
             throw new DatabaseException("Kann den Benutzer nicht hinzufügen!", e);
         } finally {
-            Database.getInstance().shutdown();
+            //            Database.getInstance().shutdown();
         }
     }
 
@@ -319,7 +321,11 @@ public abstract class DatabaseModel extends DatabaseStructure {
      */
     private void fetchUsers() throws DatabaseException {
         for (User user : this.loadUsersTable()) {
-            this.users.put(user.getName().toLowerCase(), user);
+            if (!this.users.containsKey(user.getName().toLowerCase())) {
+                this.users.put(user.getName().toLowerCase(), user);
+            }
+
+            Database.addChangeListener(user);
         }
     }
 
