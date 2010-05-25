@@ -9,7 +9,6 @@ public class UploadForm extends javax.swing.JFrame {
     protected javax.swing.JButton abbortButton;
     protected javax.swing.JTextField filenameField;
     protected javax.swing.JTextField hashField;
-    protected javax.swing.JProgressBar hashingProgress;
     protected javax.swing.JButton saveButton;
     protected javax.swing.JButton searchButton;
     protected javax.swing.JTextField secretField;
@@ -39,7 +38,6 @@ public class UploadForm extends javax.swing.JFrame {
         this.secretField = new javax.swing.JTextField();
         javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
         javax.swing.JPanel jPanel3 = new javax.swing.JPanel();
-        this.hashingProgress = new javax.swing.JProgressBar();
         this.saveButton = new javax.swing.JButton();
         this.abbortButton = new javax.swing.JButton();
 
@@ -80,7 +78,6 @@ public class UploadForm extends javax.swing.JFrame {
         jPanel4.add(jSeparator1);
 
         jPanel3.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        jPanel3.add(this.hashingProgress);
 
         this.saveButton.setText("Speichern");
         jPanel3.add(this.saveButton);

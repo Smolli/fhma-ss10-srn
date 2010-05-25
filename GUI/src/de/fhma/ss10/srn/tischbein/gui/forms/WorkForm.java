@@ -12,9 +12,12 @@ public class WorkForm extends javax.swing.JFrame {
     protected javax.swing.JButton deleteButton;
     protected javax.swing.JTextArea fileView;
     protected javax.swing.JButton logoutButton;
+    //    protected javax.swing.JButton newsessionButton;
     protected javax.swing.JList otherFilesList;
     protected javax.swing.JButton uploadButton;
     protected javax.swing.JList userFilesList;
+    protected javax.swing.JPanel viewPanel;
+
     // End of variables declaration//GEN-END:variables
 
     /** Creates new form WorkForm */
@@ -30,46 +33,51 @@ public class WorkForm extends javax.swing.JFrame {
     private void initComponents() {
 
         javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
-        logoutButton = new javax.swing.JButton();
-        closeButton = new javax.swing.JButton();
+        this.logoutButton = new javax.swing.JButton();
+        this.closeButton = new javax.swing.JButton();
+        //        newsessionButton = new javax.swing.JButton();
         javax.swing.JPanel titlePanel = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel1 = new javax.swing.JLabel(de.fhma.ss10.srn.tischbein.gui.launcher.Launcher.PRODUCT_NAME + " - Ultra Deluxe Gourmet Version");
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel(
+                de.fhma.ss10.srn.tischbein.gui.launcher.Launcher.PRODUCT_NAME + " - Ultra Deluxe Gourmet Version");
         javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
         javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
         javax.swing.JPanel filesPanel = new javax.swing.JPanel();
         javax.swing.JPanel myFilesPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
-        userFilesList = new javax.swing.JList();
+        this.userFilesList = new javax.swing.JList();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
-        uploadButton = new javax.swing.JButton();
-        deleteButton = new javax.swing.JButton();
+        this.uploadButton = new javax.swing.JButton();
+        this.deleteButton = new javax.swing.JButton();
         javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
         javax.swing.JPanel otherFilesPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
-        otherFilesList = new javax.swing.JList();
+        this.otherFilesList = new javax.swing.JList();
         javax.swing.JSplitPane jSplitPane2 = new javax.swing.JSplitPane();
-        javax.swing.JPanel viewPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane jScrollPane4 = new javax.swing.JScrollPane();
-        fileView = new javax.swing.JTextArea();
+        this.viewPanel = new javax.swing.JPanel();
+        javax.swing.JScrollPane fileViewScrollArea = new javax.swing.JScrollPane();
+        this.fileView = new javax.swing.JTextArea();
         javax.swing.JPanel userPanel = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane5 = new javax.swing.JScrollPane();
-        accessTable = new javax.swing.JTable();
+        this.accessTable = new javax.swing.JTable();
         javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Tischbein v0.2");
-        setMinimumSize(new java.awt.Dimension(640, 480));
+        this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        this.setTitle("Tischbein v0.2");
+        this.setMinimumSize(new java.awt.Dimension(640, 480));
 
         buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        logoutButton.setText("Logout");
-        buttonPanel.add(logoutButton);
+        this.logoutButton.setText("Logout");
+        buttonPanel.add(this.logoutButton);
 
-        closeButton.setText("Beenden");
-        buttonPanel.add(closeButton);
+        this.closeButton.setText("Beenden");
+        buttonPanel.add(this.closeButton);
 
-        getContentPane().add(buttonPanel, java.awt.BorderLayout.SOUTH);
+        //        newsessionButton.setText("Neue Session");
+        //        buttonPanel.add(newsessionButton);
+
+        this.getContentPane().add(buttonPanel, java.awt.BorderLayout.SOUTH);
 
         jLabel1.setFont(new java.awt.Font("Candara", 1, 18));
         titlePanel.add(jLabel1);
@@ -78,7 +86,7 @@ public class WorkForm extends javax.swing.JFrame {
         jLabel2.setText("(mit Porno-Hack)");
         titlePanel.add(jLabel2);
 
-        getContentPane().add(titlePanel, java.awt.BorderLayout.NORTH);
+        this.getContentPane().add(titlePanel, java.awt.BorderLayout.NORTH);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
         jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.Y_AXIS));
@@ -92,7 +100,7 @@ public class WorkForm extends javax.swing.JFrame {
         myFilesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Eigene Dateien"));
         myFilesPanel.setLayout(new javax.swing.BoxLayout(myFilesPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        jScrollPane2.setViewportView(userFilesList);
+        jScrollPane2.setViewportView(this.userFilesList);
 
         myFilesPanel.add(jScrollPane2);
 
@@ -100,11 +108,11 @@ public class WorkForm extends javax.swing.JFrame {
 
         jPanel1.setLayout(new javax.swing.BoxLayout(jPanel1, javax.swing.BoxLayout.LINE_AXIS));
 
-        uploadButton.setText("Hochladen");
-        jPanel1.add(uploadButton);
+        this.uploadButton.setText("Hochladen");
+        jPanel1.add(this.uploadButton);
 
-        deleteButton.setText("Löschen");
-        jPanel1.add(deleteButton);
+        this.deleteButton.setText("Löschen");
+        jPanel1.add(this.deleteButton);
 
         filesPanel.add(jPanel1);
         filesPanel.add(jSeparator1);
@@ -112,7 +120,7 @@ public class WorkForm extends javax.swing.JFrame {
         otherFilesPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Freigeschaltete Dateien"));
         otherFilesPanel.setLayout(new javax.swing.BoxLayout(otherFilesPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        jScrollPane3.setViewportView(otherFilesList);
+        jScrollPane3.setViewportView(this.otherFilesList);
 
         otherFilesPanel.add(jScrollPane3);
 
@@ -123,33 +131,29 @@ public class WorkForm extends javax.swing.JFrame {
         jSplitPane2.setResizeWeight(1.0);
         jSplitPane2.setContinuousLayout(true);
 
-        viewPanel.setLayout(new javax.swing.BoxLayout(viewPanel, javax.swing.BoxLayout.LINE_AXIS));
+        this.viewPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+        this.viewPanel.setLayout(new javax.swing.BoxLayout(this.viewPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        fileView.setColumns(20);
-        fileView.setRows(5);
-        jScrollPane4.setViewportView(fileView);
+        this.fileView.setColumns(20);
+        this.fileView.setEditable(false);
+        this.fileView.setLineWrap(true);
+        this.fileView.setRows(5);
+        fileViewScrollArea.setViewportView(this.fileView);
 
-        viewPanel.add(jScrollPane4);
+        this.viewPanel.add(fileViewScrollArea);
 
-        jSplitPane2.setLeftComponent(viewPanel);
+        jSplitPane2.setLeftComponent(this.viewPanel);
 
-        userPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createTitledBorder("Benutzererlaubnis")));
+        userPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory
+                .createTitledBorder("Benutzererlaubnis")));
         userPanel.setMinimumSize(new java.awt.Dimension(150, 63));
         userPanel.setPreferredSize(new java.awt.Dimension(150, 130));
         userPanel.setLayout(new javax.swing.BoxLayout(userPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        accessTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        jScrollPane5.setViewportView(accessTable);
+        this.accessTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][] { { null, null, null, null },
+                { null, null, null, null }, { null, null, null, null }, { null, null, null, null } }, new String[] {
+                "Title 1", "Title 2", "Title 3", "Title 4" }));
+        jScrollPane5.setViewportView(this.accessTable);
 
         userPanel.add(jScrollPane5);
 
@@ -162,9 +166,9 @@ public class WorkForm extends javax.swing.JFrame {
         jSeparator2.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 5, 5, 5));
         jPanel2.add(jSeparator2);
 
-        getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
+        this.getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
 
-        pack();
+        this.pack();
     }// </editor-fold>//GEN-END:initComponents
 
 }

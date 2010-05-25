@@ -1,9 +1,9 @@
 package de.fhma.ss10.srn.tischbein.gui.launcher;
 
-import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.frames.LoginFrame;
 
 /**
@@ -14,7 +14,7 @@ import de.fhma.ss10.srn.tischbein.gui.frames.LoginFrame;
 public final class Launcher {
 
     /** Hält den Produktnamen. */
-    public static final String PRODUCT_NAME = "Tischbein v0.2";
+    public static final String PRODUCT_NAME = "Tischbein v0.99 RC1";
 
     /**
      * Haupteinstiegspunkt für die GUI-Applikation.

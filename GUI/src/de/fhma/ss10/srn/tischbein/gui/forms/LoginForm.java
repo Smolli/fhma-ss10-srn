@@ -57,7 +57,6 @@ public class LoginForm extends javax.swing.JFrame {
         this.getContentPane().add(southPanel, java.awt.BorderLayout.SOUTH);
 
         jLabel1.setFont(new java.awt.Font("Candara", 1, 18)); // NOI18N
-        jLabel1.setText("Tischbein v0.2");
         northPanel.add(jLabel1);
 
         this.getContentPane().add(northPanel, java.awt.BorderLayout.NORTH);

@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import de.fhma.ss10.srn.tischbein.core.db.User;
 import de.fhma.ss10.srn.tischbein.gui.frames.UploadFrame;
 import de.fhma.ss10.srn.tischbein.gui.frames.UploadFrame.UploadFrameListener;
 
@@ -18,24 +17,22 @@ public final class UploadAction extends AbstractAction {
 
     /** Serial UID. */
     private static final long serialVersionUID = 7077305932498378892L;
-
-    //User der aktuellen Session
-    private transient final User user;
+    /** Hält den Daten-Listener. */
     private final UploadFrameListener listener;
 
-    //Neues UploadActionObjekt mit dem aktuellen Benutzer
-    public UploadAction(final UploadFrameListener listener, final User newUser) {
-        this.user = newUser;
-        this.listener = listener;
+    /**
+     * Standard-Ctor. Erstellt die Upload-Action und speichert den Daten-Listener.
+     * 
+     * @param listenerObject
+     *            Der Datenlistener.
+     */
+    public UploadAction(final UploadFrameListener listenerObject) {
+        this.listener = listenerObject;
     }
 
     @Override
-    /*
-     * Neues UploadFrame erstellen
-     */
     public void actionPerformed(final ActionEvent arg0) {
-        UploadFrame frame = new UploadFrame(this.listener, this.user);
-        frame.setVisible(true);
+        new UploadFrame(this.listener);
     }
 
     @Override
