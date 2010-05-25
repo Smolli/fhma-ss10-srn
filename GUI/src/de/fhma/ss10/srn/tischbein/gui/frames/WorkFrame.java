@@ -3,6 +3,7 @@ package de.fhma.ss10.srn.tischbein.gui.frames;
 import java.util.Vector;
 
 import javax.swing.DefaultListSelectionModel;
+import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -141,20 +142,21 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         /** Serial UID. */
         private static final long serialVersionUID = 9031173846551914083L;
+        private final JList list;
 
         {
             this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        }
+
+        public FilesSelectionModel(JList guiList) {
+            this.list = guiList;
         }
 
         @Override
         public void setSelectionInterval(final int first, final int last) {
             super.setSelectionInterval(first, last);
 
-            WorkFrame.this.selectFile(WorkFrame.this.currentUser.getFileListObject().getFileList().get(last));
-
-            WorkFrame.this.accessTable.repaint();
-
-            System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
+            WorkFrame.this.selectFile((FileItem) this.list.getModel().getElementAt(last));
         }
     }
 
@@ -177,11 +179,12 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
 
         this.setupActions();
 
-        this.userFilesList.setSelectionModel(new FilesSelectionModel());
+        this.userFilesList.setSelectionModel(new FilesSelectionModel(this.userFilesList));
         this.userFilesList.setListData(this.currentUser.getFileListObject().getFileList());
 
         this.accessTable.setModel(new AccessTableModel());
 
+        this.otherFilesList.setSelectionModel(new FilesSelectionModel(this.otherFilesList));
         this.otherFilesList.setListData(this.currentUser.getFileListObject().getAccessList());
 
         this.setTitle(Launcher.PRODUCT_NAME + " - " + user.getName());
@@ -212,6 +215,10 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
             byte[] content = file.getContent();
 
             this.fileView.setText(new String(content));
+
+            WorkFrame.this.accessTable.repaint();
+
+            System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
         } catch (Exception e) {
             GuiUtils.displayError("Datei kann nicht angezeigt werden!", e);
         }
