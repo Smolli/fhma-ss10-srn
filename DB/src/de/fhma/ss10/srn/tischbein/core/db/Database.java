@@ -16,8 +16,14 @@ public final class Database extends DatabaseModel {
     /** Singleton-Instanz der Datenbank. */
     private static Database instance = null;
     /** Hält alle gemeldeten Listener. */
-    private final static Vector<DatabaseChangeListener> LISTENERS = new Vector<DatabaseChangeListener>();
+    private static final Vector<DatabaseChangeListener> LISTENERS = new Vector<DatabaseChangeListener>();
 
+    /**
+     * Fügt einen Change-Listener hinzu.
+     * 
+     * @param listener
+     *            Der Listener vom Typ {@link DatabaseChangeListener}.
+     */
     public static void addChangeListener(final DatabaseChangeListener listener) {
         DatabaseFiles.LOCK.lock();
 
@@ -56,6 +62,12 @@ public final class Database extends DatabaseModel {
         }
     }
 
+    /**
+     * Entfernt einen Listener.
+     * 
+     * @param listener
+     *            Ein Listener vom Typ {@link DatabaseChangeListener}.
+     */
     public static void removeChangeListener(final DatabaseChangeListener listener) {
         DatabaseFiles.LOCK.lock();
 
