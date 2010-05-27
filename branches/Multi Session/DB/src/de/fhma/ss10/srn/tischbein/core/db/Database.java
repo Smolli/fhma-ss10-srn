@@ -15,14 +15,14 @@ public final class Database extends DatabaseModel {
 
     /** Singleton-Instanz der Datenbank. */
     private static Database instance = null;
-
-    private final static Vector<DatabaseChangeListener> listeners = new Vector<DatabaseChangeListener>();
+    /** Hält alle gemeldeten Listener. */
+    private final static Vector<DatabaseChangeListener> LISTENERS = new Vector<DatabaseChangeListener>();
 
     public static void addChangeListener(final DatabaseChangeListener listener) {
         DatabaseFiles.LOCK.lock();
 
         try {
-            Database.listeners.add(listener);
+            Database.LISTENERS.add(listener);
         } finally {
             DatabaseFiles.LOCK.unlock();
         }
@@ -60,33 +60,26 @@ public final class Database extends DatabaseModel {
         DatabaseFiles.LOCK.lock();
 
         try {
-            Database.listeners.remove(listener);
-        } finally {
-            DatabaseFiles.LOCK.unlock();
-        }
-    }
-
-    private static void fireChangeEvent() {
-        DatabaseFiles.LOCK.lock();
-
-        try {
-            for (DatabaseChangeListener listener : new Vector<DatabaseChangeListener>(Database.listeners)) {
-                listener.databaseChanged();
-            }
+            Database.LISTENERS.remove(listener);
         } finally {
             DatabaseFiles.LOCK.unlock();
         }
     }
 
     /**
-     * Setzt die Datenbankinstanz auf <code>null</code>.
+     * Feuert das Event, dass sich die Datenbank geändert hat.
      */
-    private static void killInstance() {
+    private static void fireChangeEvent() {
         DatabaseFiles.LOCK.lock();
 
-        Database.instance = null;
-
-        DatabaseFiles.LOCK.unlock();
+        try {
+            // Der Listerners-Vector *MUSS* hier kopiert werden, da es sein kann, dass er sich ändert (-> Exception!) 
+            for (DatabaseChangeListener listener : new Vector<DatabaseChangeListener>(Database.LISTENERS)) {
+                listener.databaseChanged();
+            }
+        } finally {
+            DatabaseFiles.LOCK.unlock();
+        }
     }
 
     /**
@@ -408,31 +401,6 @@ public final class Database extends DatabaseModel {
         } finally {
             DatabaseFiles.LOCK.unlock();
         }
-    }
-
-    //    /**
-    //     * Fährt die Datenbank runter und speichert noch ausstehende Daten ab.
-    //     */
-    //    public void shutdown() {
-    //        DatabaseFiles.LOCK.lock();
-    //
-    //        try {
-    //            //            Database.killInstance();
-    //            this.fetchUsers();
-    //            this.fetchFiles();
-    //        } catch (DatabaseException e) {
-    //            // TODO Auto-generated catch block
-    //            e.printStackTrace();
-    //        } finally {
-    //            DatabaseFiles.LOCK.unlock();
-    //        }
-    //    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        //        this.shutdown();
-
-        super.finalize();
     }
 
 }
