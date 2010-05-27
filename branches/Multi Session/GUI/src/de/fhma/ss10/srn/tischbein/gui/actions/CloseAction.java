@@ -22,6 +22,7 @@ public final class CloseAction extends AbstractAction {
         /**
          * Schließt die Anwendung.
          */
+        // TODO: anderen Namen finden!
         void close();
 
     }

@@ -24,6 +24,9 @@ public final class DeleteAction extends AbstractAction implements Action {
      */
     public interface DeleteActionListener {
 
+        // TODO: anderen Namen finden; ist kein Listener!
+        // getCUser() und getSF() in separates Interface auslagern?
+
         /**
          * Gibt den aktuell eingeloggten Benutzer zurück.
          * 
@@ -41,6 +44,7 @@ public final class DeleteAction extends AbstractAction implements Action {
         /**
          * Wird aufgerufen, wenn sich an den Listen des Benutzers etwas geändert hat.
          */
+        // TODO: anderen Namen finden!
         void notifyChange();
 
     }

@@ -23,6 +23,7 @@ public final class NewUserAction extends AbstractAction implements LoginActionLi
      * @author Smolli
      */
     public interface NewUserActionListener extends LoginActionListener {
+        // TODO: ist das hier sinnvoll?
     }
 
     /** Serial UID. */
