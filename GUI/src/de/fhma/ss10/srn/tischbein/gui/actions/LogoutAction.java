@@ -22,6 +22,7 @@ public final class LogoutAction extends AbstractAction {
         /**
          * Loggt den Benutzer aus.
          */
+        // TODO: anderen Namen finden
         void logout();
 
     }

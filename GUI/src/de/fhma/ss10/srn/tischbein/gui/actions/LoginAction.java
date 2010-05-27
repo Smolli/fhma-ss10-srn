@@ -25,6 +25,9 @@ public final class LoginAction extends AbstractAction {
      */
     public interface LoginActionListener {
 
+        // TODO: anderen Namen finden; ist kein Listener!
+        // getPwd() und getUName() in separates Interface auslagern?
+
         /**
          * Gibt das Passwort zurück.
          * 

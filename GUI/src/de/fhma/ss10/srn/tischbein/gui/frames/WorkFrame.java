@@ -15,6 +15,7 @@ import de.fhma.ss10.srn.tischbein.core.db.DatabaseChangeListener;
 import de.fhma.ss10.srn.tischbein.core.db.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.FileItemException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor;
 import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.DeleteAction;
@@ -42,6 +43,8 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      * @author Smolli
      */
     private final class AccessTableModel implements TableModel {
+
+        // TODO: eingeloggte Benutzer sollen mit fetter Schrift dargestellt werden.
 
         /** Hält die Liste der angezeigten Benutzer. */
         private final Vector<User> users = Database.getInstance().getUsers(WorkFrame.this.currentUser);
@@ -179,7 +182,9 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     private final transient User currentUser;
     /** Hält die momentan ausgewählte Datei. */
     private transient FileItem selectedFile = null;
+    /** Hält die {@link JList}, aus der die aktuelle Datei ausgewählt ist. */
     private JList lastList;
+    /** Hält den Index in der JList von der aktelle ausgewählten Datei. */
     private int lastIndex;
 
     /**
@@ -261,15 +266,11 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      * Initialisiert die drei GUI-Listen.
      */
     private void initLists() {
-        //        this.userFilesList.setListData(this.currentUser.getDescriptor().getFileList());
         this.userFilesList.setModel(new DefaultListModel());
-        this.userFilesList.repaint();
 
         this.accessTable.setVisible(false);
 
-        //        this.otherFilesList.setListData(this.currentUser.getDescriptor().getAccessList());
         this.otherFilesList.setModel(new DefaultListModel());
-        this.otherFilesList.repaint();
 
         this.updateLists();
     }
@@ -280,16 +281,20 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
      * 
      * @param file
      *            Die Datei, die der Benutzer ausgewählt hat.
+     * @param sender
+     *            Die {@link JList}, aus der die Datei ausgewählt wurde.
+     * @param index
+     *            Der Index, mit dem die Auswahl in der {@link JList} verbunden ist.
      */
     private void selectFile(final FileItem file, final JList sender, final int index) {
         try {
             this.selectedFile = file;
 
-            this.setFileView(file);
+            this.updateFileView();
 
-            this.setLists(file);
+            this.updateListSelection();
 
-            this.setAccessTable(file);
+            this.updateAccessTable();
 
             this.lastList = sender;
             this.lastIndex = index;
@@ -297,53 +302,6 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
             System.out.println(WorkFrame.this.selectedFile + " wurde ausgewählt");
         } catch (Exception e) {
             GuiUtils.displayError("Datei kann nicht angezeigt werden!", e);
-        }
-    }
-
-    /**
-     * Setzt die Access-Table-Ansicht.
-     * 
-     * @param file
-     *            Die Datei.
-     */
-    private void setAccessTable(final FileItem file) {
-        if ((file != null) && (file.getOwner() == this.currentUser)) {
-            this.accessTable.setVisible(true);
-            this.accessTable.repaint();
-        } else {
-            this.accessTable.setVisible(false);
-        }
-    }
-
-    /**
-     * Setzt die FileView entsprechende der übergebenen Datei.
-     * 
-     * @param file
-     *            Die Datei.
-     * @throws FileItemException
-     *             Wird geworfen, wenn die Datei nicht geladen werden kann.
-     */
-    private void setFileView(final FileItem file) throws FileItemException {
-        if (file != null) {
-            byte[] content = file.getContent();
-
-            this.fileView.setText(new String(content));
-            this.fileView.setCaretPosition(0);
-
-            ((TitledBorder) this.viewPanel.getBorder()).setTitle(file.getName());
-        } else {
-            ((TitledBorder) this.viewPanel.getBorder()).setTitle("");
-        }
-
-        this.viewPanel.doLayout();
-        this.viewPanel.repaint();
-    }
-
-    private void setLists(final FileItem file) {
-        if (file.getOwner() == this.currentUser) {
-            this.otherFilesList.clearSelection();
-        } else {
-            this.userFilesList.clearSelection();
         }
     }
 
@@ -359,27 +317,79 @@ public final class WorkFrame extends WorkForm implements CloseActionListener, Lo
     }
 
     /**
-     * Initialisiert die drei GUI-Listen.
+     * Setzt die Access-Table-Ansicht.
+     */
+    private void updateAccessTable() {
+        if ((this.selectedFile != null) && (this.selectedFile.getOwner() == this.currentUser)) {
+            this.accessTable.setVisible(true);
+            this.accessTable.repaint();
+        } else {
+            this.accessTable.setVisible(false);
+        }
+    }
+
+    /**
+     * Setzt die FileView entsprechende der übergebenen Datei.
+     * 
+     * @throws FileItemException
+     *             Wird geworfen, wenn die Datei nicht geladen werden kann.
+     */
+    private void updateFileView() throws FileItemException {
+        if (this.selectedFile != null) {
+            byte[] content = this.selectedFile.getContent();
+
+            this.fileView.setText(new String(content));
+            this.fileView.setCaretPosition(0);
+
+            ((TitledBorder) this.viewPanel.getBorder()).setTitle(this.selectedFile.getName());
+        } else {
+            ((TitledBorder) this.viewPanel.getBorder()).setTitle("");
+        }
+
+        this.viewPanel.doLayout();
+        this.viewPanel.repaint();
+    }
+
+    /**
+     * Erneuert eine spezifische Dateiliste.
+     * 
+     * @param list
+     *            Die {@link JList}, die erneuert werden soll.
+     * @param fileList
+     *            Die Elemente, die in die Liste geschrieben werden sollen.
+     */
+    private void updateList(final JList list, final Vector<FileItem> fileList) {
+        DefaultListModel model = (DefaultListModel) list.getModel();
+
+        model.clear();
+
+        for (FileItem file : fileList) {
+            model.addElement(file);
+        }
+
+        list.repaint();
+    }
+
+    /**
+     * Erneuert die beiden Dateilisten.
      */
     private void updateLists() {
-        DefaultListModel model = (DefaultListModel) this.userFilesList.getModel();
+        UserDescriptor descriptor = this.currentUser.getDescriptor();
 
-        model.clear();
-        for (FileItem file : this.currentUser.getDescriptor().getFileList()) {
-            model.addElement(file);
+        this.updateList(this.userFilesList, descriptor.getFileList());
+
+        this.updateList(this.otherFilesList, descriptor.getAccessList());
+    }
+
+    /**
+     * Löscht die Selektion einer der beiden {@link JList}, damit eindeutig ist, aus welcher die aktuell ausgewählte
+     * Datei stammt.
+     */
+    private void updateListSelection() {
+        if (this.selectedFile.getOwner() == this.currentUser) {
+            this.otherFilesList.clearSelection();
+        } else {
+            this.userFilesList.clearSelection();
         }
-
-        //        .setListData(this.currentUser.getDescriptor().getFileList());
-        this.userFilesList.repaint();
-
-        this.accessTable.setVisible(false);
-
-        //        this.otherFilesList.setListData(this.currentUser.getDescriptor().getAccessList());
-        model = (DefaultListModel) this.otherFilesList.getModel();
-        model.clear();
-        for (FileItem file : this.currentUser.getDescriptor().getAccessList()) {
-            model.addElement(file);
-        }
-        this.otherFilesList.repaint();
     }
 }
