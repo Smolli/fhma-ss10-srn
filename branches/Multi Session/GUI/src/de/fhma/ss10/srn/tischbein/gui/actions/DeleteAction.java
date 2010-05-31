@@ -22,10 +22,7 @@ public final class DeleteAction extends AbstractAction implements Action {
      * 
      * @author Smolli
      */
-    public interface DeleteActionListener {
-
-        // TODO: anderen Namen finden; ist kein Listener!
-        // getCUser() und getSF() in separates Interface auslagern?
+    public interface DeleteActionParent {
 
         /**
          * Gibt den aktuell eingeloggten Benutzer zurück.
@@ -41,18 +38,12 @@ public final class DeleteAction extends AbstractAction implements Action {
          */
         FileItem getSelectedFile();
 
-        /**
-         * Wird aufgerufen, wenn sich an den Listen des Benutzers etwas geändert hat.
-         */
-        // TODO: anderen Namen finden!
-        void notifyChange();
-
     }
 
     /** Serial UID. */
     private static final long serialVersionUID = 1042611735666746461L;
     /** Hält den Daten-Listener. */
-    private final DeleteActionListener listener;
+    private final DeleteActionParent listener;
 
     /**
      * Standard-Ctor.
@@ -60,35 +51,39 @@ public final class DeleteAction extends AbstractAction implements Action {
      * @param listenerObject
      *            Das 'Eltern'-Element, aus dem die Daten geholt werden sollen.
      */
-    public DeleteAction(final DeleteActionListener listenerObject) {
+    public DeleteAction(final DeleteActionParent listenerObject) {
+        super();
+
         this.listener = listenerObject;
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
-        FileItem item = this.listener.getSelectedFile();
-        User user = this.listener.getCurrentUser();
+    public void actionPerformed(final ActionEvent event) {
+        final FileItem item = this.listener.getSelectedFile();
+        final User user = this.listener.getCurrentUser();
 
-        if (item.getOwner() != user) {
-            return;
-        }
+        if (item.getOwner() == user) {
+            try {
+                Database.getInstance().deleteFileItem(item);
 
-        try {
-            Database.getInstance().deleteFileItem(item);
-
-            this.listener.notifyChange();
-        } catch (Exception ex) {
-            GuiUtils.displayError("Kann die Datei nicht löschen!", ex);
+                //            this.listener.notifyChange();
+            } catch (final Exception ex) {
+                GuiUtils.displayError("Kann die Datei nicht löschen!", ex);
+            }
         }
     }
 
     @Override
     public Object getValue(final String key) {
+        Object result;
+
         if (key.equals(Action.NAME)) {
-            return "Löschen";
+            result = "Löschen";
         } else {
-            return super.getValue(key);
+            result = super.getValue(key);
         }
+
+        return result;
     }
 
 }

@@ -10,6 +10,8 @@ import java.security.PublicKey;
 
 import javax.crypto.Cipher;
 
+import org.apache.log4j.Logger;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
 
@@ -18,27 +20,28 @@ import de.fhma.ss10.srn.tischbein.core.UtilsException;
  * 
  * @author Smolli
  */
-public class RsaCrypto {
+public final class RsaCrypto {
 
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(RsaCrypto.class);
     /** Hält den Standardnamen für die RSA-Verschlüsselung. */
     private static final String RSA_ALGO_NAME = "RSA";
     /** Hält die Schlüssellänge für den RSA-Alogrithmus in Bytes. */
     public static final int RSA_KEY_SIZE = 128;
     /** Hält die Größe des Padding-Blocks. */
-    private static final int RSA_PADDING_OVERHEAD = 11;
+    private static final int RSA_PADDING_SIZE = 11;
     /** Hält die maximale Blockgröße für die Verschlüsselung. */
-    private static final int RSA_BLOCK_SIZE = RsaCrypto.RSA_KEY_SIZE - RsaCrypto.RSA_PADDING_OVERHEAD;
+    private static final int RSA_BLOCK_SIZE = RsaCrypto.RSA_KEY_SIZE - RsaCrypto.RSA_PADDING_SIZE;
     /** Hält die Schlüssellänge für den RSA-Alogrithmus in Bits. */
     public static final int RSA_KEY_SIZE_BITS = RsaCrypto.RSA_KEY_SIZE * 8;
-
     /** Enthält den RSA-Algorithmus. */
     private static Cipher cipher = null;
 
     static {
         try {
             RsaCrypto.cipher = Cipher.getInstance(RsaCrypto.RSA_ALGO_NAME);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            RsaCrypto.LOG.error("Kann den RSA-Cipher nicht erzeugen!", e);
         }
     }
 
@@ -68,19 +71,21 @@ public class RsaCrypto {
     public static byte[] decode(final byte[] cipherText, final PrivateKey privateKey) throws UtilsException {
         try {
             RsaCrypto.cipher.init(Cipher.DECRYPT_MODE, privateKey);
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            ByteArrayInputStream in = new ByteArrayInputStream(cipherText);
-            byte[] res = new byte[RsaCrypto.RSA_KEY_SIZE];
+            final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            final ByteArrayInputStream stream = new ByteArrayInputStream(cipherText);
+            final byte[] res = new byte[RsaCrypto.RSA_KEY_SIZE];
             int size = cipherText.length;
 
             while (size > 0) {
-                size -= in.read(res);
+                size -= stream.read(res);
 
                 buffer.write(RsaCrypto.cipher.doFinal(res));
             }
 
+            stream.close();
+
             return buffer.toByteArray();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new UtilsException("Kann den Text nicht entschlüsseln!", e);
         }
     }
@@ -108,19 +113,21 @@ public class RsaCrypto {
     public static byte[] encode(final String messageText, final PublicKey publicKey) throws UtilsException {
         try {
             RsaCrypto.cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            ByteArrayInputStream in = new ByteArrayInputStream(messageText.getBytes());
+            final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            final ByteArrayInputStream stream = new ByteArrayInputStream(messageText.getBytes());
             int size = messageText.length();
-            byte[] res = new byte[RsaCrypto.RSA_BLOCK_SIZE];
+            final byte[] res = new byte[RsaCrypto.RSA_BLOCK_SIZE];
 
             while (size > 0) {
-                size -= in.read(res);
+                size -= stream.read(res);
 
                 buffer.write(RsaCrypto.cipher.doFinal(res));
             }
 
+            stream.close();
+
             return buffer.toByteArray();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new UtilsException("Kann den Klartext nicht verschlüsseln!", e);
         }
     }
@@ -136,14 +143,20 @@ public class RsaCrypto {
      * @see java.security.SecureRandom
      */
     public static KeyPair generateRSAKeyPair() throws NoSuchAlgorithmException {
-        KeyPairGenerator kpgen = null;
-        kpgen = KeyPairGenerator.getInstance(RsaCrypto.RSA_ALGO_NAME);
+        final KeyPairGenerator kpgen = KeyPairGenerator.getInstance(RsaCrypto.RSA_ALGO_NAME);
 
         kpgen.initialize(RsaCrypto.RSA_KEY_SIZE_BITS, Utils.getRandom());
 
-        KeyPair generatedKeyPair = kpgen.generateKeyPair();
+        final KeyPair generatedKeyPair = kpgen.generateKeyPair();
 
         return generatedKeyPair;
+    }
+
+    /**
+     * Geschützer Standard-Ctor.
+     */
+    private RsaCrypto() {
+        super();
     }
 
 }

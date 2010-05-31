@@ -36,10 +36,10 @@ public final class UploadFrame extends UploadForm implements ActionListener {
          */
         User getCurrentUser();
 
-        /**
-         * Wird aufgerufen, wenn sich an den Dateilisten etwas geändert hat.
-         */
-        void notifyChange();
+        //        /**
+        //         * Wird aufgerufen, wenn sich an den Dateilisten etwas geändert hat.
+        //         */
+        //        void notifyChange();
 
     }
 
@@ -60,6 +60,8 @@ public final class UploadFrame extends UploadForm implements ActionListener {
      *            Der Datenlistener.
      */
     public UploadFrame(final UploadFrameListener listenerObject) {
+        super();
+
         this.searchButton.addActionListener(this);
         this.abbortButton.addActionListener(this);
         this.saveButton.addActionListener(this);
@@ -70,7 +72,7 @@ public final class UploadFrame extends UploadForm implements ActionListener {
             this.key = AesCrypto.generateKey();
 
             this.secretField.setText(Utils.toHexLine(this.key.getEncoded()));
-        } catch (CryptoException e) {
+        } catch (final CryptoException e) {
             GuiUtils.displayError("Some strange behaviour occured!", e);
         }
 
@@ -108,10 +110,10 @@ public final class UploadFrame extends UploadForm implements ActionListener {
 
             Database.getInstance().addFileItem(this.item);
 
-            this.listener.notifyChange();
+            //            this.listener.notifyChange();
 
             this.dispose();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             GuiUtils.displayError("Kann Datei nicht hochladen!", e);
         }
     }
@@ -120,11 +122,11 @@ public final class UploadFrame extends UploadForm implements ActionListener {
      * Wird aufgerufen, wenn der 'Durchsuchen...'-Button gedrückt wurde.
      */
     private void searchButtonPressed() {
-        JFileChooser fc = new JFileChooser();
+        final JFileChooser chooser = new JFileChooser();
 
-        if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             // den Block nur ausführen, wenn der Benutzer auf 'Öffnen' geklickt hat
-            String filename = fc.getSelectedFile().getPath();
+            final String filename = chooser.getSelectedFile().getPath();
 
             try {
                 this.filenameField.setText(filename);
@@ -132,12 +134,12 @@ public final class UploadFrame extends UploadForm implements ActionListener {
                 this.item = FileItem.create(this.listener.getCurrentUser(), filename, this.key);
 
                 this.hashField.setText(Utils.toHexLine(this.item.getHash()));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 GuiUtils.displayError("Kann Datei nicht auswählen!", e);
 
                 this.filenameField.setText("");
                 this.hashField.setText("");
-                this.item = null;
+                this.item = null; // NOPMD by smolli on 30.05.10 22:03
             }
         }
     }

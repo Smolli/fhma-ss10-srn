@@ -15,11 +15,11 @@ public class UtilsException extends Exception {
      * 
      * @param message
      *            Die Nachricht.
-     * @param e
+     * @param exception
      *            Die verursachende Exception.
      */
-    public UtilsException(final String message, final Exception e) {
-        super(message, e);
+    public UtilsException(final String message, final Exception exception) {
+        super(message, exception);
     }
 
 }

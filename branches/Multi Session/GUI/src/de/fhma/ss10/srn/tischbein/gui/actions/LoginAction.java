@@ -23,10 +23,7 @@ public final class LoginAction extends AbstractAction {
      * 
      * @author Smolli
      */
-    public interface LoginActionListener {
-
-        // TODO: anderen Namen finden; ist kein Listener!
-        // getPwd() und getUName() in separates Interface auslagern?
+    public interface LoginActionParent {
 
         /**
          * Gibt das Passwort zurück.
@@ -60,7 +57,7 @@ public final class LoginAction extends AbstractAction {
     private static final long serialVersionUID = 4294231070983688689L;
 
     /** Hält das Listener-Objekt. */
-    private final LoginActionListener listener;
+    private final LoginActionParent listener;
 
     /**
      * Erstellt eine neue "Benutzer einloggen"-Action.
@@ -68,36 +65,42 @@ public final class LoginAction extends AbstractAction {
      * @param listenerObject
      *            Das Listener Objekt.
      */
-    public LoginAction(final LoginActionListener listenerObject) {
+    public LoginAction(final LoginActionParent listenerObject) {
+        super();
+
         this.listener = listenerObject;
     }
 
     @Override
     public void actionPerformed(final ActionEvent arg0) {
         try {
-            String name = this.listener.getUsername();
+            final String name = this.listener.getUsername();
 
             if (name.isEmpty()) {
                 throw new Exception("Benutzername muss angegeben werden!");
             }
 
-            User user = Database.getInstance().getUser(name);
+            final User user = Database.getInstance().getUser(name);
 
             user.unlock(this.listener.getPassword());
 
             this.listener.login(user);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             GuiUtils.displayError("Kann den Benutzer nicht einloggen!", ex);
         }
     }
 
     @Override
     public Object getValue(final String key) {
+        Object result;
+
         if (key.equals(Action.NAME)) {
-            return "Login";
+            result = "Login";
         } else {
-            return super.getValue(key);
+            result = super.getValue(key);
         }
+
+        return result;
     }
 
 }

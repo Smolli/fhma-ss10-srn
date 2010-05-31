@@ -1,5 +1,7 @@
 package de.fhma.ss10.srn.tischbein.core.db.test;
 
+import org.apache.log4j.Logger;
+
 import de.fhma.ss10.srn.tischbein.core.db.Database;
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 import de.fhma.ss10.srn.tischbein.core.db.User;
@@ -9,7 +11,10 @@ import de.fhma.ss10.srn.tischbein.core.db.User;
  * 
  * @author Smolli
  */
-public class CreateDummyDb {
+public final class CreateDummyDb {
+
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(CreateDummyDb.class);
 
     /**
      * Erstellt eine Testdatenbank.
@@ -21,7 +26,7 @@ public class CreateDummyDb {
         try {
             CreateDummyDb.createUsers();
 
-            User user = Database.getInstance().getUser("Susi");
+            final User user = Database.getInstance().getUser("Susi");
 
             user.unlock("1234");
 
@@ -31,8 +36,8 @@ public class CreateDummyDb {
             //            user.addFile("letzte Datei.txt");
 
             //            user.getDescriptor().setAccess(Database.getInstance().getUser("franz"), file, true);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            CreateDummyDb.LOG.error("Kann die Datenbank nicht erzeugen!", e);
         }
     }
 
@@ -50,6 +55,13 @@ public class CreateDummyDb {
         if (!Database.getInstance().hasUser("franz")) {
             Database.getInstance().createUser("Franz", "1234");
         }
+    }
+
+    /**
+     * Geschützter Ctor.
+     */
+    private CreateDummyDb() {
+        super();
     }
 
 }

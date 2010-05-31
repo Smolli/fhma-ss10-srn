@@ -25,10 +25,10 @@ public class UserException extends Exception {
      * 
      * @param message
      *            Die Nachricht.
-     * @param e
+     * @param exception
      *            Die Exception.
      */
-    public UserException(final String message, final Exception e) {
-        super(message, e);
+    public UserException(final String message, final Exception exception) {
+        super(message, exception);
     }
 }

@@ -2,6 +2,8 @@ package de.fhma.ss10.srn.tischbein.gui;
 
 import javax.swing.JOptionPane;
 
+import org.apache.log4j.Logger;
+
 /**
  * Utilitiy-Klasse für alle Sachen in der GUI.
  * 
@@ -9,34 +11,43 @@ import javax.swing.JOptionPane;
  */
 public final class GuiUtils {
 
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(GuiUtils.class);
+
     /**
      * Zeigt einen Modaldialog mit der Fehlermeldung an.
      * 
      * @param title
      *            Die Überschift des Dialogs.
-     * @param ex
+     * @param exception
      *            Der Grund für den Fehler.
      */
-    public static void displayError(final String title, final Exception ex) {
-        ex.printStackTrace();
+    public static void displayError(final String title, final Exception exception) {
+        GuiUtils.LOG.error(title, exception);
 
-        String message = ex.getMessage();
+        String message = exception.getMessage();
 
         if (message == null) {
             message = "-- Unbekannt --";
         }
 
-        StringBuilder sb = new StringBuilder(message);
-        Throwable t = ex.getCause();
+        final StringBuilder text = new StringBuilder(message);
+        Throwable cause = exception.getCause();
 
-        while (t != null) {
-            sb.append("\n\nWeil:\n");
-            sb.append(t.getMessage());
+        while (cause != null) {
+            text.append("\n\nWeil:\n");
+            text.append(cause.getMessage());
 
-            t = t.getCause();
+            cause = cause.getCause();
         }
 
-        JOptionPane.showMessageDialog(null, sb.toString(), title, JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, text.toString(), title, JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Geschützter Standard-Ctor.
+     */
+    private GuiUtils() {
+        super();
+    }
 }

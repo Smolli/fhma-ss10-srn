@@ -17,12 +17,11 @@ public final class LogoutAction extends AbstractAction {
      * 
      * @author Smolli
      */
-    public interface LogoutActionListener {
+    public interface LogoutActionParent {
 
         /**
          * Loggt den Benutzer aus.
          */
-        // TODO: anderen Namen finden
         void logout();
 
     }
@@ -31,7 +30,7 @@ public final class LogoutAction extends AbstractAction {
     private static final long serialVersionUID = -177255198567493408L;
 
     /** Hält den Listener. */
-    private final LogoutActionListener listener;
+    private final LogoutActionParent listener;
 
     /**
      * Erstellt eine neue LogoutAction.
@@ -39,7 +38,9 @@ public final class LogoutAction extends AbstractAction {
      * @param listenerObject
      *            Das Listener-Objekt.
      */
-    public LogoutAction(final LogoutActionListener listenerObject) {
+    public LogoutAction(final LogoutActionParent listenerObject) {
+        super();
+
         this.listener = listenerObject;
     }
 
@@ -50,11 +51,15 @@ public final class LogoutAction extends AbstractAction {
 
     @Override
     public Object getValue(final String key) {
+        Object result;
+
         if (key.equals(Action.NAME)) {
-            return "Logout";
+            result = "Logout";
         } else {
-            return super.getValue(key);
+            result = super.getValue(key);
         }
+
+        return result;
     }
 
 }

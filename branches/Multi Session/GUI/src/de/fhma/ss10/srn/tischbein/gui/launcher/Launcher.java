@@ -3,6 +3,8 @@ package de.fhma.ss10.srn.tischbein.gui.launcher;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import org.apache.log4j.Logger;
+
 import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 import de.fhma.ss10.srn.tischbein.gui.frames.LoginFrame;
 
@@ -15,6 +17,8 @@ public final class Launcher {
 
     /** Hält den Produktnamen. */
     public static final String PRODUCT_NAME = "Tischbein v0.99 RC1";
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(Launcher.class);
 
     /**
      * Haupteinstiegspunkt für die GUI-Applikation.
@@ -24,22 +28,28 @@ public final class Launcher {
      */
     public static void main(final String[] args) {
         try {
-            SwingUtilities.invokeAndWait(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() { // NOPMD by smolli on 30.05.10 19:41
 
                 @Override
                 public void run() {
                     try {
                         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    } catch (Exception e) {
-                        System.out.println("Error setting native LAF: " + e);
+                    } catch (final Exception e) {
+                        Launcher.LOG.error("Error setting native Look&Feel!", e);
                     }
 
                     new LoginFrame();
                 }
 
             });
-        } catch (Exception e) {
+        } catch (final Exception e) {
             GuiUtils.displayError("Unerwarteter Fehler!", e);
         }
+    }
+
+    /**
+     * Geschützter Standard-Ctor.
+     */
+    private Launcher() {
     }
 }

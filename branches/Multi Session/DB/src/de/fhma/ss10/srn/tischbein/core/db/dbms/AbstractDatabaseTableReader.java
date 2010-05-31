@@ -1,7 +1,11 @@
 package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import java.io.BufferedReader;
-import java.util.Vector;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 
@@ -14,10 +18,12 @@ import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
  * @param <T>
  *            Jede beliebige Klasse.
  */
-abstract class DatabaseTableReader<T> {
+abstract class AbstractDatabaseTableReader<T> {
 
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(AbstractDatabaseTableReader.class);
     /** Hält den Ergebnisvector. */
-    private final Vector<T> list = new Vector<T>();
+    private final transient List<T> list = new ArrayList<T>();
 
     /**
      * Standard-Ctor. Startet auch gleichzeitig die Verarbeitung.
@@ -27,21 +33,27 @@ abstract class DatabaseTableReader<T> {
      * @throws DatabaseException
      *             Wird geworfen, wenn der Reader nicht gelesen werden konnte.
      */
-    public DatabaseTableReader(final BufferedReader reader) throws DatabaseException {
+    public AbstractDatabaseTableReader(final BufferedReader reader) throws DatabaseException {
 
         try {
             String line;
             int count = 0;
 
-            while ((line = reader.readLine()) != null) {
-                this.list.add(this.process(line));
+            while ((line = reader.readLine()) != null) { // NOPMD by smolli on 30.05.10 20:02
+                final T item = this.process(line);
+
+                if (item != null) {
+                    this.list.add(item);
+                }
+
                 count++;
             }
 
-            System.out.println(Integer.toString(count) + " Zeilen aus Datei " + reader.toString() + " gelesen.");
+            AbstractDatabaseTableReader.LOG.debug(MessageFormat.format("{0} Zeilen aus Datei {1} gelesen.", Integer
+                    .toString(count), reader.toString()));
 
             reader.close();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new DatabaseException("Kann die Datei nicht lesen!", e);
         }
     }
@@ -49,9 +61,9 @@ abstract class DatabaseTableReader<T> {
     /**
      * Gibt den Ergbenisvektor zurück.
      * 
-     * @return Das Ergebnis des Auslesens als {@link Vector}.
+     * @return Das Ergebnis des Auslesens als {@link List}.
      */
-    public Vector<T> getResult() {
+    public List<T> getResult() {
         return this.list;
     }
 
@@ -61,9 +73,7 @@ abstract class DatabaseTableReader<T> {
      * @param line
      *            Die zu verarbeitende Zeile
      * @return Das Objekt, das im Ergebnisvektor gespeichert werden soll.
-     * @throws Exception
-     *             Kann jede beliebige {@link Exception} sein.
      */
-    protected abstract T process(final String line) throws Exception;
+    protected abstract T process(final String line);
 
 }
