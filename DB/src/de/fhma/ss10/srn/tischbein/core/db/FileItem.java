@@ -11,7 +11,7 @@ import javax.crypto.SecretKey;
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
-import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseStructure;
 
 /**
  * Fileklasse. Enhält alle Methoden zur Verwaltung der verschlüsselten Dateien.
@@ -41,50 +41,23 @@ public final class FileItem implements Comparable<Integer> {
      *             Wird geworfen, wenn die Datei nicht gefunden oder gelesen werden konnte.
      */
     public static FileItem create(final User owner, final String filename, final SecretKey secret) throws IOException {
-        FileItem fi = new FileItem(owner);
-        File file = new File(filename);
+        final FileItem item = new FileItem(owner);
+        final File file = new File(filename);
 
-        fi.content = new byte[(int) file.length()];
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+        item.content = new byte[(int) file.length()];
+        final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
 
-        bis.read(fi.content);
+        bis.read(item.content);
 
         bis.close();
 
-        fi.setHash(Utils.toMD5(fi.content));
-        fi.setName(file.getName());
-        fi.setId(Database.getInstance().getNextFileId());
-        fi.setKey(secret);
+        item.setHash(Utils.toMD5(item.content));
+        item.setName(file.getName());
+        item.setId(Database.getInstance().getNextFileId());
+        item.setKey(secret);
 
-        return fi;
+        return item;
     }
-
-    //    /**
-    //     * Erstellt den verschlüsselten Dateiinhalt.
-    //     * 
-    //     * @param owner
-    //     *            Der Beitzer der Datei.
-    //     * @param filename
-    //     *            Der Dateiname.
-    //     * @param secret
-    //     *            Der Schlüssel, mit dem der Inhalt verschlüsselt werden soll.
-    //     * @return Das erzugte {@link FileItem} mit den Dateidaten.
-    //     * @throws IOException
-    //     *             Wird geworfen, wenn die Datei nicht gelesen werden konnte.
-    //     * @throws FileItemException
-    //     *             Wird geworfen, wenn der Inhalt der Datei nicht ermittelt werden konnte.
-    //     */
-    //    public static FileItem createEncryptedFile(final User owner, final String filename, final SecretKey secret)
-    //            throws IOException, FileItemException {
-    //        FileItem fi = FileItem.create(owner, filename, secret);
-    //
-    ////        AesWriter w = AesWriter.createWriter(FileItem.generateDatabaseName(fi), secret);
-    ////        w.write(Utils.toHexLine(fi.getContent()));
-    ////        w.close();
-    //        fi.encrypt();
-    //
-    //        return fi;
-    //    }
 
     /**
      * Parst die angegebene Zeile und gibt sie als {@link FileItem}-Objekt zurück.
@@ -96,8 +69,8 @@ public final class FileItem implements Comparable<Integer> {
      * @return Das {@link FileItem}-Objekt.
      */
     public static FileItem parse(final User owner, final String line) {
-        String[] cols = line.split(DatabaseStructure.SEPARATOR);
-        FileItem file = new FileItem(owner);
+        final String[] cols = line.split(AbstractDatabaseStructure.SEPARATOR);
+        final FileItem file = new FileItem(owner);
 
         file.setId(Integer.parseInt(cols[FileItem.COLUMN_ID]));
         file.setName(cols[FileItem.COLUMN_NAME]);
@@ -109,19 +82,20 @@ public final class FileItem implements Comparable<Integer> {
     /**
      * Erzeugt den Namen für die Datenbankdatei.
      * 
-     * @param fi
+     * @param item
      *            Das {@link FileItem}.
      * @return Gibt den eindeutigen Dateinamen innerhalb der Datenbank zurück.
      */
-    private static String generateDatabaseName(final FileItem fi) {
-        return "db/files/" + Utils.toMD5Hex(fi.getName());
+    private static String generateDatabaseName(final FileItem item) {
+        return "db/files/" + Utils.toMD5Hex(item.getName());
     }
 
     /** Hält die ID der Datei. */
-    private Integer id;
+    private Integer fileId;
 
     /** Hält den Dateinamen, wie er angezeigt werden soll. */
     private String fileName;
+
     /** Hält die MD5-Summe des Dateiinhalts. */
     private byte[] hash;
     /** Hält den Dateischlüssel. */
@@ -143,7 +117,7 @@ public final class FileItem implements Comparable<Integer> {
 
     @Override
     public int compareTo(final Integer other) {
-        return this.id.compareTo(other);
+        return this.fileId.compareTo(other);
     }
 
     /**
@@ -152,8 +126,8 @@ public final class FileItem implements Comparable<Integer> {
      * @return Die Tabellenzeile.
      */
     public String compile() {
-        return MessageFormat.format("{1}{0}{2}{0}{3}", DatabaseStructure.SEPARATOR, Integer.toString(this.id), this
-                .getName(), Utils.toHexLine(this.hash));
+        return MessageFormat.format("{1}{0}{2}{0}{3}", AbstractDatabaseStructure.SEPARATOR, Integer
+                .toString(this.fileId), this.getName(), Utils.toHexLine(this.hash));
     }
 
     /**
@@ -165,29 +139,29 @@ public final class FileItem implements Comparable<Integer> {
      */
     public void encrypt() throws FileItemException {
         try {
-            AesWriter w = AesWriter.createWriter(FileItem.generateDatabaseName(this), this.fileKey);
+            final AesWriter writer = AesWriter.createWriter(FileItem.generateDatabaseName(this), this.fileKey);
 
-            w.write(Utils.toHexLine(this.getContent()));
+            writer.write(Utils.toHexLine(this.getContent()));
 
-            w.close();
-        } catch (Exception e) {
+            writer.close();
+        } catch (final Exception e) {
             throw new FileItemException("Kann die Datei nicht verschlüsseln!", e);
         }
     }
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof FileItem)) {
-            return false;
+        boolean result = false;
+
+        if (obj instanceof FileItem) {
+            final FileItem item = (FileItem) obj;
+
+            if (this.fileId.equals(item.fileId)) {
+                result = true;
+            }
         }
 
-        FileItem item = (FileItem) obj;
-
-        if (this.id.equals(item.id)) {
-            return true;
-        }
-
-        return false;
+        return result;
     }
 
     /**
@@ -203,10 +177,19 @@ public final class FileItem implements Comparable<Integer> {
                 this.readContent();
             }
 
-            return this.content;
-        } catch (Exception e) {
+            return this.content.clone();
+        } catch (final Exception e) {
             throw new FileItemException("Datei kann nicht gelesen werden!", e);
         }
+    }
+
+    /**
+     * Gibt den Datenbank-Namen der Datei zurück.
+     * 
+     * @return Der Dateiname, wie er im Datenbankverzeichnis abgelegt ist.
+     */
+    public String getDatabaseName() {
+        return FileItem.generateDatabaseName(this);
     }
 
     /**
@@ -215,7 +198,7 @@ public final class FileItem implements Comparable<Integer> {
      * @return Den Hash als {@link Byte}-Array.
      */
     public byte[] getHash() {
-        return this.hash;
+        return this.hash.clone();
     }
 
     /**
@@ -224,7 +207,7 @@ public final class FileItem implements Comparable<Integer> {
      * @return Die ID.
      */
     public int getId() {
-        return this.id;
+        return this.fileId;
     }
 
     /**
@@ -256,7 +239,7 @@ public final class FileItem implements Comparable<Integer> {
 
     @Override
     public int hashCode() {
-        return this.id;
+        return this.fileId;
     }
 
     /**
@@ -295,10 +278,10 @@ public final class FileItem implements Comparable<Integer> {
             BufferedInputStream bis = null;
 
             try {
-                String filename = FileItem.generateDatabaseName(this);
-                File file = new File(filename);
+                final String filename = FileItem.generateDatabaseName(this);
+                final File file = new File(filename);
                 bis = new BufferedInputStream(new FileInputStream(file));
-                byte[] buffer = new byte[(int) file.length()];
+                final byte[] buffer = new byte[(int) file.length()];
 
                 bis.read(buffer);
 
@@ -309,7 +292,7 @@ public final class FileItem implements Comparable<Integer> {
                     bis.close();
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new FileItemException("Kann den Inhalt der Datei nicht laden oder entschlüsseln!", e);
         }
     }
@@ -318,11 +301,11 @@ public final class FileItem implements Comparable<Integer> {
      * Setzt die Hash-Summe des Dateiinhalts. Dient zur späteren Überprüfung, ob die Datei erfolgreich entschlüsselt
      * wurde.
      * 
-     * @param bs
+     * @param newHash
      *            Die MD5-Summe des Dateiinhalts.
      */
-    private void setHash(final byte[] bs) {
-        this.hash = bs;
+    private void setHash(final byte[] newHash) {
+        this.hash = newHash.clone();
     }
 
     /**
@@ -332,7 +315,7 @@ public final class FileItem implements Comparable<Integer> {
      *            Die ID.
      */
     private void setId(final int value) {
-        this.id = value;
+        this.fileId = value;
     }
 
     /**

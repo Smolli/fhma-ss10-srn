@@ -16,6 +16,8 @@ public class UploadForm extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
     /** Creates new form UploadForm. */
     public UploadForm() {
+        super();
+
         this.initComponents();
     }
 
@@ -26,18 +28,18 @@ public class UploadForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        javax.swing.JPanel jPanel4 = new javax.swing.JPanel();
-        javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+        final javax.swing.JPanel jPanel4 = new javax.swing.JPanel();
+        final javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
         this.filenameField = new javax.swing.JTextField();
         this.searchButton = new javax.swing.JButton();
-        javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
-        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
+        final javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
+        final javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
+        final javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         this.hashField = new javax.swing.JTextField();
-        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        final javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         this.secretField = new javax.swing.JTextField();
-        javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
-        javax.swing.JPanel jPanel3 = new javax.swing.JPanel();
+        final javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
+        final javax.swing.JPanel jPanel3 = new javax.swing.JPanel();
         this.saveButton = new javax.swing.JButton();
         this.abbortButton = new javax.swing.JButton();
 
@@ -87,7 +89,7 @@ public class UploadForm extends javax.swing.JFrame {
 
         jPanel4.add(jPanel3);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this.getContentPane());
+        final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this.getContentPane());
         this.getContentPane().setLayout(layout);
         layout.setHorizontalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(
                 jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE));

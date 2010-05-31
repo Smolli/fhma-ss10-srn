@@ -6,16 +6,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.security.PublicKey;
 
+import org.apache.log4j.Logger;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
-import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseStructure;
 
 /**
  * Hilfsklasse zum Hinzufügen einer Zeile zu einer RSA-verschlüsselten Datei.
  * 
  * @author Smolli
  */
-public class RsaAppender {
+public final class RsaAppender {
+
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(RsaAppender.class);
 
     /**
      * Fügt eine einzelne Zeile zu einer RSA-verschlüsselten Datei hinzu.
@@ -37,22 +42,30 @@ public class RsaAppender {
 
         try {
             writer = new BufferedWriter(new FileWriter(new File(filename), true));
-            byte[] encoded = RsaCrypto.encode(message, publicKey);
+            final byte[] encoded = RsaCrypto.encode(message, publicKey);
 
             writer.write(rawMessage);
-            writer.write(DatabaseStructure.SEPARATOR);
+            writer.write(AbstractDatabaseStructure.SEPARATOR);
             writer.write(Utils.toHexLine(encoded));
             writer.write("\n");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new UtilsException("Kann die Zeile nicht schreiben!", e);
         } finally {
             if (writer != null) {
                 try {
                     writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (final IOException e) {
+                    RsaAppender.LOG.error("Kann die Datei nicht schließen!", e);
                 }
             }
         }
     }
+
+    /**
+     * Geschützter Ctor.
+     */
+    private RsaAppender() {
+        super();
+    }
+
 }

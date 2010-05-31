@@ -31,7 +31,7 @@ public final class AesReader extends BufferedReader {
      */
     public static AesReader createReader(final String filename, final SecretKey secret) throws CryptoException {
         // Rohdaten lesen
-        byte[] buffer = AesReader.readData(filename);
+        final byte[] buffer = AesReader.readData(filename);
 
         // entschlüsseln und in einen Reader wandeln
         return new AesReader(AesReader.decodeAndWrap(buffer, secret));
@@ -52,22 +52,22 @@ public final class AesReader extends BufferedReader {
         try {
             byte[] decoded;
 
-            if (encoded.length != 0) {
-                // Rohdaten entschlüsseln und in ein Array speichern.
-                decoded = AesCrypto.decrypt(encoded, secret);
-            } else {
+            if (encoded.length == 0) {
                 // Sonderfall, verschlüsselte Daten sind leer.
                 decoded = new byte[0];
+            } else {
+                // Rohdaten entschlüsseln und in ein Array speichern.
+                decoded = AesCrypto.decrypt(encoded, secret);
             }
 
             // ein Stream-Wrapper für das Array erzeugen
-            ByteArrayInputStream bais = new ByteArrayInputStream(decoded);
+            final ByteArrayInputStream bais = new ByteArrayInputStream(decoded);
 
             // den Stream in einen Reader wandeln
-            InputStreamReader isr = new InputStreamReader(bais);
+            final InputStreamReader isr = new InputStreamReader(bais);
 
             return isr;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new CryptoException("Kann die angegebene Datei nicht entschlüsseln!", e);
         }
     }
@@ -85,13 +85,13 @@ public final class AesReader extends BufferedReader {
         byte[] buffer;
 
         try {
-            File file = new File(filename);
-            FileInputStream fis = new FileInputStream(file);
+            final File file = new File(filename);
+            final FileInputStream fis = new FileInputStream(file);
             buffer = new byte[(int) file.length()];
 
             fis.read(buffer);
             fis.close();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new CryptoException("Kann die angegebene Datei nicht öffnen!", e);
         }
 

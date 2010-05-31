@@ -1,7 +1,7 @@
 package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import java.io.BufferedWriter;
-import java.util.Collection;
+import java.util.List;
 
 import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 
@@ -12,10 +12,10 @@ import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
  * @param <T>
  *            Jede beliebige Klasse.
  */
-abstract class DatabaseTableWriter<T> {
+abstract class AbstractDatabaseTableWriter<T> {
 
     /**
-     * Erstellt einen neuen {@link DatabaseTableWriter} und startet die Verarbeitung.
+     * Erstellt einen neuen {@link AbstractDatabaseTableWriter} und startet die Verarbeitung.
      * 
      * @param writer
      *            Der Writer, in den geschrieben werden soll.
@@ -24,15 +24,17 @@ abstract class DatabaseTableWriter<T> {
      * @throws DatabaseException
      *             Wird geworfen, wenn die Tabelle nicht geschrieben werden konnte.
      */
-    public DatabaseTableWriter(final BufferedWriter writer, final Collection<T> items) throws DatabaseException {
+    public AbstractDatabaseTableWriter(final BufferedWriter writer, final List<T> items) throws DatabaseException {
         try {
-            for (T item : items) {
-                writer.write(this.process(item));
-                writer.write("\n");
+            for (final T item : items) {
+                if (item != null) {
+                    writer.write(this.process(item));
+                    writer.write("\n");
+                }
             }
 
             writer.close();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new DatabaseException("Kann Tabelle nicht schreiben!", e);
         }
     }
@@ -43,9 +45,7 @@ abstract class DatabaseTableWriter<T> {
      * @param item
      *            Das Objekt.
      * @return Die resultierende Zeile, die gespeichert werden soll.
-     * @throws Exception
-     *             Wird geworfen, wenn das Objekt nicht verarbeitet werden konnte.
      */
-    protected abstract String process(T item) throws Exception;
+    protected abstract String process(T item);
 
 }

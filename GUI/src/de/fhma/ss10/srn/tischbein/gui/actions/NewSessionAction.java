@@ -18,17 +18,21 @@ public final class NewSessionAction extends AbstractAction implements Action {
     private static final long serialVersionUID = 9006740500253306285L;
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
+    public void actionPerformed(final ActionEvent event) {
         new LoginFrame();
     }
 
     @Override
     public Object getValue(final String key) {
+        Object result;
+
         if (key.equals(Action.NAME)) {
-            return "Neue Session...";
+            result = "Neue Session...";
         } else {
-            return super.getValue(key);
+            result = super.getValue(key);
         }
+
+        return result;
     }
 
 }

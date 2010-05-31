@@ -30,9 +30,9 @@ public final class AesWriter extends BufferedWriter {
      * @return Gibt ein neuen {@link AesWriter}-Objekt zurück.
      */
     public static AesWriter createWriter(final String filename, final SecretKey secret) {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-        AesWriter writer = new AesWriter(new OutputStreamWriter(buffer));
+        final AesWriter writer = new AesWriter(new OutputStreamWriter(buffer));
 
         writer.buffer = buffer;
         writer.filename = filename;
@@ -68,12 +68,12 @@ public final class AesWriter extends BufferedWriter {
             bos = new BufferedOutputStream(new FileOutputStream(this.filename));
 
             if (this.buffer.size() > 0) {
-                byte[] encrypted = AesCrypto.encrypt(this.buffer.toByteArray(), this.secret);
+                final byte[] encrypted = AesCrypto.encrypt(this.buffer.toByteArray(), this.secret);
 
                 bos.write(Utils.toHexText(encrypted).getBytes());
             }
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IOException("Kann Datei nicht speichern!", e);
         } finally {
             if (bos != null) {

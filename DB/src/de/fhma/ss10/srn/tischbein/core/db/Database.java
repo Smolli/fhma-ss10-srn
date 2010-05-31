@@ -1,22 +1,30 @@
 package de.fhma.ss10.srn.tischbein.core.db;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.log4j.Logger;
 
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
-import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseFiles;
-import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseModel;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseModel;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseIO;
 
 /**
  * Datanbankklasse. Kapselt die gesamte Datenbankstruktur.
  * 
  * @author Smolli
  */
-public final class Database extends DatabaseModel {
+public final class Database extends AbstractDatabaseModel {
 
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(Database.class);
     /** Singleton-Instanz der Datenbank. */
     private static Database instance = null;
     /** Hält alle gemeldeten Listener. */
-    private static final Vector<DatabaseChangeListener> LISTENERS = new Vector<DatabaseChangeListener>();
+    private static final List<DatabaseChangeListener> LISTENERS = new ArrayList<DatabaseChangeListener>();
+    /** Hält das Lock-Objeckt für die getInstance()-Methode. */
+    private static final Object LOCK_OBJECT = new Object();
 
     /**
      * Fügt einen Change-Listener hinzu.
@@ -25,12 +33,12 @@ public final class Database extends DatabaseModel {
      *            Der Listener vom Typ {@link DatabaseChangeListener}.
      */
     public static void addChangeListener(final DatabaseChangeListener listener) {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
             Database.LISTENERS.add(listener);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -40,25 +48,25 @@ public final class Database extends DatabaseModel {
      * 
      * @return Gibt die Instanz der Datenbank zurück.
      */
-    public static synchronized Database getInstance() {
-        DatabaseFiles.LOCK.lock();
+    public static Database getInstance() {
+        DatabaseIO.LOCK.lock();
 
         try {
-            if (Database.instance == null) {
-                try {
-                    Database.instance = new Database();
+            synchronized (Database.LOCK_OBJECT) {
+                if (Database.instance == null) {
+                    try {
+                        Database.instance = new Database();
 
-                    Database.instance.open();
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    throw new RuntimeException("FATAL: Kann keine Instanz der Datenbank erzeugen!", e);
+                        Database.instance.open();
+                    } catch (final Exception e) {
+                        throw new RuntimeException("FATAL: Kann keine Instanz der Datenbank erzeugen!", e); // NOPMD
+                    }
                 }
             }
 
             return Database.instance;
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -69,12 +77,12 @@ public final class Database extends DatabaseModel {
      *            Ein Listener vom Typ {@link DatabaseChangeListener}.
      */
     public static void removeChangeListener(final DatabaseChangeListener listener) {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
             Database.LISTENERS.remove(listener);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -82,15 +90,17 @@ public final class Database extends DatabaseModel {
      * Feuert das Event, dass sich die Datenbank geändert hat.
      */
     private static void fireChangeEvent() {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
-            // Der Listerners-Vector *MUSS* hier kopiert werden, da es sein kann, dass er sich ändert (-> Exception!) 
-            for (DatabaseChangeListener listener : new Vector<DatabaseChangeListener>(Database.LISTENERS)) {
+            // Der Listerners-Vector *MUSS* hier kopiert werden, da es sein kann, dass er sich ändert (-> Exception!)
+            final List<DatabaseChangeListener> listeners = new ArrayList<DatabaseChangeListener>(Database.LISTENERS);
+
+            for (final DatabaseChangeListener listener : listeners) {
                 listener.databaseChanged();
             }
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -98,6 +108,7 @@ public final class Database extends DatabaseModel {
      * Privater ctor, um die Instanziierung außerhalb zu verhindern.
      */
     private Database() {
+        super();
     }
 
     /**
@@ -109,7 +120,7 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn das {@link FileItem} nicht hinzugefügt werden konnte.
      */
     public void addFileItem(final FileItem item) throws DatabaseException {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
             // in Dateitabelle des Benutzers Eintrag schreiben
@@ -117,14 +128,12 @@ public final class Database extends DatabaseModel {
 
             // in globale Dateitablle Eintrag schreiben
             this.addFileToGlobalTable(item);
-
-            //            this.shutdown();
-
-            Database.fireChangeEvent();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new DatabaseException("Die Datei kann nicht hinzugefügt werden!", e);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
+
+            Database.fireChangeEvent();
         }
     }
 
@@ -140,28 +149,24 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn der Benutzer nicht angelegt werden konnte.
      */
     public void createUser(final String name, final String pass) throws DatabaseException {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
-            try {
-                if (this.getUserMap().containsKey(name.toLowerCase())) {
-                    throw new DatabaseException("Benutzer existiert schon!");
-                }
-
-                User user = User.create(name, pass);
-
-                this.addUser(user, pass);
-
-                System.out.println("Benutzer " + name + " angelegt.");
-            } catch (Exception e) {
-                throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
-            } finally {
-                //                this.shutdown();
-
-                Database.fireChangeEvent();
+            if (this.getUserMap().containsKey(name.toLowerCase(Locale.GERMAN))) {
+                throw new DatabaseException("Benutzer existiert schon!");
             }
+
+            final User user = User.create(name, pass);
+
+            this.addUser(user, pass);
+
+            Database.LOG.info("Benutzer " + name + " angelegt.");
+        } catch (final Exception e) {
+            throw new DatabaseException("Fehler beim Anlegen des neuen Benutzers!", e);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
+
+            Database.fireChangeEvent();
         }
     }
 
@@ -174,7 +179,7 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn das FileItem nicht gelöscht werden kann.
      */
     public void deleteFileItem(final FileItem item) throws DatabaseException {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
             // aus globaler Files-Tabelle löschen
@@ -187,13 +192,12 @@ public final class Database extends DatabaseModel {
             // aus Lend-Tabelle des Owner löschen
             this.removeFileFromAccessTables(item);
 
-            // TODO: physiaklisches Löschen der Datei
-
-            //            this.shutdown();
+            // DONE: physiaklisches Löschen der Datei
+            this.removeFileFromDisk(item);
+        } finally {
+            DatabaseIO.LOCK.unlock();
 
             Database.fireChangeEvent();
-        } finally {
-            DatabaseFiles.LOCK.unlock();
         }
     }
 
@@ -208,7 +212,7 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn die Berechtigung nicht entzogen werden kann.
      */
     public void denyAccess(final User user, final FileItem file) throws DatabaseException {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
             if ((file == null) || (user == null)) {
@@ -219,42 +223,38 @@ public final class Database extends DatabaseModel {
                 throw new DatabaseException("Der Benutzer ist nicht im Besitz der Zugriffserlaubnis!");
             }
 
-            try {
-                this.denyAccessToUser(user, file);
+            this.denyAccessToUser(user, file);
 
-                this.removeRemarkFromOwner(user, file);
-            } catch (Exception e) {
-                throw new DatabaseException("Kann das Recht nicht speichern!", e);
-            } finally {
-                Database.fireChangeEvent();
-
-                //                this.shutdown();
-            }
+            this.removeRemarkFromOwner(user, file);
+        } catch (final Exception e) {
+            throw new DatabaseException("Kann das Recht nicht speichern!", e);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
+
+            Database.fireChangeEvent();
         }
     }
 
     /**
      * Gibt eine Datei aus der Map zurück und prüft vorher, ob sie existiert.
      * 
-     * @param id
+     * @param fileId
      *            Die ID der Datei.
      * @return Gibt das {@link FileItem}-Objekt der Datei zurück.
      * @throws DatabaseException
      *             Wird geworfen, wenn die Datei mit der ID nicht im System ist.
      */
-    public FileItem getFile(final int id) throws DatabaseException {
-        DatabaseFiles.LOCK.lock();
+    public FileItem getFile(final int fileId) throws DatabaseException {
+        DatabaseIO.LOCK.lock();
 
         try {
-            if (!this.getFileMap().containsKey(id)) {
+            if (!this.getFileMap().containsKey(fileId)) {
                 throw new DatabaseException("Datei ist nicht bekannt!");
             }
 
-            return this.getFileMap().get(id);
+            return this.getFileMap().get(fileId);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -264,12 +264,12 @@ public final class Database extends DatabaseModel {
      * @return Die ID als {@link Integer}.
      */
     public int getNextFileId() {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
             return this.getLastFileId() + 1;
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -283,16 +283,18 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn der Benutzer dem System nicht bekannt ist.
      */
     public User getUser(final String name) throws DatabaseException {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
-            if (!this.getUserMap().containsKey(name.toLowerCase())) {
+            final String username = name.toLowerCase(Locale.GERMAN);
+
+            if (!this.getUserMap().containsKey(username)) {
                 throw new DatabaseException("Benutzer ist nicht bekannt!");
             }
 
-            return this.getUserMap().get(name.toLowerCase());
+            return this.getUserMap().get(username);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -309,10 +311,10 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn eine der Tabellen nicht geladen werden konnte.
      */
     public UserDescriptor getUserDescriptor(final User user) throws CryptoException, DatabaseException {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
-            UserDescriptor descriptor = new UserDescriptor();
+            final UserDescriptor descriptor = new UserDescriptor();
 
             descriptor.setFilesTable(this.loadUserFilesTable(user));
             descriptor.setAccessTable(this.loadUserAccessTable(user));
@@ -320,22 +322,22 @@ public final class Database extends DatabaseModel {
 
             return descriptor;
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
     /**
      * Gibt alle {@link User} in der Datenbank zurück.
      * 
-     * @return Alle {@link User} als {@link Vector}.
+     * @return Alle {@link User} als {@link List}.
      */
-    public Vector<User> getUsers() {
-        DatabaseFiles.LOCK.lock();
+    public List<User> getUsers() {
+        DatabaseIO.LOCK.lock();
 
         try {
-            return new Vector<User>(this.getUserMap().values());
+            return new ArrayList<User>(this.getUserMap().values());
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -344,19 +346,19 @@ public final class Database extends DatabaseModel {
      * 
      * @param without
      *            Der {@link User}, der nicht in der Liste auftauchen soll.
-     * @return Alle anderen Benutzer als {@link Vector}.
+     * @return Alle anderen Benutzer als {@link List}.
      */
-    public Vector<User> getUsers(final User without) {
-        DatabaseFiles.LOCK.lock();
+    public List<User> getUsers(final User without) {
+        DatabaseIO.LOCK.lock();
 
         try {
-            Vector<User> users = this.getUsers();
+            final List<User> users = this.getUsers();
 
             users.remove(without);
 
             return users;
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 
@@ -371,7 +373,7 @@ public final class Database extends DatabaseModel {
      *             Wird geworfen, wenn das Zugriffsrecht nicht erteilt werden konnte.
      */
     public void grantAccess(final User user, final FileItem file) throws DatabaseException {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
             if ((file == null) || (user == null)) {
@@ -382,19 +384,15 @@ public final class Database extends DatabaseModel {
                 throw new DatabaseException("Die Datei wurde schon dem Benutzer zugewiesen!");
             }
 
-            try {
-                this.grantAccessToUser(user, file);
+            this.grantAccessToUser(user, file);
 
-                this.addRemarkToOwner(user, file);
-            } catch (Exception e) {
-                throw new DatabaseException("Kann Recht nicht speichern!", e);
-            } finally {
-                Database.fireChangeEvent();
-
-                //                this.shutdown();
-            }
+            this.addRemarkToOwner(user, file);
+        } catch (final Exception e) {
+            throw new DatabaseException("Kann Recht nicht speichern!", e);
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
+
+            Database.fireChangeEvent();
         }
     }
 
@@ -406,12 +404,12 @@ public final class Database extends DatabaseModel {
      * @return Gibt <code>true</code> zurück, wenn der Benutzer existiert, andernfalls <code>false</code>.
      */
     public boolean hasUser(final String name) {
-        DatabaseFiles.LOCK.lock();
+        DatabaseIO.LOCK.lock();
 
         try {
-            return this.getUserMap().containsKey(name.toLowerCase());
+            return this.getUserMap().containsKey(name.toLowerCase(Locale.GERMAN));
         } finally {
-            DatabaseFiles.LOCK.unlock();
+            DatabaseIO.LOCK.unlock();
         }
     }
 

@@ -3,6 +3,7 @@ package de.fhma.ss10.srn.tischbein.core.db.test;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,6 +18,8 @@ import de.fhma.ss10.srn.tischbein.core.db.User;
  */
 public class DatabaseTest {
 
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(DatabaseTest.class);
     /** Testdatei. */
     private static final String TESTFILE = "Testfile.txt";
     /** Testpasswort. */
@@ -31,23 +34,21 @@ public class DatabaseTest {
      * Die Datenbank wird hier vor der erstmaligen Verwendung initialisiert.
      */
     public void setupBeforeClass() {
-        File file = new File(DatabaseTest.TESTFILE);
+        final File file = new File(DatabaseTest.TESTFILE);
 
         if (!file.exists()) {
             try {
-                FileOutputStream fos = new FileOutputStream(file);
+                final FileOutputStream fos = new FileOutputStream(file);
 
                 fos.write("Testtext. Sehr Dingsig!".getBytes());
 
                 fos.close();
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (final Exception e) {
+                DatabaseTest.LOG.fatal("Setup error!", e);
 
                 Assert.fail("Setup error!");
             }
         }
-
-        this.user = null;
     }
 
     /**
@@ -73,8 +74,8 @@ public class DatabaseTest {
     public void test02CreateUser() {
         try {
             Database.getInstance().createUser(DatabaseTest.TEST_USER, DatabaseTest.TEST_SECRET);
-        } catch (DatabaseException e) {
-            e.printStackTrace();
+        } catch (final DatabaseException e) {
+            DatabaseTest.LOG.fatal("Kann keinen Benutzer anlegen!", e);
 
             Assert.fail();
         }
@@ -95,8 +96,8 @@ public class DatabaseTest {
     public void test04GetUser() {
         try {
             Assert.assertNotNull(Database.getInstance().getUser(DatabaseTest.TEST_USER));
-        } catch (DatabaseException e) {
-            e.printStackTrace();
+        } catch (final DatabaseException e) {
+            DatabaseTest.LOG.fatal("Datenbank gibt keinen Benutzer zurück!", e);
 
             Assert.fail();
         }
@@ -117,8 +118,8 @@ public class DatabaseTest {
             this.user.unlock(DatabaseTest.TEST_SECRET);
 
             Assert.assertNotNull(this.user);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            DatabaseTest.LOG.fatal("Kann den Benutzer nicht anmelden!", e);
 
             Assert.fail();
         }
@@ -135,7 +136,7 @@ public class DatabaseTest {
         //        } catch (DatabaseException e) {
         //            e.printStackTrace();
         //
-        //            Assert.fail();
+        Assert.fail();
         //        }
     }
 
@@ -145,6 +146,8 @@ public class DatabaseTest {
     @Test
     public void test07LogoutUser() {
         this.user.lock();
+
+        Assert.assertTrue(true);
     }
 
     /**
@@ -153,6 +156,7 @@ public class DatabaseTest {
     @Test
     public void test08RemoveUser() {
         //        Database.getInstance().removeUser(TEST_USER);
+        Assert.fail();
     }
 
 }

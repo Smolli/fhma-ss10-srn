@@ -22,6 +22,8 @@ public class WorkForm extends javax.swing.JFrame {
 
     /** Creates new form WorkForm */
     public WorkForm() {
+        super();
+
         this.initComponents();
     }
 
@@ -32,35 +34,35 @@ public class WorkForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
+        final javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
         this.logoutButton = new javax.swing.JButton();
         this.closeButton = new javax.swing.JButton();
         this.newsessionButton = new javax.swing.JButton();
-        javax.swing.JPanel titlePanel = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel1 = new javax.swing.JLabel(
+        final javax.swing.JPanel titlePanel = new javax.swing.JPanel();
+        final javax.swing.JLabel jLabel1 = new javax.swing.JLabel(
                 de.fhma.ss10.srn.tischbein.gui.launcher.Launcher.PRODUCT_NAME + " - Ultra Deluxe Gourmet Version");
-        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
-        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
-        javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
-        javax.swing.JPanel filesPanel = new javax.swing.JPanel();
-        javax.swing.JPanel myFilesPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
+        final javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        final javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
+        final javax.swing.JSplitPane jSplitPane1 = new javax.swing.JSplitPane();
+        final javax.swing.JPanel filesPanel = new javax.swing.JPanel();
+        final javax.swing.JPanel myFilesPanel = new javax.swing.JPanel();
+        final javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
         this.userFilesList = new javax.swing.JList();
-        javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+        final javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
         this.uploadButton = new javax.swing.JButton();
         this.deleteButton = new javax.swing.JButton();
-        javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
-        javax.swing.JPanel otherFilesPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
+        final javax.swing.JSeparator jSeparator1 = new javax.swing.JSeparator();
+        final javax.swing.JPanel otherFilesPanel = new javax.swing.JPanel();
+        final javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
         this.otherFilesList = new javax.swing.JList();
-        javax.swing.JSplitPane jSplitPane2 = new javax.swing.JSplitPane();
+        final javax.swing.JSplitPane jSplitPane2 = new javax.swing.JSplitPane();
         this.viewPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane fileViewScrollArea = new javax.swing.JScrollPane();
+        final javax.swing.JScrollPane fileViewScrollArea = new javax.swing.JScrollPane();
         this.fileView = new javax.swing.JTextArea();
-        javax.swing.JPanel userPanel = new javax.swing.JPanel();
-        javax.swing.JScrollPane jScrollPane5 = new javax.swing.JScrollPane();
+        final javax.swing.JPanel userPanel = new javax.swing.JPanel();
+        final javax.swing.JScrollPane jScrollPane5 = new javax.swing.JScrollPane();
         this.accessTable = new javax.swing.JTable();
-        javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
+        final javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
 
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         this.setTitle("Tischbein v0.2");

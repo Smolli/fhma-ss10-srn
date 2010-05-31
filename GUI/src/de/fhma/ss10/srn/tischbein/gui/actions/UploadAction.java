@@ -27,6 +27,8 @@ public final class UploadAction extends AbstractAction {
      *            Der Datenlistener.
      */
     public UploadAction(final UploadFrameListener listenerObject) {
+        super();
+
         this.listener = listenerObject;
     }
 
@@ -37,11 +39,15 @@ public final class UploadAction extends AbstractAction {
 
     @Override
     public Object getValue(final String key) {
+        Object result;
+
         if (key.equals(Action.NAME)) {
-            return "Hochladen";
+            result = "Hochladen";
         } else {
-            return super.getValue(key);
+            result = super.getValue(key);
         }
+
+        return result;
     }
 
 }

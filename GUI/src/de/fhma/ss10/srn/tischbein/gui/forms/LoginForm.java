@@ -15,6 +15,8 @@ public class LoginForm extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
     /** Creates new form MFrame */
     public LoginForm() {
+        super();
+
         this.initComponents();
     }
 
@@ -25,18 +27,18 @@ public class LoginForm extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        javax.swing.JPanel southPanel = new javax.swing.JPanel();
+        final javax.swing.JPanel southPanel = new javax.swing.JPanel();
         this.loginButton = new javax.swing.JButton();
         this.addUserButton = new javax.swing.JButton();
         this.closeButton = new javax.swing.JButton();
-        javax.swing.JPanel northPanel = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel1 = new javax.swing.JLabel(
+        final javax.swing.JPanel northPanel = new javax.swing.JPanel();
+        final javax.swing.JLabel jLabel1 = new javax.swing.JLabel(
                 de.fhma.ss10.srn.tischbein.gui.launcher.Launcher.PRODUCT_NAME);
-        javax.swing.JPanel centerPanel = new javax.swing.JPanel();
-        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
-        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        final javax.swing.JPanel centerPanel = new javax.swing.JPanel();
+        final javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
+        final javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         this.usernameField = new javax.swing.JComboBox();
-        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
+        final javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
         this.passwordField = new javax.swing.JPasswordField();
 
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
