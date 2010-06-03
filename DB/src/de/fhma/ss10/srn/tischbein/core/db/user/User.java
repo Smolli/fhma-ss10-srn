@@ -185,13 +185,6 @@ public final class User extends UserBase implements DatabaseChangeListener {
         return this.descriptor;
     }
 
-    //    /**
-    //     * Schließt den Benutzer ab und macht seinen privaten Schlüssel wieder unzugänglich.
-    //     */
-    //    public void lock() {
-    //        this.setLocked(true);
-    //    }
-
     @Override
     public int hashCode() {
         return this.getName().hashCode();
