@@ -3,12 +3,12 @@ package de.fhma.ss10.srn.tischbein.gui.frames;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
-import de.fhma.ss10.srn.tischbein.core.db.Database;
-import de.fhma.ss10.srn.tischbein.core.db.FileItem;
-import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.Database;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
 import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 
 /**
@@ -18,35 +18,35 @@ import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
  */
 final class AccessTableModel implements TableModel {
 
-    // TODO: eingeloggte Benutzer sollen mit fetter Schrift dargestellt werden.
+    // DONE: eingeloggte Benutzer sollen mit fetter Schrift dargestellt werden.
 
-    /**
-     * Eltern-Interface.
-     */
-    public interface AccessTableModelParent {
-
-        /**
-         * Gibt den aktuell eingeloggten Benutzer zurück.
-         * 
-         * @return Den Benutzer.
-         */
-        User getCurrentUser();
-
-        /**
-         * Gibt die aktuell ausgewählte Datei zurück.
-         * 
-         * @return Die Datei.
-         */
-        FileItem getSelectedFile();
-
-    }
+    //    /**
+    //     * Eltern-Interface.
+    //     */
+    //    public interface AccessTableModelParent {
+    //
+    //        /**
+    //         * Gibt den aktuell eingeloggten Benutzer zurück.
+    //         * 
+    //         * @return Den Benutzer.
+    //         */
+    //        User getCurrentUser();
+    //
+    //        /**
+    //         * Gibt die aktuell ausgewählte Datei zurück.
+    //         * 
+    //         * @return Die Datei.
+    //         */
+    //        FileItem getSelectedFile();
+    //
+    //    }
 
     /** Hält die Liste der angezeigten Benutzer. */
-    private final transient List<User> users;
+    private List<User> users;
     /** Hält das Eltern-Frame. */
-    private final transient AccessTableModelParent parent;
+    private final WorkFrameBaseParent parent;
     /** Hält alle Model Listener. */
-    private final transient List<TableModelListener> listeners = new ArrayList<TableModelListener>();
+    private final List<TableModelListener> listeners = new ArrayList<TableModelListener>();
 
     /**
      * Standard-Ctor.
@@ -54,10 +54,10 @@ final class AccessTableModel implements TableModel {
      * @param parentFrame
      *            Das Frame, mit dem das Model verbunden ist.
      */
-    public AccessTableModel(final AccessTableModelParent parentFrame) {
+    public AccessTableModel(final WorkFrameBaseParent parentFrame) {
         this.parent = parentFrame;
 
-        this.users = Database.getInstance().getUsers(this.parent.getCurrentUser());
+        this.updateData();
     }
 
     @Override
@@ -178,4 +178,25 @@ final class AccessTableModel implements TableModel {
             GuiUtils.displayError("Konnte Recht nicht speichern!", e);
         }
     }
+
+    /**
+     * Aktualisiert die Daten der Tabelle.
+     */
+    public void updateData() {
+        this.users = Database.getInstance().getUsers(this.parent.getCurrentUser());
+
+        this.fireChangeEvent();
+    }
+
+    /**
+     * Wird gerufen, wenn sich etwas an den Daten der Tabelle geändert hat.
+     */
+    private void fireChangeEvent() {
+        final TableModelEvent event = new TableModelEvent(this);
+
+        for (final TableModelListener listener : this.listeners) {
+            listener.tableChanged(event);
+        }
+    }
+
 }

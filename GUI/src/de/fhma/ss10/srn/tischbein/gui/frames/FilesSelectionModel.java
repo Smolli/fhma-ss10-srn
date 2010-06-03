@@ -8,7 +8,7 @@ import javax.swing.ListSelectionModel;
 
 import org.apache.log4j.Logger;
 
-import de.fhma.ss10.srn.tischbein.core.db.FileItem;
+import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
 
 /**
  * Spezialisiertes {@link ListSelectionModel} für die Datei-Liste.
@@ -17,26 +17,26 @@ import de.fhma.ss10.srn.tischbein.core.db.FileItem;
  */
 final class FilesSelectionModel extends DefaultListSelectionModel {
 
-    /**
-     * Eltern-Interface.
-     * 
-     * @author Smolli
-     */
-    public interface FileSelectionModelParent {
-
-        /**
-         * Wird aufgerufen, wenn eine Datei in der Liste ausgewählt wurde.
-         * 
-         * @param fileItem
-         *            Das {@link FileItem}, das ausgewählt wurde.
-         * @param list
-         *            Die {@link JList}, in der die Datei ausgewählt wurde.
-         * @param index
-         *            Der Index des Elements in der Liste.
-         */
-        void selectFile(FileItem fileItem, JList list, int index);
-
-    }
+    //    /**
+    //     * Eltern-Interface.
+    //     * 
+    //     * @author Smolli
+    //     */
+    //    public interface FileSelectionModelParent {
+    //
+    //        /**
+    //         * Wird aufgerufen, wenn eine Datei in der Liste ausgewählt wurde.
+    //         * 
+    //         * @param fileItem
+    //         *            Das {@link FileItem}, das ausgewählt wurde.
+    //         * @param list
+    //         *            Die {@link JList}, in der die Datei ausgewählt wurde.
+    //         * @param index
+    //         *            Der Index des Elements in der Liste.
+    //         */
+    //        void selectFile(FileItem fileItem, JList list, int index);
+    //
+    //    }
 
     /** Serial UID. */
     private static final long serialVersionUID = 9031173846551914083L;
@@ -45,7 +45,7 @@ final class FilesSelectionModel extends DefaultListSelectionModel {
     /** Hält die verknüpfte JList. */
     private final transient JList list;
     /** Hält das ELtern-Frame. */
-    private final transient FileSelectionModelParent parent;
+    private final transient WorkFrameBaseParent parent;
 
     /**
      * Standard-Ctor. Verknüpft das Model mit einer {@link JList}.
@@ -55,7 +55,7 @@ final class FilesSelectionModel extends DefaultListSelectionModel {
      * @param guiList
      *            Die {@link JList}, mit dem das Model verknüft ist.
      */
-    public FilesSelectionModel(final FileSelectionModelParent parentForm, final JList guiList) {
+    public FilesSelectionModel(final WorkFrameBaseParent parentForm, final JList guiList) {
         super();
 
         this.list = guiList;
@@ -67,7 +67,7 @@ final class FilesSelectionModel extends DefaultListSelectionModel {
     public void setSelectionInterval(final int first, final int last) {
         super.setSelectionInterval(first, last);
 
-        FilesSelectionModel.LOG.debug(MessageFormat.format("{0}, {1}", first, last));
+        FilesSelectionModel.LOG.trace(MessageFormat.format("{0}, {1}", first, last));
 
         this.parent.selectFile((FileItem) this.list.getModel().getElementAt(last), this.list, last);
     }

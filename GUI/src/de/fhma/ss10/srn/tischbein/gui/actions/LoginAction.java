@@ -6,9 +6,9 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
-import de.fhma.ss10.srn.tischbein.core.db.Database;
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
-import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.Database;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseException;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
 import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
 
 /**
@@ -82,7 +82,7 @@ public final class LoginAction extends AbstractAction {
 
             final User user = Database.getInstance().getUser(name);
 
-            user.unlock(this.listener.getPassword());
+            Database.getInstance().unlock(user, this.listener.getPassword());
 
             this.listener.login(user);
         } catch (final Exception ex) {

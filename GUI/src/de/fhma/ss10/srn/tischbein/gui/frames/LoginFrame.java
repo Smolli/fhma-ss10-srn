@@ -8,9 +8,9 @@ import javax.swing.DefaultComboBoxModel;
 import org.apache.log4j.Logger;
 
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
-import de.fhma.ss10.srn.tischbein.core.db.Database;
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
-import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.Database;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseException;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.LoginAction;
 import de.fhma.ss10.srn.tischbein.gui.actions.NewUserAction;

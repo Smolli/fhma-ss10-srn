@@ -14,6 +14,10 @@ public final class GuiUtils {
     /** Hält den Logger. */
     private static final Logger LOG = Logger.getLogger(GuiUtils.class);
 
+    public static void display(final String message) {
+        JOptionPane.showMessageDialog(null, message, "Tischbein sagt:", JOptionPane.INFORMATION_MESSAGE);
+    }
+
     /**
      * Zeigt einen Modaldialog mit der Fehlermeldung an.
      * 
