@@ -1,14 +1,17 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.crypto.SecretKey;
+
 import org.apache.log4j.Logger;
 
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
-import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseModel;
-import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseIO;
+import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
+import de.fhma.ss10.srn.tischbein.core.db.user.UserDescriptor;
 
 /**
  * Datanbankklasse. Kapselt die gesamte Datenbankstruktur.
@@ -36,6 +39,8 @@ public final class Database extends AbstractDatabaseModel {
         DatabaseIO.LOCK.lock();
 
         try {
+            Database.LOG.debug("Registriere Database-Listener: " + listener.toString());
+
             Database.LISTENERS.add(listener);
         } finally {
             DatabaseIO.LOCK.unlock();
@@ -80,6 +85,8 @@ public final class Database extends AbstractDatabaseModel {
         DatabaseIO.LOCK.lock();
 
         try {
+            Database.LOG.debug("Entferne Database-Listener: " + listener.toString());
+
             Database.LISTENERS.remove(listener);
         } finally {
             DatabaseIO.LOCK.unlock();
@@ -128,6 +135,8 @@ public final class Database extends AbstractDatabaseModel {
 
             // in globale Dateitablle Eintrag schreiben
             this.addFileToGlobalTable(item);
+
+            Database.LOG.info("Datei " + item.toString() + " hinzugefügt.");
         } catch (final Exception e) {
             throw new DatabaseException("Die Datei kann nicht hinzugefügt werden!", e);
         } finally {
@@ -410,6 +419,92 @@ public final class Database extends AbstractDatabaseModel {
             return this.getUserMap().containsKey(name.toLowerCase(Locale.GERMAN));
         } finally {
             DatabaseIO.LOCK.unlock();
+        }
+    }
+
+    /**
+     * Prüft ob der angegebene Benutzer vorhanden und eingeloggt ist.
+     * 
+     * @param name
+     *            Der Benutzername.
+     * @return Gibt <code>true</code> zurück, wenn der Benutzer eingeloggt ist, anderfalls <code>false</code>.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der Benutzer nicht ermittelt werden konnte.
+     */
+    public boolean isUserLoggedIn(final String name) throws DatabaseException {
+        DatabaseIO.LOCK.lock();
+
+        try {
+            boolean result = false;
+
+            if (Database.getInstance().hasUser(name)) {
+                final User user = Database.getInstance().getUser(name);
+
+                if (!user.isLocked()) {
+                    result = true;
+                }
+            }
+
+            return result;
+        } catch (final Exception e) {
+            throw new DatabaseException("Kann den Benutzer nicht ermitteln!", e);
+        } finally {
+            DatabaseIO.LOCK.unlock();
+        }
+    }
+
+    /**
+     * Sperrt einen Benutzer wieder von der Datenbank aus.
+     * 
+     * @param user
+     *            Der Benutzer.
+     */
+    public void lock(final User user) {
+        DatabaseIO.LOCK.lock();
+
+        try {
+            if (user == null) {
+                return;
+            }
+
+            user.setLocked(true);
+        } finally {
+            DatabaseIO.LOCK.unlock();
+
+            Database.fireChangeEvent();
+        }
+    }
+
+    /**
+     * Versucht den Benutzer zu authentifizieren. Nur wenn das Passwort mit dem Hash-Wert des Benutzers übereinstimmt,
+     * wird der Benutzer freigeschaltet und sein privater Schlüssel entschlüsselt.
+     * 
+     * @param user
+     *            Der Benutzer.
+     * @param pass
+     *            Das Passwort des Benutzers.
+     * @throws DatabaseException
+     *             Wird geworfen, wenn der Benutzer nicht authentifiziert werden konnte.
+     */
+    public void unlock(final User user, final String pass) throws DatabaseException {
+        DatabaseIO.LOCK.lock();
+
+        try {
+            final SecretKey secret = user.authenticate(pass);
+
+            user.setLocked(false);
+
+            user.updateKeys(secret);
+
+            user.setDescriptor(Database.getInstance().getUserDescriptor(user));
+
+            Database.LOG.info("Benutzer " + user.getName() + " authentifiziert.");
+        } catch (final Exception e) {
+            throw new DatabaseException("Kann den Benutzer nicht authentifizieren!", e);
+        } finally {
+            DatabaseIO.LOCK.unlock();
+
+            Database.fireChangeEvent();
         }
     }
 

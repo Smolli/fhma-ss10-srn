@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.user;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -9,7 +9,6 @@ import javax.crypto.SecretKey;
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
-import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 
 /**
  * Basisklasse für {@link User}.
@@ -84,36 +83,7 @@ public class UserBase {
      * @return Der {@link PublicKey} des Benutzers.
      */
     public PublicKey getPublicKey() {
-        PublicKey result = null;
-
-        if (!this.isLocked()) {
-            result = this.publicKey;
-        }
-
-        return result;
-    }
-
-    /**
-     * Versucht den Benutzer anhand des übergebenen Passworts zu authentifizieren.
-     * 
-     * @param pass
-     *            Das Passwort.
-     * @return Gibt den geheimen Schlüssel zurück, mit dem der Benutzer freigeschalten werden kann.
-     * @throws CryptoException
-     *             Wird geworfen, wenn das Passwort nicht in einen Schlüssel gewandelt werden konnte.
-     * @throws UserException
-     *             Wird geworfen, wenn das Passwort falsch ist.
-     */
-    protected SecretKey authenticate(final String pass) throws CryptoException, UserException {
-        final SecretKey secret = AesCrypto.generateKey(pass);
-
-        final String hash = Utils.toHexLine(secret.getEncoded());
-
-        if (!hash.equals(this.passHash)) {
-            throw new UserException("Das Passwort stimmt nicht!");
-        }
-
-        return secret;
+        return this.publicKey;
     }
 
     /**
@@ -121,8 +91,36 @@ public class UserBase {
      * 
      * @return Gibt <code>true</code> zurück, wenn der Benutzer gesperrt ist, andernfalls <code>false</code>.
      */
-    protected boolean isLocked() {
+    public boolean isLocked() {
         return this.locked;
+    }
+
+    /**
+     * Sperrt oder entsperrt den Benutzer.
+     * 
+     * @param value
+     *            Wert.
+     */
+    public void setLocked(final boolean value) {
+        this.locked = value;
+    }
+
+    /**
+     * Aktualisiert die Schlüssel und entschlüsselt diese bei Bedarf.
+     * 
+     * @param secret
+     *            Der Schlüssel, der den privaten AES-Schlüssel entschlüsselt.
+     * @throws UtilsException
+     *             Wird geworfen, wenn die Schlüssel nicht aktualisiert werden können.
+     */
+    public void updateKeys(final SecretKey secret) throws UtilsException {
+        if (this.cryptKey == null) {
+            this.cryptKey = (SecretKey) Utils.deserializeKey(AesCrypto.decrypt(this.cryptKeyCipher, secret));
+        }
+        if (this.privateKey == null) {
+            this.privateKey = (PrivateKey) Utils
+                    .deserializeKey(AesCrypto.decrypt(this.privateKeyCipher, this.cryptKey));
+        }
     }
 
     /**
@@ -154,16 +152,6 @@ public class UserBase {
     protected void setKeyPair(final KeyPair pair) {
         this.privateKey = pair.getPrivate();
         this.publicKey = pair.getPublic();
-    }
-
-    /**
-     * Sperrt oder entsperrt den Benutzer.
-     * 
-     * @param value
-     *            Wert.
-     */
-    protected void setLocked(final boolean value) {
-        this.locked = value;
     }
 
     /**
@@ -215,24 +203,6 @@ public class UserBase {
      */
     protected void setPublicKey(final PublicKey key) {
         this.publicKey = key;
-    }
-
-    /**
-     * Aktualisiert die Schlüssel und entschlüsselt diese bei Bedarf.
-     * 
-     * @param secret
-     *            Der Schlüssel, der den privaten AES-Schlüssel entschlüsselt.
-     * @throws UtilsException
-     *             Wird geworfen, wenn die Schlüssel nicht aktualisiert werden können.
-     */
-    protected void updateKeys(final SecretKey secret) throws UtilsException {
-        if (this.cryptKey == null) {
-            this.cryptKey = (SecretKey) Utils.deserializeKey(AesCrypto.decrypt(this.cryptKeyCipher, secret));
-        }
-        if (this.privateKey == null) {
-            this.privateKey = (PrivateKey) Utils
-                    .deserializeKey(AesCrypto.decrypt(this.privateKeyCipher, this.cryptKey));
-        }
     }
 
 }

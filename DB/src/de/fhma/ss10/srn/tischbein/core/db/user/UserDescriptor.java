@@ -1,9 +1,12 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.user;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseStructure;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.Database;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseException;
+import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
 
 /**
  * Enthält alle Tupel, die beschreiben, welche Datei an welchen Benutzer freigeschaltet wurde.
