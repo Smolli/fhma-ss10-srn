@@ -1,7 +1,7 @@
 package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
-import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
 
 /**
  * Alle möglichen Tabellen (Helferklasse).

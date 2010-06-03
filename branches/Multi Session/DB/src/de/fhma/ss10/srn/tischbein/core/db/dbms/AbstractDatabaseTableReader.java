@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 
 /**
  * Kleine Hilfsklasse um die Coderedundanz zu verringern. Ließt einen {@link BufferedReader} zeilenweise aus und
@@ -49,7 +48,7 @@ abstract class AbstractDatabaseTableReader<T> {
                 count++;
             }
 
-            AbstractDatabaseTableReader.LOG.debug(MessageFormat.format("{0} Zeilen aus Datei {1} gelesen.", Integer
+            AbstractDatabaseTableReader.LOG.trace(MessageFormat.format("{0} Zeilen aus Datei {1} gelesen.", Integer
                     .toString(count), reader.toString()));
 
             reader.close();

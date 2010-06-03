@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 /**
  * Projekteigene Exception zum Kapseln der einzelnen Exceptions beim Verwenden von Verschlüsselungen.

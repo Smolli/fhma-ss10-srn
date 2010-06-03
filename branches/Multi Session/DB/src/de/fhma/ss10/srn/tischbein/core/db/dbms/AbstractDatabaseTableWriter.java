@@ -3,7 +3,6 @@ package de.fhma.ss10.srn.tischbein.core.db.dbms;
 import java.io.BufferedWriter;
 import java.util.List;
 
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
 
 /**
  * Helferklasse zum Schreiben von Tabellen.

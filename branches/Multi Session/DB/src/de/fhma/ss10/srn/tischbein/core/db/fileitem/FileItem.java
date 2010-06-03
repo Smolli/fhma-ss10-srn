@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.fileitem;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -12,6 +12,8 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseStructure;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.Database;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
 
 /**
  * Fileklasse. Enhält alle Methoden zur Verwaltung der verschlüsselten Dateien.

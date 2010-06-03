@@ -12,11 +12,9 @@ import javax.crypto.SecretKey;
 import org.apache.log4j.Logger;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
-import de.fhma.ss10.srn.tischbein.core.db.Database;
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
-import de.fhma.ss10.srn.tischbein.core.db.FileItem;
-import de.fhma.ss10.srn.tischbein.core.db.User;
-import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePair;
+import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
+import de.fhma.ss10.srn.tischbein.core.db.user.UserDescriptor.UserFilePair;
 
 /**
  * Basisklasse der Datenbank. Hier geht es um das Dateisystem.

@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 /**
  * Einfacher Listener, der über Veränderungen an der Datenbank berichten soll.

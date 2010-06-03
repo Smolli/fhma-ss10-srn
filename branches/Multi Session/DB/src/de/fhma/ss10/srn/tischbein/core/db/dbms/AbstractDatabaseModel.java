@@ -10,13 +10,11 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaAppender;
-import de.fhma.ss10.srn.tischbein.core.db.Database;
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
-import de.fhma.ss10.srn.tischbein.core.db.FileItem;
-import de.fhma.ss10.srn.tischbein.core.db.User;
-import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor;
-import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePair;
-import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePairList;
+import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
+import de.fhma.ss10.srn.tischbein.core.db.user.UserDescriptor;
+import de.fhma.ss10.srn.tischbein.core.db.user.UserDescriptor.UserFilePair;
+import de.fhma.ss10.srn.tischbein.core.db.user.UserDescriptor.UserFilePairList;
 
 /**
  * Stellt das Datenbank-Modell dar und spezialisiert somit die Datenbankstruktur.
@@ -52,6 +50,9 @@ public abstract class AbstractDatabaseModel extends AbstractDatabaseStructure {
             this.files.put(item.getId(), item);
 
             this.writeFilesTable(new ArrayList<FileItem>(this.files.values()));
+
+            // Hier wird die letzte FileId gesetzt unter der Annahme, dass sie auch mindestens die höchste ist.
+            this.lastFileId = item.getId();
         } catch (final Exception e) {
             throw new DatabaseException("Kann die Tabelle nicht ändern!", e);
         }
@@ -116,11 +117,15 @@ public abstract class AbstractDatabaseModel extends AbstractDatabaseStructure {
      */
     protected void addUser(final User user, final String pass) throws DatabaseException {
         try {
+            user.setLocked(false);
+
             this.createUserFiles(user);
 
             this.users.put(user.getName().toLowerCase(), user);
 
             this.appendUserToUsersTable(user, pass);
+
+            user.setLocked(true);
         } catch (final Exception e) {
             throw new DatabaseException("Kann den Benutzer nicht hinzufügen!", e);
         }

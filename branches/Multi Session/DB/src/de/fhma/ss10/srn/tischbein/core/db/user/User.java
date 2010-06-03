@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.user;
 
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -14,6 +14,8 @@ import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
 import de.fhma.ss10.srn.tischbein.core.crypto.CryptoException;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaCrypto;
 import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseStructure;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.Database;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseChangeListener;
 
 /**
  * Userklasse. Enthält alle Methoden zur Benutzerverwaltung.
@@ -58,6 +60,8 @@ public final class User extends UserBase implements DatabaseChangeListener {
             user.setKeyPair(generatedKeyPair);
             user.setCryptKey(cryptoKey);
 
+            Database.addChangeListener(user);
+
             return user;
         } catch (final Exception e) {
             throw new UserException("Kann den Benutzer nicht erzeugen!", e);
@@ -90,6 +94,29 @@ public final class User extends UserBase implements DatabaseChangeListener {
 
     /** Hält die Dateidaten für den Benutzer. */
     private transient UserDescriptor descriptor;
+
+    /**
+     * Versucht den Benutzer anhand des übergebenen Passworts zu authentifizieren.
+     * 
+     * @param pass
+     *            Das Passwort.
+     * @return Gibt den geheimen Schlüssel zurück, mit dem der Benutzer freigeschalten werden kann.
+     * @throws CryptoException
+     *             Wird geworfen, wenn das Passwort nicht in einen Schlüssel gewandelt werden konnte.
+     * @throws UserException
+     *             Wird geworfen, wenn das Passwort falsch ist.
+     */
+    public SecretKey authenticate(final String pass) throws CryptoException, UserException {
+        final SecretKey secret = AesCrypto.generateKey(pass);
+
+        final String hash = Utils.toHexLine(secret.getEncoded());
+
+        if (!hash.equals(this.getPassHash())) {
+            throw new UserException("Das Passwort stimmt nicht!");
+        }
+
+        return secret;
+    }
 
     /**
      * Compiliert das User-Objekt und gibt es als Zeichenkette zurück. Die einzelnen Felder sind duch den
@@ -158,49 +185,31 @@ public final class User extends UserBase implements DatabaseChangeListener {
         return this.descriptor;
     }
 
+    //    /**
+    //     * Schließt den Benutzer ab und macht seinen privaten Schlüssel wieder unzugänglich.
+    //     */
+    //    public void lock() {
+    //        this.setLocked(true);
+    //    }
+
     @Override
     public int hashCode() {
         return this.getName().hashCode();
     }
 
     /**
-     * Schließt den Benutzer ab und macht seinen privaten Schlüssel wieder unzugänglich.
+     * Setzt den {@link UserDescriptor} auf das übergebene Objekt.
+     * 
+     * @param descriptorObject
+     *            Der {@link UserDescriptor}.
      */
-    public void lock() {
-        //        this.privateKeyEncrypted = null;
-        //        this.privateKey = null;
-        //        this.cryptKey = null;
-        this.setLocked(true);
+    public void setDescriptor(final UserDescriptor descriptorObject) {
+        this.descriptor = descriptorObject;
     }
 
     @Override
     public String toString() {
         return this.getName();
-    }
-
-    /**
-     * Versucht den Benutzer zu authentifizieren. Nur wenn das Passwort mit dem Hash-Wert des Benutzers übereinstimmt,
-     * wird der Benutzer freigeschaltet und sein privater Schlüssel entschlüsselt.
-     * 
-     * @param pass
-     *            Das Passwort des Benutzers.
-     * @throws UserException
-     *             Wird geworfen, wenn der Benutzer nicht authentifiziert werden konnte.
-     */
-    public void unlock(final String pass) throws UserException {
-        try {
-            final SecretKey secret = this.authenticate(pass);
-
-            this.setLocked(false);
-
-            this.updateKeys(secret);
-
-            this.descriptor = Database.getInstance().getUserDescriptor(this);
-
-            User.LOG.info("Benutzer " + this.getName() + " authetifiziert.");
-        } catch (final Exception e) {
-            throw new UserException("Kann den Benutzer nicht authentifizieren!", e);
-        }
     }
 
     @Override

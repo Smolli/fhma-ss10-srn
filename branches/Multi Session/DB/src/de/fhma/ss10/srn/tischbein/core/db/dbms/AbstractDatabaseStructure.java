@@ -9,10 +9,9 @@ import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesReader;
 import de.fhma.ss10.srn.tischbein.core.crypto.AesWriter;
 import de.fhma.ss10.srn.tischbein.core.crypto.RsaReader;
-import de.fhma.ss10.srn.tischbein.core.db.DatabaseException;
-import de.fhma.ss10.srn.tischbein.core.db.FileItem;
-import de.fhma.ss10.srn.tischbein.core.db.User;
-import de.fhma.ss10.srn.tischbein.core.db.UserDescriptor.UserFilePairList;
+import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
+import de.fhma.ss10.srn.tischbein.core.db.user.UserDescriptor.UserFilePairList;
 
 /**
  * Enthält die Datenbankstruktur.
