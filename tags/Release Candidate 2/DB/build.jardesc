@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="GUI/lib/tischbein.core.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/DB/build.jardesc" exportErrors="false" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="true">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.crypto"/>
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core"/>
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.db.dbms"/>
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.db.user"/>
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.db"/>
+        <javaElement handleIdentifier="=DB/src&lt;de.fhma.ss10.srn.tischbein.core.db.fileitem"/>
+    </selectedElements>
+</jardesc>
