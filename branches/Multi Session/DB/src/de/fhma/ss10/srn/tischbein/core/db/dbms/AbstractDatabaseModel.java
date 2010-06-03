@@ -143,7 +143,6 @@ public abstract class AbstractDatabaseModel extends AbstractDatabaseStructure {
      */
     protected void denyAccessToUser(final User user, final FileItem file) throws DatabaseException {
         try {
-            //            String filename = DatabaseTables.AccessTable.getFilename(user);
             List<String> lines = this.rawReadAccessTable(user);
 
             lines = this.removeAccess(file, lines);
