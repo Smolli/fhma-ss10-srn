@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Sealed: true
+Main-Class: de.fhma.ss10.srn.tischbein.gui.launcher.Launcher
+Class-Path: lib/tischbein.core.jar lib/log4j-1.2.16.jar
