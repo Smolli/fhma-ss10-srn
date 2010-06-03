@@ -27,11 +27,28 @@ public final class Launcher {
      *            Programmparameter.
      */
     public static void main(final String[] args) {
+        final Launcher launcher = new Launcher();
+
+        launcher.run();
+    }
+
+    /**
+     * Geschützter Standard-Ctor.
+     */
+    private Launcher() {
+    }
+
+    /**
+     * Einstiegspunkt.
+     */
+    public void run() {
         try {
-            SwingUtilities.invokeAndWait(new Runnable() { // NOPMD by smolli on 30.05.10 19:41
+            SwingUtilities.invokeLater(new Runnable() {
 
                 @Override
                 public void run() {
+                    final SplashScreen splashScreen = new SplashScreen();
+
                     try {
                         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                     } catch (final Exception e) {
@@ -39,17 +56,13 @@ public final class Launcher {
                     }
 
                     new LoginFrame();
+
+                    splashScreen.setVisible(false);
                 }
 
             });
         } catch (final Exception e) {
             GuiUtils.displayError("Unerwarteter Fehler!", e);
         }
-    }
-
-    /**
-     * Geschützter Standard-Ctor.
-     */
-    private Launcher() {
     }
 }
