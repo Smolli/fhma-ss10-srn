@@ -11,6 +11,16 @@ public class UtilsException extends Exception {
     private static final long serialVersionUID = 4687628517898336248L;
 
     /**
+     * Erstellt eine neue {@link UtilsException}.
+     * 
+     * @param message
+     *            Die Nachricht.
+     */
+    public UtilsException(final String message) {
+        super(message);
+    }
+
+    /**
      * Erstellt eine neue UtilityException.
      * 
      * @param message
