@@ -101,7 +101,13 @@ public final class Utils {
         try {
             final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(stream));
 
-            return (Key) ois.readObject();
+            final Key key = (Key) ois.readObject();
+
+            if (key == null) {
+                throw new UtilsException("Kann den Schlüssel nicht deserialisieren!");
+            }
+
+            return key;
         } catch (final Exception e) {
             throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
         }
