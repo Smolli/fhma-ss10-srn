@@ -18,29 +18,6 @@ import de.fhma.ss10.srn.tischbein.gui.GuiUtils;
  */
 final class AccessTableModel implements TableModel {
 
-    // DONE: eingeloggte Benutzer sollen mit fetter Schrift dargestellt werden.
-
-    //    /**
-    //     * Eltern-Interface.
-    //     */
-    //    public interface AccessTableModelParent {
-    //
-    //        /**
-    //         * Gibt den aktuell eingeloggten Benutzer zurück.
-    //         * 
-    //         * @return Den Benutzer.
-    //         */
-    //        User getCurrentUser();
-    //
-    //        /**
-    //         * Gibt die aktuell ausgewählte Datei zurück.
-    //         * 
-    //         * @return Die Datei.
-    //         */
-    //        FileItem getSelectedFile();
-    //
-    //    }
-
     /** Hält die Liste der angezeigten Benutzer. */
     private List<User> users;
     /** Hält das Eltern-Frame. */

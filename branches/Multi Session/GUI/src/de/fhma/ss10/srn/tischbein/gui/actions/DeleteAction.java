@@ -18,29 +18,6 @@ import de.fhma.ss10.srn.tischbein.gui.frames.WorkFrameBaseParent;
  */
 public final class DeleteAction extends AbstractAction implements Action {
 
-    //    /**
-    //     * Hilfslistener um an die Formulardaten zu kommen.
-    //     * 
-    //     * @author Smolli
-    //     */
-    //    public interface DeleteActionParent {
-    //
-    //        /**
-    //         * Gibt den aktuell eingeloggten Benutzer zurück.
-    //         * 
-    //         * @return Der {@link User}.
-    //         */
-    //        User getCurrentUser();
-    //
-    //        /**
-    //         * Gibt die aktuell ausgewählte Datei zurück.
-    //         * 
-    //         * @return Das {@link FileItem}.
-    //         */
-    //        FileItem getSelectedFile();
-    //
-    //    }
-
     /** Serial UID. */
     private static final long serialVersionUID = 1042611735666746461L;
     /** Hält den Daten-Listener. */
@@ -68,8 +45,6 @@ public final class DeleteAction extends AbstractAction implements Action {
                 Database.getInstance().deleteFileItem(item);
 
                 this.parent.selectFile(null, null, 0);
-
-                //            this.listener.notifyChange();
             } catch (final Exception ex) {
                 GuiUtils.displayError("Kann die Datei nicht löschen!", ex);
             }

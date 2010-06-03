@@ -21,27 +21,6 @@ import de.fhma.ss10.srn.tischbein.gui.forms.UploadForm;
  */
 public final class UploadFrame extends UploadForm implements ActionListener {
 
-    //    /**
-    //     * Hilfslistener um an die Formulardaten ran zu kommen.
-    //     * 
-    //     * @author Smolli
-    //     */
-    //    public interface UploadFrameListener {
-    //
-    //        /**
-    //         * Gibt den aktuell eingeloggten Benutzer zurück.
-    //         * 
-    //         * @return Der {@link User}.
-    //         */
-    //        User getCurrentUser();
-    //
-    //        //        /**
-    //        //         * Wird aufgerufen, wenn sich an den Dateilisten etwas geändert hat.
-    //        //         */
-    //        //        void notifyChange();
-    //
-    //    }
-
     /** Serial UID. */
     private static final long serialVersionUID = 544157435480035025L;
 
@@ -108,8 +87,6 @@ public final class UploadFrame extends UploadForm implements ActionListener {
             this.item.encrypt();
 
             Database.getInstance().addFileItem(this.item);
-
-            //            this.listener.notifyChange();
 
             this.dispose();
         } catch (final Exception e) {

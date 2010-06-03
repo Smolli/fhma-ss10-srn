@@ -17,27 +17,6 @@ import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
  */
 final class FilesSelectionModel extends DefaultListSelectionModel {
 
-    //    /**
-    //     * Eltern-Interface.
-    //     * 
-    //     * @author Smolli
-    //     */
-    //    public interface FileSelectionModelParent {
-    //
-    //        /**
-    //         * Wird aufgerufen, wenn eine Datei in der Liste ausgewählt wurde.
-    //         * 
-    //         * @param fileItem
-    //         *            Das {@link FileItem}, das ausgewählt wurde.
-    //         * @param list
-    //         *            Die {@link JList}, in der die Datei ausgewählt wurde.
-    //         * @param index
-    //         *            Der Index des Elements in der Liste.
-    //         */
-    //        void selectFile(FileItem fileItem, JList list, int index);
-    //
-    //    }
-
     /** Serial UID. */
     private static final long serialVersionUID = 9031173846551914083L;
     /** Hält den Logger. */
