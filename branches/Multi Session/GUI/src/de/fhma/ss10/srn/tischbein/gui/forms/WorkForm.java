@@ -7,10 +7,15 @@ public class WorkForm extends javax.swing.JFrame {
     private static final long serialVersionUID = 5702577045631188956L;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    protected javax.swing.JScrollPane accessPane;
+    protected javax.swing.JPanel accessPanel;
     protected javax.swing.JTable accessTable;
     protected javax.swing.JButton closeButton;
     protected javax.swing.JButton deleteButton;
     protected javax.swing.JTextArea fileView;
+    protected javax.swing.JScrollPane fileViewPane;
+    protected javax.swing.JLabel hintTextAccessTable;
+    protected javax.swing.JLabel hintTextFileView;
     protected javax.swing.JButton logoutButton;
     protected javax.swing.JButton newsessionButton;
     protected javax.swing.JList otherFilesList;
@@ -57,11 +62,13 @@ public class WorkForm extends javax.swing.JFrame {
         this.otherFilesList = new javax.swing.JList();
         final javax.swing.JSplitPane jSplitPane2 = new javax.swing.JSplitPane();
         this.viewPanel = new javax.swing.JPanel();
-        final javax.swing.JScrollPane fileViewScrollArea = new javax.swing.JScrollPane();
+        this.fileViewPane = new javax.swing.JScrollPane();
         this.fileView = new javax.swing.JTextArea();
-        final javax.swing.JPanel userPanel = new javax.swing.JPanel();
-        final javax.swing.JScrollPane jScrollPane5 = new javax.swing.JScrollPane();
+        this.hintTextFileView = new javax.swing.JLabel();
+        this.accessPanel = new javax.swing.JPanel();
+        this.accessPane = new javax.swing.JScrollPane();
         this.accessTable = new javax.swing.JTable();
+        this.hintTextAccessTable = new javax.swing.JLabel();
         final javax.swing.JSeparator jSeparator2 = new javax.swing.JSeparator();
 
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -134,32 +141,41 @@ public class WorkForm extends javax.swing.JFrame {
         jSplitPane2.setContinuousLayout(true);
 
         this.viewPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
-        this.viewPanel.setLayout(new javax.swing.BoxLayout(this.viewPanel, javax.swing.BoxLayout.LINE_AXIS));
+        this.viewPanel.setLayout(new javax.swing.BoxLayout(this.viewPanel, javax.swing.BoxLayout.PAGE_AXIS));
 
         this.fileView.setColumns(20);
         this.fileView.setEditable(false);
         this.fileView.setLineWrap(true);
         this.fileView.setRows(5);
-        fileViewScrollArea.setViewportView(this.fileView);
+        this.fileViewPane.setViewportView(this.fileView);
 
-        this.viewPanel.add(fileViewScrollArea);
+        this.viewPanel.add(this.fileViewPane);
+
+        this.hintTextFileView
+                .setText("<html><center>Um eine Datei zu betrachten, wähle links aus den biden Listen eine Datei aus.</center></html>");
+        this.viewPanel.add(this.hintTextFileView);
 
         jSplitPane2.setLeftComponent(this.viewPanel);
 
-        userPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory
+        this.accessPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory
                 .createTitledBorder("Benutzererlaubnis")));
-        userPanel.setMinimumSize(new java.awt.Dimension(150, 63));
-        userPanel.setPreferredSize(new java.awt.Dimension(150, 130));
-        userPanel.setLayout(new javax.swing.BoxLayout(userPanel, javax.swing.BoxLayout.LINE_AXIS));
+        this.accessPanel.setMinimumSize(new java.awt.Dimension(150, 63));
+        this.accessPanel.setPreferredSize(new java.awt.Dimension(150, 130));
+        this.accessPanel.setLayout(new javax.swing.BoxLayout(this.accessPanel, javax.swing.BoxLayout.PAGE_AXIS));
 
         this.accessTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][] { { null, null, null, null },
                 { null, null, null, null }, { null, null, null, null }, { null, null, null, null } }, new String[] {
                 "Title 1", "Title 2", "Title 3", "Title 4" }));
-        jScrollPane5.setViewportView(this.accessTable);
+        this.accessPane.setViewportView(this.accessTable);
 
-        userPanel.add(jScrollPane5);
+        this.accessPanel.add(this.accessPane);
 
-        jSplitPane2.setRightComponent(userPanel);
+        this.hintTextAccessTable.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        this.hintTextAccessTable
+                .setText("<html><center>Du kannst keine Rechte an andere Benutzer vergeben, wenn Dir die Datei nicht gehört oder Du keine Deiner Dateien ausgewählt hast.<br/><br/>Bitte wähle eine Deiner Dateien aus.</center></html>");
+        this.accessPanel.add(this.hintTextAccessTable);
+
+        jSplitPane2.setRightComponent(this.accessPanel);
 
         jSplitPane1.setRightComponent(jSplitPane2);
 
