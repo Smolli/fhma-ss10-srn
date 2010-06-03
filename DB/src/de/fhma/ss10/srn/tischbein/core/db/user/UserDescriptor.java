@@ -1,8 +1,12 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.user;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
-import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseStructure;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.AbstractDatabaseStructure;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.Database;
+import de.fhma.ss10.srn.tischbein.core.db.dbms.DatabaseException;
+import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
 
 /**
  * Enthält alle Tupel, die beschreiben, welche Datei an welchen Benutzer freigeschaltet wurde.
@@ -28,13 +32,13 @@ public final class UserDescriptor {
          *             Wird geworfen, wenn die Zeile nicht geparst werden konnte.
          */
         public static UserFilePair parse(final String line) throws DatabaseException {
-            String[] cols = line.split(";");
+            final String[] cols = line.split(";");
 
-            String userName = cols[0];
-            int fileId = Integer.parseInt(cols[1]);
+            final String userName = cols[0];
+            final int fileId = Integer.parseInt(cols[1]);
 
-            FileItem fileObject = Database.getInstance().getFile(fileId);
-            User userObject = Database.getInstance().getUser(userName);
+            final FileItem fileObject = Database.getInstance().getFile(fileId);
+            final User userObject = Database.getInstance().getUser(userName);
 
             return new UserFilePair(userObject, fileObject);
         }
@@ -64,18 +68,20 @@ public final class UserDescriptor {
          * @return Die Tabellenzeile.
          */
         public String compile() {
-            return this.user.getName() + DatabaseStructure.SEPARATOR + this.file.getId();
+            return this.user.getName() + AbstractDatabaseStructure.SEPARATOR + this.file.getId();
         }
 
         @Override
-        public synchronized boolean equals(final Object o) {
-            if (!(o instanceof UserFilePair)) {
-                return false;
+        public boolean equals(final Object object) {
+            boolean result = false;
+
+            if (object instanceof UserFilePair) {
+                final UserFilePair other = (UserFilePair) object;
+
+                result = (other.file == this.file) && (other.user == this.user);
             }
 
-            UserFilePair other = (UserFilePair) o;
-
-            return (other.file == this.file) && (other.user == this.user);
+            return result;
         }
 
         /**
@@ -104,11 +110,11 @@ public final class UserDescriptor {
     }
 
     /**
-     * Spezialisierte {@link Vector}-Klasse zur Datenhaltung der {@link UserFilePair}s.
+     * Spezialisierte {@link ArrayList}-Klasse zur Datenhaltung der {@link UserFilePair}s.
      * 
      * @author Smolli
      */
-    public static final class UserFilePairVector extends Vector<UserFilePair> {
+    public static final class UserFilePairList extends ArrayList<UserFilePair> {
 
         /** Serial UID. */
         private static final long serialVersionUID = -7635068670563344170L;
@@ -116,11 +122,11 @@ public final class UserDescriptor {
         /**
          * Copy-Ctor.
          * 
-         * @param copy
-         *            Der zu kopierende {@link Vector}.
+         * @param list
+         *            Der zu kopierende {@link List}.
          */
-        public UserFilePairVector(final Vector<UserFilePair> copy) {
-            super(copy);
+        public UserFilePairList(final List<UserFilePair> list) {
+            super(list);
         }
 
         /**
@@ -133,11 +139,7 @@ public final class UserDescriptor {
          * @return Gibt <code>true</code> zurück, wenn die Datei im Kontext existiert, andernfalls <code>false</code>.
          */
         public boolean containsFile(final FileItem file, final User userContext) {
-            if (this.get(userContext, file) != null) {
-                return true;
-            }
-
-            return false;
+            return this.get(userContext, file) != null;
         }
 
         /**
@@ -151,13 +153,16 @@ public final class UserDescriptor {
          *         <code>null</code>.
          */
         public UserFilePair get(final User userContext, final FileItem file) {
-            for (UserFilePair ufp : this) {
+            UserFilePair result = null;
+
+            for (final UserFilePair ufp : this) {
                 if (ufp.file.equals(file) && ufp.user.equals(userContext)) {
-                    return ufp;
+                    result = ufp;
+                    break;
                 }
             }
 
-            return null;
+            return result;
         }
 
         /**
@@ -165,12 +170,12 @@ public final class UserDescriptor {
          * 
          * @param item
          *            Das {@link FileItem}.
-         * @return Ein {@link Vector} mit allen {@link User}-Objekten, die Zugriff auf die Datei haben.
+         * @return Eine {@link List} mit allen {@link User}-Objekten, die Zugriff auf die Datei haben.
          */
-        public Vector<User> getDeptors(final FileItem item) {
-            Vector<User> users = new Vector<User>();
+        public List<User> getDeptors(final FileItem item) {
+            final List<User> users = new ArrayList<User>();
 
-            for (UserFilePair ufp : this) {
+            for (final UserFilePair ufp : this) {
                 if (ufp.file.equals(item)) {
                     users.add(ufp.user);
                 }
@@ -182,36 +187,36 @@ public final class UserDescriptor {
     }
 
     /** Hält die Tabelle der Dateien anderer Benutzer, auf die der User zugriff hat. */
-    private Vector<FileItem> accessList;
+    private List<FileItem> accessList;
     /** Hält die Tabelle der Dateien, die dem Benutzer gehören. */
-    private Vector<FileItem> filesList;
+    private List<FileItem> filesList;
     /** Hält die Tabelle der Benutzer, denen die Dateien ausgeliehen wurden. */
-    private UserFilePairVector lendList;
+    private UserFilePairList lendList;
 
     /**
      * Gibt die Zugriffstabelle zurück.
      * 
      * @return Die Tabelle der Dateien, auf die der Benutzer zugriff hat.
      */
-    public Vector<FileItem> getAccessList() {
+    public List<FileItem> getAccessList() {
         return this.accessList;
     }
 
     /**
      * Gibt die Dateien-Tabelle zurück.
      * 
-     * @return Die Dateien-Tabelle als {@link Vector}.
+     * @return Die Dateien-Tabelle als {@link List}.
      */
-    public Vector<FileItem> getFileList() {
+    public List<FileItem> getFileList() {
         return this.filesList;
     }
 
     /**
      * Die Relation der Dateien und Benutzer, die auf die Dateien des Benutzers zugreifen können.
      * 
-     * @return Die Relation als {@link UserFilePairVector}.
+     * @return Die Relation als {@link UserFilePairList}.
      */
-    public UserFilePairVector getLendList() {
+    public UserFilePairList getLendList() {
         return this.lendList;
     }
 
@@ -226,14 +231,16 @@ public final class UserDescriptor {
      *         <code>false</code>.
      */
     public boolean hasAccess(final User user, final FileItem file) {
-        for (UserFilePair ufp : this.getLendList()) {
-            if (ufp.getUser().equals(user) && ufp.getFile().equals(file)) {
-                return true;
-            }
+        boolean result = false;
 
+        for (final UserFilePair ufp : this.getLendList()) {
+            if (ufp.getUser().equals(user) && ufp.getFile().equals(file)) {
+                result = true;
+                break;
+            }
         }
 
-        return false;
+        return result;
     }
 
     /**
@@ -260,21 +267,21 @@ public final class UserDescriptor {
     /**
      * Setzt die Liste mit den Dateien anderer Benutzer, auf die der Benutzer zugreifen darf.
      * 
-     * @param accessTable
+     * @param list
      *            Die Liste der Dateien.
      */
-    public void setAccessTable(final Vector<FileItem> accessTable) {
-        this.accessList = accessTable;
+    public void setAccessTable(final List<FileItem> list) {
+        this.accessList = list;
     }
 
     /**
      * Setzt die Liste der Dateien, die dem Bentuzer gehören.
      * 
-     * @param collection
+     * @param list
      *            Die List der Dateien.
      */
-    public void setFilesTable(final Vector<FileItem> collection) {
-        this.filesList = collection;
+    public void setFilesTable(final List<FileItem> list) {
+        this.filesList = list;
     }
 
     /**
@@ -283,7 +290,7 @@ public final class UserDescriptor {
      * @param list
      *            Die Liste.
      */
-    public void setLendTable(final UserFilePairVector list) {
+    public void setLendTable(final UserFilePairList list) {
         this.lendList = list;
     }
 

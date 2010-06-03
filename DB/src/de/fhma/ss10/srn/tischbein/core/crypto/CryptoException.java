@@ -25,11 +25,11 @@ public class CryptoException extends Exception {
      * 
      * @param message
      *            Die Nachricht.
-     * @param e
+     * @param exception
      *            Der Grund.
      */
-    public CryptoException(final String message, final Exception e) {
-        super(message, e);
+    public CryptoException(final String message, final Exception exception) {
+        super(message, exception);
     }
 
 }

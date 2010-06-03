@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.user;
 
 /**
  * Exception-Klasse für das User-Objekt.
@@ -25,10 +25,10 @@ public class UserException extends Exception {
      * 
      * @param message
      *            Die Nachricht.
-     * @param e
+     * @param exception
      *            Die Exception.
      */
-    public UserException(final String message, final Exception e) {
-        super(message, e);
+    public UserException(final String message, final Exception exception) {
+        super(message, exception);
     }
 }

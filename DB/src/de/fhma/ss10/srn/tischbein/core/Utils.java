@@ -14,18 +14,27 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
+import javax.crypto.SecretKey;
+
+import org.apache.log4j.Logger;
+
+import de.fhma.ss10.srn.tischbein.core.crypto.AesCrypto;
+
 /**
  * Werkzeugklasse. Enthält viele Methoden zum Konvertieren von Daten und zum Erzeugen von MD5-Summen.
  * 
  * @author Smolli
  */
 public final class Utils {
+
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(Utils.class);
     /** Hält die Breite eines Hextextes. */
     private static final int TEXT_BLOCK_WIDTH = 64;
     /** Hält den Wert für 0xff. */
     private static final int NIBBLE_MAX_VALUE = 16;
     /** Hält das Maximum eines Unsinged Byte (255). */
-    private static final int UNSIGNED_BYTE_MAX_VALUE = 0xff;
+    private static final int UBYTE_MAX_VALUE = 0xff;
     /** Hält den globalen SecureRandom-Generator. */
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -35,8 +44,8 @@ public final class Utils {
     static {
         try {
             Utils.md5 = MessageDigest.getInstance("MD5");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            Utils.LOG.error("Kann den MD5-Digest nicht erstellen!", e);
         }
     }
 
@@ -52,7 +61,7 @@ public final class Utils {
     public static BufferedReader createBufferedReader(final String filename) throws UtilsException {
         try {
             return new BufferedReader(new FileReader(filename));
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             throw new UtilsException("Kann den Reader nicht erzeugen!", e);
         }
     }
@@ -74,7 +83,7 @@ public final class Utils {
             throws UtilsException {
         try {
             return new BufferedWriter(new FileWriter(filename, append));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new UtilsException("Kann den Writer nicht erzeugen!", e);
         }
     }
@@ -90,10 +99,16 @@ public final class Utils {
      */
     public static Key deserializeKey(final byte[] stream) throws UtilsException {
         try {
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(stream));
+            final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(stream));
 
-            return (Key) ois.readObject();
-        } catch (Exception e) {
+            final Key key = (Key) ois.readObject();
+
+            if (key == null) {
+                throw new UtilsException("Kann den Schlüssel nicht deserialisieren!");
+            }
+
+            return key;
+        } catch (final Exception e) {
             throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
         }
     }
@@ -112,6 +127,21 @@ public final class Utils {
     }
 
     /**
+     * Serialisiert einen Schlüssel, verschlüsselt ihn und gibt ihn als Hexstring wieder zurück.
+     * 
+     * @param key
+     *            Der Schlüssel, der serialisiert werden soll.
+     * @param secret
+     *            Der Schlüsssel, mit dem er verschlüsselt werden soll.
+     * @return Gibt das Ergebnis als Hexstring wieder zurück.
+     * @throws UtilsException
+     *             Wird geworfen, wenn die Prozedur fehl schlägt.
+     */
+    public static String encryptSerializedKeyHex(final Key key, final SecretKey secret) throws UtilsException {
+        return AesCrypto.encryptHex(Utils.serializeKey(key), secret);
+    }
+
+    /**
      * Erzeugt aus dem übergebenen String ein Byte-Array. Der String muss aus hexadezimalen paaren zu je zwei Ziffern
      * bestehen. Leer-, Satz- oder Sonderzeichen sind nicht erlaubt.
      * 
@@ -120,16 +150,20 @@ public final class Utils {
      * @return Gibt den String als Byte-Array zurück.
      */
     public static byte[] fromHexLine(final String hex) {
-        byte[] res = new byte[hex.length() / 2];
+        final byte[] res = new byte[hex.length() / 2];
+        int ivalue;
+        byte bvalue;
 
         for (int i = 0; i < hex.length() / 2; i++) {
-            int t = Integer.decode("#" + hex.substring(i * 2, i * 2 + 2));
+            ivalue = Integer.decode("#" + hex.substring(i * 2, i * 2 + 2));
 
-            if (t <= Byte.MAX_VALUE) {
-                res[i] = (byte) t;
+            if (ivalue <= Byte.MAX_VALUE) {
+                bvalue = (byte) ivalue;
             } else {
-                res[i] = (byte) (t - Utils.UNSIGNED_BYTE_MAX_VALUE - 1);
+                bvalue = (byte) (ivalue - Utils.UBYTE_MAX_VALUE - 1);
             }
+
+            res[i] = bvalue;
         }
 
         return res;
@@ -143,14 +177,14 @@ public final class Utils {
      * @return Gibt den Text als byte-Array zurück.
      */
     public static byte[] fromHexText(final String text) {
-        String[] lines = text.split("\n");
-        StringBuilder sb = new StringBuilder();
+        final String[] lines = text.split("\n");
+        final StringBuilder array = new StringBuilder();
 
-        for (String line : lines) {
-            sb.append(line);
+        for (final String line : lines) {
+            array.append(line);
         }
 
-        return Utils.fromHexLine(sb.toString());
+        return Utils.fromHexLine(array.toString());
     }
 
     /**
@@ -173,15 +207,15 @@ public final class Utils {
      */
     public static byte[] serializeKey(final Key key) throws UtilsException {
         try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            final ObjectOutputStream oos = new ObjectOutputStream(bos);
 
             oos.writeObject(key);
 
             oos.flush();
 
             return bos.toByteArray();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new UtilsException("Kann den Schlüssel nicht konvertieren!", e);
         }
     }
@@ -207,14 +241,14 @@ public final class Utils {
      * @return Das Array als Hex-String.
      */
     public static String toHexLine(final byte[] hex) {
-        StringBuilder hexString = new StringBuilder();
+        final StringBuilder hexString = new StringBuilder();
 
-        for (byte b : hex) {
+        for (final byte b : hex) {
             if ((b < Utils.NIBBLE_MAX_VALUE) && (b >= 0)) {
                 hexString.append("0");
             }
 
-            hexString.append(Integer.toHexString(b & Utils.UNSIGNED_BYTE_MAX_VALUE));
+            hexString.append(Integer.toHexString(b & Utils.UBYTE_MAX_VALUE));
         }
 
         return hexString.toString();
@@ -229,18 +263,18 @@ public final class Utils {
      */
     public static String toHexText(final byte[] hex) {
         String line = Utils.toHexLine(hex);
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder text = new StringBuilder();
 
         while (line.length() > Utils.TEXT_BLOCK_WIDTH) {
-            sb.append(line.substring(0, Utils.TEXT_BLOCK_WIDTH));
-            sb.append("\n");
+            text.append(line.substring(0, Utils.TEXT_BLOCK_WIDTH));
+            text.append("\n");
 
             line = line.substring(Utils.TEXT_BLOCK_WIDTH);
         }
 
-        sb.append(line);
+        text.append(line);
 
-        return sb.toString();
+        return text.toString();
     }
 
     /**
@@ -288,6 +322,13 @@ public final class Utils {
      */
     public static String toMD5Hex(final String text) {
         return Utils.toHexLine(Utils.toMD5(text));
+    }
+
+    /**
+     * Geschützter Ctor.
+     */
+    private Utils() {
+        super();
     }
 
 }

@@ -1,7 +1,7 @@
 package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 import de.fhma.ss10.srn.tischbein.core.Utils;
-import de.fhma.ss10.srn.tischbein.core.db.User;
+import de.fhma.ss10.srn.tischbein.core.db.user.User;
 
 /**
  * Alle möglichen Tabellen (Helferklasse).
@@ -25,25 +25,25 @@ public enum DatabaseTables {
      * @return Der eindeutige Dateiname.
      */
     public String getFilename(final User user) {
-        StringBuilder sb = new StringBuilder("db/users/");
+        final StringBuilder filename = new StringBuilder("db/users/");
 
-        sb.append(Utils.toMD5Hex(user.getName()));
+        filename.append(Utils.toMD5Hex(user.getName()));
 
         if (this == DatabaseTables.FileTable) {
-            sb.append(".files");
+            filename.append(".files");
         }
 
         if (this == AccessTable) {
-            sb.append(".access");
+            filename.append(".access");
         }
 
         if (this == LendTable) {
-            sb.append(".lend");
+            filename.append(".lend");
         }
 
-        sb.append(".tb");
+        filename.append(".tb");
 
-        return sb.toString();
+        return filename.toString();
     }
 
 }

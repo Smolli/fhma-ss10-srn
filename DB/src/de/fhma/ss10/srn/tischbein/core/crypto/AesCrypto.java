@@ -4,6 +4,8 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import org.apache.log4j.Logger;
+
 import de.fhma.ss10.srn.tischbein.core.Utils;
 import de.fhma.ss10.srn.tischbein.core.UtilsException;
 
@@ -12,7 +14,7 @@ import de.fhma.ss10.srn.tischbein.core.UtilsException;
  * 
  * @author Smolli
  */
-public class AesCrypto {
+public final class AesCrypto {
 
     /**
      * Kleine Helferklasse um Passwörter in einen AES-Schlüssel zu verwandeln.
@@ -43,7 +45,7 @@ public class AesCrypto {
 
         @Override
         public byte[] getEncoded() {
-            return this.secret;
+            return this.secret.clone();
         }
 
         @Override
@@ -53,6 +55,8 @@ public class AesCrypto {
 
     }
 
+    /** Hält den Logger. */
+    private static final Logger LOG = Logger.getLogger(AesCrypto.class);
     /** Der Java-interne Name für den AES-Algorithmus. */
     public static final String AES_ALGO_NAME = "AES";
     /** Die Standard-Schlüssellänge für den AES-Algorithmus in Bytes. */
@@ -65,8 +69,8 @@ public class AesCrypto {
     static {
         try {
             AesCrypto.cipher = Cipher.getInstance(AesCrypto.AES_ALGO_NAME);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            AesCrypto.LOG.error("Kann den AES-Cipher nicht erstellen!", e);
         }
     }
 
@@ -85,10 +89,10 @@ public class AesCrypto {
         try {
             AesCrypto.cipher.init(Cipher.DECRYPT_MODE, secret);
 
-            byte[] res = AesCrypto.cipher.doFinal(cipherText);
+            final byte[] res = AesCrypto.cipher.doFinal(cipherText);
 
             return res;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new UtilsException("Konnte den Geheimtext nicht entschlüsseln!", e);
         }
     }
@@ -108,10 +112,10 @@ public class AesCrypto {
         try {
             AesCrypto.cipher.init(Cipher.ENCRYPT_MODE, secret);
 
-            byte[] res = AesCrypto.cipher.doFinal(message);
+            final byte[] res = AesCrypto.cipher.doFinal(message);
 
             return res;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new UtilsException("Kann den Klartext nicht verschlüsseln!", e);
         }
     }
@@ -141,12 +145,12 @@ public class AesCrypto {
      */
     public static SecretKey generateKey() throws CryptoException {
         try {
-            KeyGenerator kg = KeyGenerator.getInstance(AesCrypto.AES_ALGO_NAME);
+            final KeyGenerator generator = KeyGenerator.getInstance(AesCrypto.AES_ALGO_NAME);
 
-            kg.init(AesCrypto.AES_KEY_SIZE_BITS, Utils.getRandom());
+            generator.init(AesCrypto.AES_KEY_SIZE_BITS, Utils.getRandom());
 
-            return kg.generateKey();
-        } catch (Exception e) {
+            return generator.generateKey();
+        } catch (final Exception e) {
             throw new CryptoException("Kann den AES-Schlüssel nicht generieren!", e);
         }
     }
@@ -163,9 +167,16 @@ public class AesCrypto {
     public static SecretKey generateKey(final String pass) throws CryptoException {
         try {
             return new AesSecretKey(pass);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new CryptoException("Kann den AES-Schlüssel nicht generieren!", e);
         }
+    }
+
+    /**
+     * Geschützter Ctor.
+     */
+    private AesCrypto() {
+        super();
     }
 
 }

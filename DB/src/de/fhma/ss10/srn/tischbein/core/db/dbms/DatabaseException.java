@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.dbms;
 
 /**
  * Projekteigene Exception zum Kapseln der einzelnen Exceptions beim Verwenden von Verschlüsselungen.
@@ -25,11 +25,11 @@ public class DatabaseException extends Exception {
      * 
      * @param message
      *            Anzuzeigende Nachricht.
-     * @param e
+     * @param exception
      *            Verknüpfte Exception.
      */
-    public DatabaseException(final String message, final Exception e) {
-        super(message, e);
+    public DatabaseException(final String message, final Exception exception) {
+        super(message, exception);
     }
 
 }

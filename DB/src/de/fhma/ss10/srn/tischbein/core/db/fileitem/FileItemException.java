@@ -1,4 +1,4 @@
-package de.fhma.ss10.srn.tischbein.core.db;
+package de.fhma.ss10.srn.tischbein.core.db.fileitem;
 
 /**
  * FileItemException.
@@ -15,11 +15,11 @@ public class FileItemException extends Exception {
      * 
      * @param message
      *            Die Nachricht.
-     * @param e
+     * @param exception
      *            Die Exception.
      */
-    public FileItemException(final String message, final Exception e) {
-        super(message, e);
+    public FileItemException(final String message, final Exception exception) {
+        super(message, exception);
     }
 
 }

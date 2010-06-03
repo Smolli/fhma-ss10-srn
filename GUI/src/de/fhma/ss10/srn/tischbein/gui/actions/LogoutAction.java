@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import de.fhma.ss10.srn.tischbein.gui.frames.WorkFrameBaseParent;
+
 /**
  * Action zum Ausloggen eines Benutzers.
  * 
@@ -12,25 +14,25 @@ import javax.swing.Action;
  */
 public final class LogoutAction extends AbstractAction {
 
-    /**
-     * Listener-Interface für die Logout-Action.
-     * 
-     * @author Smolli
-     */
-    public interface LogoutActionListener {
-
-        /**
-         * Loggt den Benutzer aus.
-         */
-        void logout();
-
-    }
+    //    /**
+    //     * Listener-Interface für die Logout-Action.
+    //     * 
+    //     * @author Smolli
+    //     */
+    //    public interface LogoutActionParent {
+    //
+    //        /**
+    //         * Loggt den Benutzer aus.
+    //         */
+    //        void logout();
+    //
+    //    }
 
     /** Serial UID. */
     private static final long serialVersionUID = -177255198567493408L;
 
     /** Hält den Listener. */
-    private final LogoutActionListener listener;
+    private final WorkFrameBaseParent listener;
 
     /**
      * Erstellt eine neue LogoutAction.
@@ -38,7 +40,9 @@ public final class LogoutAction extends AbstractAction {
      * @param listenerObject
      *            Das Listener-Objekt.
      */
-    public LogoutAction(final LogoutActionListener listenerObject) {
+    public LogoutAction(final WorkFrameBaseParent listenerObject) {
+        super();
+
         this.listener = listenerObject;
     }
 
@@ -49,11 +53,15 @@ public final class LogoutAction extends AbstractAction {
 
     @Override
     public Object getValue(final String key) {
+        Object result;
+
         if (key.equals(Action.NAME)) {
-            return "Logout";
+            result = "Logout";
         } else {
-            return super.getValue(key);
+            result = super.getValue(key);
         }
+
+        return result;
     }
 
 }

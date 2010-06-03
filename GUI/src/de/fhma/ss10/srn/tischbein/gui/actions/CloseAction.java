@@ -17,12 +17,12 @@ public final class CloseAction extends AbstractAction {
      * 
      * @author Smolli
      */
-    public interface CloseActionListener {
+    public interface CloseActionParent {
 
         /**
          * Schließt die Anwendung.
          */
-        void close();
+        void closeFrame();
 
     }
 
@@ -30,7 +30,7 @@ public final class CloseAction extends AbstractAction {
     private static final long serialVersionUID = 8194236130788886964L;
 
     /** Hält den Listener. */
-    private final CloseActionListener listener;
+    private final CloseActionParent listener;
 
     /**
      * Erstellt eine neue CloseAction.
@@ -38,22 +38,28 @@ public final class CloseAction extends AbstractAction {
      * @param listenerObject
      *            Das Listener-Objeckt.
      */
-    public CloseAction(final CloseActionListener listenerObject) {
+    public CloseAction(final CloseActionParent listenerObject) {
+        super();
+
         this.listener = listenerObject;
     }
 
     @Override
-    public void actionPerformed(final ActionEvent e) {
-        this.listener.close();
+    public void actionPerformed(final ActionEvent event) {
+        this.listener.closeFrame();
     }
 
     @Override
     public Object getValue(final String key) {
+        Object result;
+
         if (key.equals(Action.NAME)) {
-            return "Beenden";
+            result = "Beenden";
         } else {
-            return super.getValue(key);
+            result = super.getValue(key);
         }
+
+        return result;
     }
 
 }
