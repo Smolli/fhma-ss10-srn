@@ -14,20 +14,6 @@ import de.fhma.ss10.srn.tischbein.gui.frames.WorkFrameBaseParent;
  */
 public final class LogoutAction extends AbstractAction {
 
-    //    /**
-    //     * Listener-Interface für die Logout-Action.
-    //     * 
-    //     * @author Smolli
-    //     */
-    //    public interface LogoutActionParent {
-    //
-    //        /**
-    //         * Loggt den Benutzer aus.
-    //         */
-    //        void logout();
-    //
-    //    }
-
     /** Serial UID. */
     private static final long serialVersionUID = -177255198567493408L;
 

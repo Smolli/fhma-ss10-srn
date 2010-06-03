@@ -14,6 +14,12 @@ public final class GuiUtils {
     /** Hält den Logger. */
     private static final Logger LOG = Logger.getLogger(GuiUtils.class);
 
+    /**
+     * Zeigt ein einfaches Dialogfeld mit der Nachricht an.
+     * 
+     * @param message
+     *            Die Nachricht.
+     */
     public static void display(final String message) {
         JOptionPane.showMessageDialog(null, message, "Tischbein sagt:", JOptionPane.INFORMATION_MESSAGE);
     }

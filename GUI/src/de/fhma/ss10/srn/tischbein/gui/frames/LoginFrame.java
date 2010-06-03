@@ -61,8 +61,6 @@ public final class LoginFrame extends LoginForm implements ActionListener, Close
      */
     @Override
     public void closeFrame() {
-        //        Database.getInstance().shutdown();
-
         this.dispose();
     }
 

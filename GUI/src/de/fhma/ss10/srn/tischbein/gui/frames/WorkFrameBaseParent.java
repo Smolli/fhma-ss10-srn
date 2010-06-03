@@ -1,6 +1,3 @@
-/**
- * 
- */
 package de.fhma.ss10.srn.tischbein.gui.frames;
 
 import javax.swing.JList;
@@ -9,6 +6,11 @@ import de.fhma.ss10.srn.tischbein.core.db.fileitem.FileItem;
 import de.fhma.ss10.srn.tischbein.core.db.user.User;
 import de.fhma.ss10.srn.tischbein.gui.actions.CloseAction.CloseActionParent;
 
+/**
+ * Hilfsinterface um alle Events an das {@link WorkFrame} weiterzugeben oder an Inhalte heranzukommen.
+ * 
+ * @author Smolli
+ */
 public interface WorkFrameBaseParent extends CloseActionParent {
 
     /**

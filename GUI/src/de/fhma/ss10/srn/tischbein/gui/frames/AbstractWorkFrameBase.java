@@ -70,21 +70,47 @@ public abstract class AbstractWorkFrameBase extends WorkForm implements Database
         return this.selectedFile;
     }
 
-    protected int getLastIndex() {
+    /**
+     * Gibt den letzten gesetzten Index zurück.
+     * 
+     * @return Den Index.
+     */
+    protected final int getLastIndex() {
         return this.lastIndex;
     }
 
-    protected JList getLastList() {
+    /**
+     * Gibt die {@link JList} zurück, in der zuletzt der Index gesetzt wurde.
+     * 
+     * @return Die {@link JList}.
+     */
+    protected final JList getLastList() {
         return this.lastList;
     }
 
-    protected void setLastSelection(final JList list, final int index) {
+    /**
+     * Setzt die {@link JList} und den Index, der zuletzt ausgewählt wurde.
+     * 
+     * @param list
+     *            Die {@link JList}.
+     * @param index
+     *            Der Index.
+     */
+    protected final void setLastSelection(final JList list, final int index) {
         this.lastList = list;
         this.lastIndex = index;
     }
 
-    protected void setSelectedFile(final FileItem selectedFile) throws FileItemException {
-        this.selectedFile = selectedFile;
+    /**
+     * Setzt die gewählte Datei.
+     * 
+     * @param file
+     *            Die Datei.
+     * @throws FileItemException
+     *             Wird geworfen, wenn die ausgewählte Datei nicht angezeigt werden kann.
+     */
+    protected final void setSelectedFile(final FileItem file) throws FileItemException {
+        this.selectedFile = file;
 
         this.updateFileView();
 
@@ -123,6 +149,13 @@ public abstract class AbstractWorkFrameBase extends WorkForm implements Database
         this.updateLists();
     }
 
+    /**
+     * Zeigt den Hinweistext für die Zugriffsrechtetabelle an oder verbirgt ihn.
+     * 
+     * @param show
+     *            Wenn auf <code>true</code> gesetzt, wird der Hinweistext angezeigt, auf <code>false</code> die
+     *            Tabelle.
+     */
     private void setAccessTableHintText(final boolean show) {
         if (show) {
             this.accessPane.setVisible(false);
