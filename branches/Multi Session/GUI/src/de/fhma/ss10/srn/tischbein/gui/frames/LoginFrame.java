@@ -36,6 +36,8 @@ public final class LoginFrame extends LoginForm implements ActionListener, Close
     public LoginFrame() {
         super();
 
+        this.setLocationRelativeTo(null);
+
         this.closeButton.setAction(new CloseAction(this));
         this.addUserButton.setAction(new NewUserAction(this));
         this.loginButton.setAction(new LoginAction(this));
