@@ -58,6 +58,7 @@ public final class Launcher {
                     new LoginFrame();
 
                     splashScreen.setVisible(false);
+                    splashScreen.dispose();
                 }
 
             });
