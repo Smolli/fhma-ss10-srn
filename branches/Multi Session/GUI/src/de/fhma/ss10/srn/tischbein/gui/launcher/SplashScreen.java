@@ -1,5 +1,6 @@
 package de.fhma.ss10.srn.tischbein.gui.launcher;
 
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -23,8 +24,6 @@ import org.apache.log4j.Logger;
  */
 public final class SplashScreen extends JDialog {
 
-    /** Wartezeit für den Schließmechanismus. */
-    private static final int ROUNDTRIP = 250;
     /** Die Dimension des SplashScreens. Muss dem Bild entsprechen. */
     private static final Dimension SPLAH_SIZE = new Dimension(400, 300);
     /** SplashScreen soll mind. 3 Sek. sichtbar sein. */
@@ -35,8 +34,6 @@ public final class SplashScreen extends JDialog {
     private static final long serialVersionUID = -8362265543091405513L;
     /** Hält das Startbild von unserem großen Meister Johann Heinrich Wilhelm Tischbein. */
     private BufferedImage image = null;
-    /** Hält den Startzeitpunkt, wann der SplashScreen gestartet wurde. */
-    private final long start;
     /** Hält den Selbstzerstörungs-Timer. */
     private final Timer selfDestruct;
 
@@ -53,15 +50,14 @@ public final class SplashScreen extends JDialog {
             @Override
             public void actionPerformed(final ActionEvent event) {
                 SplashScreen.this.setVisible(false);
+                SplashScreen.this.dispose();
             }
 
         });
 
         this.selfDestruct.start();
 
-        this.start = System.currentTimeMillis();
-
-        this.setModal(true);
+        this.setModalityType(Dialog.DEFAULT_MODALITY_TYPE);
         this.setVisible(true);
     }
 
@@ -79,19 +75,6 @@ public final class SplashScreen extends JDialog {
 
             graph2D.drawImage(this.image, null, 0, 0);
         }
-    }
-
-    @Override
-    public void setVisible(final boolean value) {
-        try {
-            while (!value && (System.currentTimeMillis() - this.start < SplashScreen.DESTROY_TIMEOUT)) {
-                Thread.sleep(SplashScreen.ROUNDTRIP);
-            }
-        } catch (final InterruptedException e) {
-            SplashScreen.LOG.warn("Vorzeitiges Ende!", e);
-        }
-
-        super.setVisible(value);
     }
 
     /**

@@ -15,6 +15,41 @@ import de.fhma.ss10.srn.tischbein.gui.frames.LoginFrame;
  */
 public final class Launcher {
 
+    /**
+     * {@link Runnable} für das Programm.
+     * 
+     * @author Smolli
+     */
+    private static final class ProgramThread implements Runnable {
+
+        @Override
+        public void run() {
+
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (final Exception e) {
+                Launcher.LOG.error("Error setting native Look&Feel!", e);
+            }
+
+            new LoginFrame();
+        }
+
+    }
+
+    /**
+     * {@link Runnable} für den SplashScreen.
+     * 
+     * @author Smolli
+     */
+    private static final class SplashScreenThread implements Runnable {
+
+        @Override
+        public void run() {
+            new SplashScreen();
+        }
+
+    }
+
     /** Hält den Produktnamen. */
     public static final String PRODUCT_NAME = "Tischbein v0.99 RC1";
     /** Hält den Logger. */
@@ -43,25 +78,9 @@ public final class Launcher {
      */
     public void run() {
         try {
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeLater(new SplashScreenThread());
 
-                @Override
-                public void run() {
-                    final SplashScreen splashScreen = new SplashScreen();
-
-                    try {
-                        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                    } catch (final Exception e) {
-                        Launcher.LOG.error("Error setting native Look&Feel!", e);
-                    }
-
-                    new LoginFrame();
-
-                    splashScreen.setVisible(false);
-                    splashScreen.dispose();
-                }
-
-            });
+            SwingUtilities.invokeLater(new ProgramThread());
         } catch (final Exception e) {
             GuiUtils.displayError("Unerwarteter Fehler!", e);
         }
